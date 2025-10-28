@@ -1,0 +1,70 @@
+/* 修改vant主题色 */
+:root:root {
+  --van-primary-color: #ce1925;
+  --color-background: #ededed;
+  --van-back-top-background: rgba(49, 48, 48, 0.5);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  touch-action: manipulation; /* 移动端点击事件优化 ：用户触摸时立即执行操作，而不需要等待300毫秒。 */
+  min-height: 100vh; /* 设置最小高度为视口高度，确保内容在移动设备上可以完全展示 */
+  color: var(--color-text); /* 设置文本颜色为自定义变量中定义的颜色 */
+  background: var(--color-background); /* 设置背景颜色为自定义变量中定义的背景颜色 */
+  transition:
+    color 0.5s,
+    /* 设置颜色变化的过渡效果为0.5秒 */ background-color 0.5s; /* 设置背景颜色变化的过渡效果为0.5秒 */
+  line-height: 1.6; /* 设置行高为字体大小的1.6倍，提高可读性 */
+  font-family:
+    Inter,
+    /* 使用 Inter 字体 */ -apple-system,
+    /* 苹果系统字体 */ BlinkMacSystemFont,
+    /* macOS系统字体 */ 'Segoe UI',
+    /* Windows系统字体 */ Roboto,
+    /* Android系统字体 */ Oxygen,
+    /* Linux系统字体 */ Ubuntu,
+    /* Ubuntu系统字体 */ Cantarell,
+    /* Linux系统字体 */ 'Fira Sans',
+    /* Mozilla出品的免费字体 */ 'Droid Sans',
+    /* Android系统字体 */ 'Helvetica Neue',
+    /* Helvetica字体的变体 */ sans-serif; /* 如果以上字体都不可用，则使用系统默认的无衬线字体 */
+  font-size: 15px; /* 设置字体大小为15像素 */
+  text-rendering: optimizeLegibility; /* 优化文本渲染，提高可读性 */
+  -webkit-font-smoothing: antialiased; /* 启用WebKit浏览器的字体抗锯齿 */
+  -moz-osx-font-smoothing: grayscale; /* 启用Mozilla浏览器的字体抗锯齿 */
+}
+
+/* 路由过度动画 */
+/* 进入时初始状态和离开时最终状态 */
+.slide-fadein-left-enter-from,
+.slide-fadein-right-leave-to,
+.animation-enter-from,
+.animation-leave-to {
+  opacity: 0;
+}
+
+/* 进入时最终状态和离开时初始状态 */
+.slide-fadein-left-enter-to,
+.slide-fadein-right-leave-from,
+.animation-enter-to,
+.animation-leave-from {
+  opacity: 1;
+}
+
+/* 进入和离开的活跃状态 */
+.slide-fadein-left-enter-active,
+.slide-fadein-left-leave-active,
+.slide-fadein-right-enter-active,
+.slide-fadein-right-leave-active,
+.animation-enter-active,
+.animation-leave-active {
+  /* 这里的过渡效果统一为 opacity 0.4s ease */
+  transition: opacity 0.3s ease;
+}
