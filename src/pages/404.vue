@@ -16,7 +16,7 @@ const router = useRouter()
 
 const goHome = () => {
   router.push({
-    path: '/wechat-user'
+    path: '/wechat-msg-list'
   })
 }
 </script>

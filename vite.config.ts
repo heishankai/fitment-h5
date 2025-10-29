@@ -13,20 +13,10 @@ const getEnvProxy = (mode: string) => {
     case 'test':
       return {
         proxy: {
-          '/crm-zuul-terminal-api': {
-            target: 'http://b2b-terminal-zuul-test.yst.com.cn/',
+          '/api': {
+            target: 'http://localhost:3000',
             changeOrigin: true,
-            rewrite: (path: string) => path.replace(/^\/crm-zuul-terminal-api/, '')
-          },
-          '/crm-zuul-api': {
-            target: 'http://b2b-pc-zuul-test.yst.com.cn/',
-            changeOrigin: true,
-            rewrite: (path: string) => path.replace(/^\/crm-zuul-api/, '')
-          },
-          '/hr-api': {
-            target: 'http://10.213.3.39:888',
-            changeOrigin: true,
-            rewrite: (path: string) => path.replace(/^\/hr-api/, '')
+            rewrite: (path: string) => path.replace(/^\/api/, '')
           }
         }
       }
@@ -40,6 +30,7 @@ const getEnvProxy = (mode: string) => {
           }
         }
       }
+      break
     case 'qa':
       server = {
         proxy: {
@@ -50,6 +41,7 @@ const getEnvProxy = (mode: string) => {
           }
         }
       }
+      break
     default:
       server = {}
       break

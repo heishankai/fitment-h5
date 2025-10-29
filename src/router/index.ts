@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-// utils
-import { setCookie, getUserInfo, getButtons } from '@/utils/common'
 // data
 import routes from './routes'
 
@@ -38,18 +35,12 @@ router.beforeEach(async (to: any, from: any, next: any) => {
 
   if (refresh_token || access_token) {
     try {
-      setCookie('access_token', access_token)
-      setCookie('refresh_token', refresh_token)
-      const { data: permissonButtonsData } = await getButtons()
-      const { data: userInfoData } = await getUserInfo({ access_token })
-
-      // 权限
-      localStorage.setItem('permissonButtons', JSON.stringify(permissonButtonsData))
+      // setCookie('access_token', access_token)
+      // const { data: userInfoData } = await getUserInfo({ access_token })
       // 用户信息
-      localStorage.setItem('userInfo', JSON.stringify(userInfoData))
+      // localStorage.setItem('userInfo', JSON.stringify(userInfoData))
     } catch {
-      localStorage.setItem('permissonButtons', JSON.stringify([]))
-      localStorage.setItem('userInfo', JSON.stringify({}))
+      // localStorage.setItem('userInfo', JSON.stringify({}))
     }
   }
 

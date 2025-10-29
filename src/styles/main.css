@@ -1,6 +1,6 @@
 /* 修改vant主题色 */
 :root:root {
-  --van-primary-color: #ce1925;
+  --van-primary-color: #00cec9;
   --color-background: #ededed;
   --van-back-top-background: rgba(49, 48, 48, 0.5);
 }

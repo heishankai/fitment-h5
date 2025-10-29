@@ -2,11 +2,19 @@ import { type RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/wechat-user',
-    name: '微信小程序发送消息用户端',
-    component: () => import('@/pages/wechat-user/index.vue'),
+    path: '/wechat-msg-list',
+    name: '微信用户消息列表页面',
+    component: () => import('@/pages/wechat-msg-list/index.vue'),
     meta: {
-      title: '微信小程序发送消息用户端'
+      title: '微信用户消息列表页面'
+    }
+  },
+  {
+    path: '/wechat-msg',
+    name: '发送消息页面',
+    component: () => import('@/pages/wechat-msg/index.vue'),
+    meta: {
+      title: '发送消息页面'
     }
   },
   {

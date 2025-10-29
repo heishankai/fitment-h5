@@ -3,9 +3,17 @@ import { showToast } from 'vant'
 // common
 import { codeMessage } from '@/constants/common'
 
+// 根据环境变量设置 baseURL
+const getBaseURL = () => {
+  // 使用环境变量 VITE_API_BASE_URL
+  // 开发环境（test/development）使用代理时为空字符串
+  // 生产环境从 .env.production 中读取
+  return import.meta.env.VITE_API_BASE_URL || ''
+}
+
 // 创建一个 Axios 实例
 const Request = Axios.create({
-  // baseURL: '/terminal-embed-h5', // 这里不设置，采用了传入的方式，打到proxy
+  baseURL: getBaseURL(), // 生产环境使用完整域名，开发环境使用代理
   timeout: 8000, // 设置请求超时时间
   headers: { 'content-type': 'application/json' },
   withCredentials: true // 携带跨域请求凭证（包括设置的 cookie）
