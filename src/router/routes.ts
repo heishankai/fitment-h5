@@ -4,7 +4,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/wechat-user',
     name: '微信小程序发送消息用户端',
-    component: () => import('@/pages/wechat-user.vue'),
+    component: () => import('@/pages/wechat-user/index.vue'),
     meta: {
       title: '微信小程序发送消息用户端'
     }

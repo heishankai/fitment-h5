@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 // import viteImagemin from 'vite-plugin-imagemin'
 import legacyPlugin from '@vitejs/plugin-legacy'
+import AutoImport from 'unplugin-auto-import/vite'
 
 const getEnvProxy = (mode: string) => {
   let server = {}
@@ -65,6 +66,14 @@ export default defineConfig(({ mode }: { mode: string }) => {
       legacyPlugin({
         targets: ['chrome 52'], // 需要兼容的目标列表，可以设置多个
         additionalLegacyPolyfills: ['regenerator-runtime/runtime'] // 面向IE11时需要此插件
+      }),
+      // 自动导入 Vue API
+      AutoImport({
+        imports: ['vue', 'vue-router', 'pinia'],
+        dts: true, // 生成类型声明文件
+        eslintrc: {
+          enabled: true // 生成 ESLint 配置
+        }
       }),
       vue(),
       vueJsx()

@@ -1,7 +1,3 @@
-/** 华为云图片obs 公共域名 */
-export const PREFIX_IMG_URL =
-  'https://nfsq-filesystem.obs.cn-east-2.myhuaweicloud.com/terminal-clients/images'
-
 /**  接口前缀获取 */
 export const API_PREFIX = {
   SCM_ZUUL_TERMINAL: '/crm-zuul-terminal-api',
