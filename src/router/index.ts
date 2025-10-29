@@ -29,20 +29,7 @@ const router = createRouter({
  * 前置路由守卫获取 URL 中的 token 并录入到 cookie 中
  */
 router.beforeEach(async (to: any, from: any, next: any) => {
-  const { access_token, refresh_token } = to.query || {}
-
   window.document.title = to.meta.title
-
-  if (refresh_token || access_token) {
-    try {
-      // setCookie('access_token', access_token)
-      // const { data: userInfoData } = await getUserInfo({ access_token })
-      // 用户信息
-      // localStorage.setItem('userInfo', JSON.stringify(userInfoData))
-    } catch {
-      // localStorage.setItem('userInfo', JSON.stringify({}))
-    }
-  }
 
   next()
 })

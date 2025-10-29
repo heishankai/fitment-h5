@@ -1,4 +1,5 @@
 import Axios, { AxiosError } from 'axios'
+import { getUrlParame } from './index'
 import { showToast } from 'vant'
 // common
 import { codeMessage } from '@/constants/common'
@@ -22,7 +23,12 @@ const Request = Axios.create({
 // 请求拦截器
 Request.interceptors.request.use(
   (config) => {
-    // 在发送请求之前做些什么，比如加入 token，这里不加，入口设置了cookie，请求自动携带
+    const { token } = getUrlParame() || {}
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    // 在发送请求之前做些什么，比如加入 token，
     return config
   },
   (error) => {
