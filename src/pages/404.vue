@@ -15,7 +15,7 @@ const router = useRouter()
 
 const goHome = () => {
   router.push({
-    path: '/wechat-msg-list'
+    path: '/wechat-msg'
   })
 }
 </script>
@@ -35,12 +35,12 @@ const goHome = () => {
     align-items: center;
     h1 {
       color: #666;
-      padding: 40px 0;
+      padding: 80px 0;
     }
   }
 
   img {
-    width: 750px;
+    width: 1500px;
     margin: 0 auto;
   }
 }

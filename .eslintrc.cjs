@@ -24,7 +24,13 @@ module.exports = {
     'no-fallthrough': 'warn',
     // 不允许未使用的变量（在开发中很常见）
     'no-unused-vars': 'error',
-    '@typescript-eslint/no-unused-vars': 'error'
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }
+    ]
   },
   // 为不同文件类型设置不同的规则
   overrides: [

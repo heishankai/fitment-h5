@@ -24,7 +24,7 @@ const getEnvProxy = (mode: string) => {
       server = {
         proxy: {
           '/api': {
-            target: 'http://xxx-dev.com/api',
+            target: 'http://localhost:3000',
             changeOrigin: true,
             rewrite: (path: string) => path.replace(/^\/api/, '')
           }

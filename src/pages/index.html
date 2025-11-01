@@ -10,37 +10,27 @@
 </html>
 
 <script>
-  const socket = io('http://localhost:3000/wst', {
-    transports: ['websocket', 'polling'],
-  });
+  const socket = io('http://localhost:3000/chat')
 
   socket.on('connect', () => {
-    console.log('连接成功...');
+    console.log('连接成功...')
 
-    socket.emit('findAllWst', (res) => {
-      console.log('-------findAllWst', res);
-    });
+    socket.emit('joinRoom', '李凯的房间')
 
-    socket.emit(
-      'createWst',
-      {
-        username: '李凯',
-        meg: '来消息了',
-      },
-      (res) => {
-        console.log('-------createWst', res);
-      },
-    );
+    socket.on('message', (res) => {
+      console.log('--message', res)
+    })
 
-    // 获取指定名称的消息内容，可以用来区别不同的聊天房间
-    socket.on('likai', (data) => {
-      console.log(data);
-    });
-  });
+    // 发送消息
+    socket.emit('sendMsg', {
+      room: '李凯的房间',
+      message: '你好，我是李凯'
+    })
+  })
 
   socket.on('connect_error', (error) => {
-    console.error('连接错误:', error);
-  });
+    console.error('连接错误:', error)
+  })
 
   //   // 发送测试消息
   //   socket.emit('findAllWst');

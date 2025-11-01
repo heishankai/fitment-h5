@@ -1,11 +1,126 @@
 <template>
-  <div class="wechat-user-page">发送消息页面</div>
+  <div class="chat-page">
+    <van-nav-bar title="客服聊天" fixed placeholder />
+
+    <main ref="messagesRef">
+      <template v-if="messages.length">
+        <ChatMessage
+          v-for="msg in messages"
+          :key="msg.id"
+          :msg="msg"
+          :isMine="msg.sender_type === 'wechat'"
+          :formatTime="formatTime"
+          :wechatUserAvatar="wechatUserAvatar"
+        />
+      </template>
+
+      <van-empty v-else-if="!loading" description="暂无消息，开始聊天吧" />
+      <van-loading v-else vertical>加载中...</van-loading>
+    </main>
+
+    <footer>
+      <van-uploader
+        :after-read="handleImageSelect"
+        accept="image/*"
+        :max-count="1"
+        :show-upload="false"
+      >
+        <van-icon name="photo-o" class="upload-icon" />
+      </van-uploader>
+      <van-field
+        v-model="inputText"
+        placeholder="输入消息..."
+        rows="1"
+        autosize
+        @keyup.enter="handleSend"
+      />
+      <van-button
+        type="primary"
+        size="small"
+        :disabled="!inputText.trim() || sending"
+        @click="handleSend"
+      >
+        发送
+      </van-button>
+    </footer>
+  </div>
 </template>
 
 <script lang="ts" setup>
-onMounted(() => {
-  console.log('111')
-})
+import { useChat } from './useChat'
+import ChatMessage from './components/chat-message.vue'
+
+const {
+  messages,
+  inputText,
+  loading,
+  sending,
+  messagesRef,
+  formatTime,
+  handleSend,
+  handleSendImage,
+  init,
+  disconnect,
+  wechatUserAvatar
+} = useChat()
+
+const handleImageSelect = (file: any) => {
+  if (file.file) {
+    handleSendImage(file.file)
+  }
+}
+
+onMounted(init)
+onUnmounted(disconnect)
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f5f5;
+  overflow: hidden;
+
+  main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; // 允许 flex 子元素收缩
+  }
+
+  footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 16px;
+    background: #fff;
+    border-top: 4px solid #eee;
+    flex-shrink: 0; // 防止 footer 被压缩
+
+    .upload-icon {
+      font-size: 60px;
+      color: #666;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .van-field {
+      flex: 1;
+      background: #f7f7f7;
+      border-radius: 80px;
+      padding: 14px;
+      min-width: 0; // 允许字段收缩
+    }
+
+    .van-button {
+      flex-shrink: 0;
+      border-radius: 80px;
+      padding: 28px;
+    }
+  }
+}
+</style>
