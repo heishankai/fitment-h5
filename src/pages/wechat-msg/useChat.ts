@@ -1,7 +1,7 @@
 import { ref, nextTick } from 'vue'
 import { showToast, showLoadingToast, closeToast } from 'vant'
 import { getWechatUserRoom, getRoomMessages, uploadImage } from './service'
-import { getUrlParame } from '@/utils/index'
+import { getToken } from '@/utils/index'
 import moment from 'moment'
 
 interface ChatMessage {
@@ -25,7 +25,6 @@ export function useChat() {
   const messagesRef = ref<HTMLElement>()
   const wechatUserAvatar = ref<string>('')
 
-  const getToken = () => (getUrlParame()?.token as string) || ''
   const getWsUrl = () => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
     return import.meta.env.VITE_WS_URL || baseURL.replace(/\/api$/, '') || 'http://localhost:3000'

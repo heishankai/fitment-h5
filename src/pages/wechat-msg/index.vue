@@ -49,7 +49,8 @@
 <script lang="ts" setup>
 import { useChat } from './useChat'
 import ChatMessage from './components/chat-message.vue'
-
+// ?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsIm9wZW5pZCI6Im8zY2xmMXdic3E3aXNYSHBDaHFwVDd0SlFRSEkiLCJ0eXBlIjoid2VjaGF0IiwiaWF0IjoxNzYxODM1MjA4LCJleHAiOjE3NjI0NDAwMDh9.Gqlh9Yc3fNN2N-Bdkfb2DzCVHZllPiZdlotHo4lyXkI
+// ?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsIm9wZW5pZCI6Im8zY2xmMTg4ZXJVTEQyTTI3c0ZJNHJ2amkyUzQiLCJ0eXBlIjoid2VjaGF0IiwiaWF0IjoxNzYxOTk4MTU5LCJleHAiOjE3NjI2MDI5NTl9.oDweC9dIywqJBk5gnVeLpmyrOyPKIPc8zsmiHlO-pXs
 const {
   messages,
   inputText,

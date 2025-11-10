@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 // data
 import routes from './routes'
+// utils
+import { setToken } from '@/utils/index'
 
 /**
  * @路由配置详解
@@ -26,10 +28,15 @@ const router = createRouter({
 })
 
 /**
- * 前置路由守卫获取 URL 中的 token 并录入到 cookie 中
+ * 前置路由守卫获取 URL 中的 token
  */
 router.beforeEach(async (to: any, from: any, next: any) => {
   window.document.title = to.meta.title
+  const { token } = to.query ?? {}
+
+  if (token) {
+    setToken(token as string)
+  }
 
   next()
 })

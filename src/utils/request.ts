@@ -1,5 +1,5 @@
 import Axios, { AxiosError } from 'axios'
-import { getUrlParame } from './index'
+import { getToken } from './index'
 import { showToast } from 'vant'
 // common
 import { codeMessage } from '@/constants/common'
@@ -24,7 +24,8 @@ const Request = Axios.create({
 // 请求拦截器
 Request.interceptors.request.use(
   (config) => {
-    const { token } = getUrlParame() || {}
+    const token = getToken()
+
     console.log('请求 URL:', config.url)
     console.log('Token:', token ? '已设置' : '未设置')
 
