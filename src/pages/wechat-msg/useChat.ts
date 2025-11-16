@@ -2,7 +2,7 @@ import { ref, nextTick } from 'vue'
 import { showToast, showLoadingToast, closeToast } from 'vant'
 import { getWechatUserRoom, getRoomMessages, uploadImage } from './service'
 import { getToken } from '@/utils/index'
-import moment from 'moment'
+import dayjs from 'dayjs'
 
 interface ChatMessage {
   id: number | string
@@ -32,8 +32,8 @@ export function useChat() {
 
   const formatTime = (time?: string) => {
     if (!time) return ''
-    const m = moment(time)
-    const days = moment().diff(m, 'days')
+    const m = dayjs(time)
+    const days = dayjs().diff(m, 'day')
     if (days === 0) return m.format('HH:mm')
     if (days === 1) return '昨天 ' + m.format('HH:mm')
     return m.format('MM-DD HH:mm')
