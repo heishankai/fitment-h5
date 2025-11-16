@@ -22,6 +22,7 @@ const goHome = () => {
 
 <style lang="less" scoped>
 .page-container {
+  width: 100vw;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -40,7 +41,7 @@ const goHome = () => {
   }
 
   img {
-    width: 1500px;
+    width: 100%;
     margin: 0 auto;
   }
 }
