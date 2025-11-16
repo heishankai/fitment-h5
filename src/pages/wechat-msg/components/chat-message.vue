@@ -59,10 +59,10 @@ const previewImage = (url: string) => {
 .chat-message {
   display: flex;
   flex-direction: row;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   word-wrap: break-word;
   align-items: flex-start;
-  gap: 16px;
+  gap: 8px;
 
   &--mine {
     flex-direction: row-reverse;
@@ -79,19 +79,19 @@ const previewImage = (url: string) => {
     .chat-message__text {
       background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
       color: #fff;
-      border-radius: 36px 36px 8px 36px;
-      padding: 20px 32px;
-      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+      border-radius: 16px 16px 4px 16px;
+      padding: 10px 16px;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
     .chat-message__image {
-      border-radius: 36px 36px 8px 36px;
+      border-radius: 16px 16px 4px 16px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 
       img {
-        max-width: 400px;
-        max-height: 600px;
+        max-width: 200px;
+        max-height: 300px;
         display: block;
         cursor: pointer;
       }
@@ -99,7 +99,7 @@ const previewImage = (url: string) => {
 
     .chat-message__time {
       color: #999;
-      margin-top: 8px;
+      margin-top: 4px;
       text-align: right;
     }
   }
@@ -121,19 +121,19 @@ const previewImage = (url: string) => {
     .chat-message__text {
       background: #fff;
       color: #333;
-      border-radius: 36px 36px 36px 8px;
-      padding: 20px 32px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border-radius: 16px 16px 16px 4px;
+      padding: 10px 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
     .chat-message__image {
-      border-radius: 36px 36px 36px 8px;
+      border-radius: 16px 16px 16px 4px;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 
       img {
-        max-width: 400px;
-        max-height: 600px;
+        max-width: 200px;
+        max-height: 300px;
         display: block;
         cursor: pointer;
       }
@@ -141,14 +141,14 @@ const previewImage = (url: string) => {
 
     .chat-message__time {
       color: #999;
-      margin-top: 8px;
+      margin-top: 4px;
       text-align: left;
     }
   }
 
   .chat-message__avatar {
-    width: 80px;
-    height: 80px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -167,7 +167,7 @@ const previewImage = (url: string) => {
       justify-content: center;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
-      font-size: 32px;
+      font-size: 16px;
       font-weight: 500;
     }
   }
@@ -180,12 +180,12 @@ const previewImage = (url: string) => {
   }
 
   .chat-message__text {
-    font-size: 30px;
+    font-size: 16px;
     line-height: 1.5;
   }
 
   .chat-message__time {
-    font-size: 22px;
+    font-size: 14px;
   }
 }
 </style>

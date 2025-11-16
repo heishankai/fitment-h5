@@ -1,7 +1,5 @@
 <template>
   <div class="chat-page">
-    <van-nav-bar title="客服聊天" fixed placeholder />
-
     <main ref="messagesRef">
       <template v-if="messages.length">
         <ChatMessage
@@ -87,7 +85,7 @@ onUnmounted(disconnect)
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px;
+    padding: 6px;
     display: flex;
     flex-direction: column;
     min-height: 0; // 允许 flex 子元素收缩
@@ -96,14 +94,14 @@ onUnmounted(disconnect)
   footer {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 24px 16px;
+    gap: 8px;
+    padding: 12px 8px;
     background: #fff;
     border-top: 4px solid #eee;
     flex-shrink: 0; // 防止 footer 被压缩
 
     .upload-icon {
-      font-size: 60px;
+      font-size: 30px;
       color: #666;
       cursor: pointer;
       flex-shrink: 0;
@@ -112,15 +110,15 @@ onUnmounted(disconnect)
     .van-field {
       flex: 1;
       background: #f7f7f7;
-      border-radius: 80px;
-      padding: 14px;
+      border-radius: 40px;
+      padding: 8px;
       min-width: 0; // 允许字段收缩
     }
 
     .van-button {
       flex-shrink: 0;
-      border-radius: 80px;
-      padding: 28px;
+      border-radius: 40px;
+      padding: 14px;
     }
   }
 }

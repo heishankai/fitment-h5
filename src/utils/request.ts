@@ -26,9 +26,6 @@ Request.interceptors.request.use(
   (config) => {
     const token = getToken()
 
-    console.log('请求 URL:', config.url)
-    console.log('Token:', token ? '已设置' : '未设置')
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     } else {

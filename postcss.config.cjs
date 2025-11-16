@@ -19,7 +19,7 @@ module.exports = {
     autoprefixer(),
     viewport({
       ...baseViewportOpts,
-      viewportWidth: (file) => (file.includes('node_modules/vant/') ? 375 : 750)
+      viewportWidth: (file) => (file.includes('node_modules/vant/') ? 375 : 375)
     })
   ]
 }
