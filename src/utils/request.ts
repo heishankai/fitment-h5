@@ -1,8 +1,11 @@
 import Axios, { AxiosError } from 'axios'
 import { getToken } from './index'
-import { showToast } from 'vant'
+import { showToast, showLoadingToast, closeToast } from 'vant'
 // common
 import { codeMessage } from '@/constants/common'
+
+// loading 计数器，用于跟踪正在进行的请求数量
+let loadingCount = 0
 
 // 根据环境变量设置 baseURL
 const getBaseURL = () => {
@@ -40,11 +43,22 @@ Request.interceptors.request.use(
       delete config.headers['Content-Type']
     }
 
+    // 显示 loading
+    loadingCount++
+    if (loadingCount === 1) {
+      showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+    }
+
     // 在发送请求之前做些什么，比如加入 token，
     return config
   },
   (error) => {
-    // 对请求错误
+    // 对请求错误，也要关闭 loading
+    loadingCount--
+    if (loadingCount <= 0) {
+      loadingCount = 0
+      closeToast()
+    }
     return Promise.reject(error)
   }
 )
@@ -52,6 +66,13 @@ Request.interceptors.request.use(
 // 响应拦截器
 Request.interceptors.response.use(
   (response) => {
+    // 关闭 loading
+    loadingCount--
+    if (loadingCount <= 0) {
+      loadingCount = 0
+      closeToast()
+    }
+
     const { success, message } = response.data || {}
 
     // 后端统一使用 ResponseInterceptor，所有响应都是 { success, data, code, message } 格式
@@ -65,6 +86,13 @@ Request.interceptors.response.use(
     return response.data
   },
   (error: AxiosError) => {
+    // 关闭 loading
+    loadingCount--
+    if (loadingCount <= 0) {
+      loadingCount = 0
+      closeToast()
+    }
+
     // 响应错误
     const { response } = error
     if (response && response.status) {

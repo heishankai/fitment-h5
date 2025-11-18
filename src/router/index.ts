@@ -34,6 +34,12 @@ router.beforeEach(async (to: any, from: any, next: any) => {
   window.document.title = to.meta.title
   const { token } = to.query ?? {}
 
+  const userInfo: any = JSON.parse(localStorage.getItem('userInfo') ?? '{}')
+
+  if (userInfo?.token) {
+    setToken(userInfo.token)
+  }
+
   if (token) {
     setToken(token as string)
   }

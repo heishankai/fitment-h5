@@ -9,13 +9,13 @@
         <div class="profile-section">
           <div class="avatar-wrapper">
             <div class="avatar-border">
-              <img v-if="userInfoData?.avatar" :src="userInfoData?.avatar" class="avatar-img" />
+              <img v-if="userInfo?.avatar" :src="userInfo?.avatar" class="avatar-img" />
               <div v-else class="avatar-placeholder">👤</div>
             </div>
           </div>
 
           <div class="profile-info">
-            <div class="nickname">{{ userInfoData?.nickname || '未设置昵称' }}</div>
+            <div class="nickname">{{ userInfo?.nickname || '未设置昵称' }}</div>
 
             <div class="badges">
               <div class="badge blue">
@@ -67,29 +67,23 @@
 import EditProfileButton from './components/EditProfileButton.vue'
 import MenuItem from './components/MenuItem.vue'
 import router from '@/router'
-import { getCaseListService } from './service'
+import { getUserInfoService } from './service'
 
 // 数据
 const completedOrders = ref(156)
 const rating = ref(4.9)
 
-const userInfoData = ref({})
+const userInfo = ref({})
 
 // 加载用户信息
-const loadUserInfo = () => {
-  const info = JSON.parse(localStorage.getItem('userInfo')) ?? {}
-  userInfoData.value = info
-
-  getCaseListService({
-    pageIndex: 1,
-    pageSize: 10
-  }).then((res) => {
-    console.log(res)
-  })
+const getUserInfo = async () => {
+  const { success, data } = await getUserInfoService()
+  if (!success) return
+  userInfo.value = data
 }
 
 onMounted(() => {
-  loadUserInfo()
+  getUserInfo()
 })
 
 const goEdit = () => router.push('/mine/edit-info')

@@ -9,11 +9,3 @@ export const getCaseListService = (params: any): Promise<BasicResp<any>> => {
     data: params
   })
 }
-
-// 获取用户信息
-export const getUserInfoService = (): Promise<BasicResp<any>> => {
-  return Request({
-    url: `/api/craftsman-user`,
-    method: 'GET'
-  })
-}

@@ -1,5 +1,5 @@
 import { ref, nextTick } from 'vue'
-import { showToast, showLoadingToast, closeToast } from 'vant'
+import { showToast } from 'vant'
 import { getWechatUserRoom, getRoomMessages, uploadImage } from './service'
 import { getToken } from '@/utils/index'
 import dayjs from 'dayjs'
@@ -129,7 +129,6 @@ export function useChat() {
     if (!roomId.value || !socket.value || sending.value) return
 
     sending.value = true
-    showLoadingToast({ message: '上传中...', forbidClick: true })
 
     try {
       const res = await uploadImage(file)
@@ -148,7 +147,6 @@ export function useChat() {
       const errorMsg = error?.response?.data?.message || error?.message || '上传失败'
       showToast(errorMsg)
     } finally {
-      closeToast()
       sending.value = false
     }
   }
