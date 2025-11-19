@@ -25,29 +25,29 @@ body {
   transition:
     color 0.5s,
     /* 设置颜色变化的过渡效果为0.5秒 */ background-color 0.5s; /* 设置背景颜色变化的过渡效果为0.5秒 */
-  
+
   /* 优化字体配置，接近原生app效果 */
   /* 优先使用系统原生字体，确保最佳显示效果 */
   font-family:
-    -apple-system, /* iOS/macOS 系统字体 SF Pro */
-    BlinkMacSystemFont, /* macOS 系统字体 */
-    'Segoe UI', /* Windows 系统字体 */
-    'PingFang SC', /* 中文字体：苹方（iOS/macOS） */
-    'Hiragino Sans GB', /* 中文字体：冬青黑体（macOS） */
-    'Microsoft YaHei', /* 中文字体：微软雅黑（Windows） */
-    'Helvetica Neue', /* iOS 系统字体 */
-    Helvetica, /* 通用字体 */
-    Roboto, /* Android 系统字体 */
-    'Noto Sans', /* Android 中文字体 */
-    'Noto Sans CJK SC', /* Android 中文字体 */
-    Arial, /* 通用字体 */
-    sans-serif; /* 系统默认无衬线字体 */
-  
+    -apple-system,
+    /* iOS/macOS 系统字体 SF Pro */ BlinkMacSystemFont,
+    /* macOS 系统字体 */ 'Segoe UI',
+    /* Windows 系统字体 */ 'PingFang SC',
+    /* 中文字体：苹方（iOS/macOS） */ 'Hiragino Sans GB',
+    /* 中文字体：冬青黑体（macOS） */ 'Microsoft YaHei',
+    /* 中文字体：微软雅黑（Windows） */ 'Helvetica Neue',
+    /* iOS 系统字体 */ Helvetica,
+    /* 通用字体 */ Roboto,
+    /* Android 系统字体 */ 'Noto Sans',
+    /* Android 中文字体 */ 'Noto Sans CJK SC',
+    /* Android 中文字体 */ Arial,
+    /* 通用字体 */ sans-serif; /* 系统默认无衬线字体 */
+
   font-size: 16px; /* 使用16px作为基准字体大小，避免iOS缩放问题 */
   line-height: 1.5; /* 优化行高，接近原生app */
   letter-spacing: -0.01em; /* 微调字间距，使文字更紧凑自然 */
   font-weight: 400; /* 标准字重 */
-  
+
   /* 字体渲染优化，接近原生app效果 */
   text-rendering: optimizeLegibility; /* 优化文本渲染，提高可读性 */
   -webkit-font-smoothing: antialiased; /* WebKit字体抗锯齿，使文字更平滑 */
@@ -71,7 +71,12 @@ select {
 }
 
 /* 优化标题字体 */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600; /* 标题使用稍重的字重 */
   letter-spacing: -0.02em; /* 标题字间距更紧凑 */
   line-height: 1.3; /* 标题行高更紧凑 */
@@ -83,6 +88,108 @@ small,
   font-size: 14px;
   line-height: 1.4;
   letter-spacing: 0;
+}
+
+/* van-empty 组件全局样式 - 使用主题色 */
+
+.van-empty__image svg path {
+  fill: var(--van-primary-color) !important;
+}
+
+.van-empty__description {
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* ========== 全局动画定义 ========== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shine {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(45deg) translateX(100%);
+  }
+}
+
+/* ========== 公共动画类 ========== */
+/* 淡入上滑动画 - 用于卡片、列表项等 */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+/* 下滑动画 - 用于头部提示等 */
+.slide-down {
+  animation: slideDown 0.5s ease-out both;
+}
+
+/* 弹跳动画 - 用于图标等 */
+.bounce {
+  animation: bounce 2s infinite;
+}
+
+/* 光泽扫过效果 - 用于卡片点击效果 */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: all 0.6s;
+}
+
+.shine-effect:active::after {
+  animation: shine 0.6s ease-out;
 }
 
 /* 路由过度动画 */

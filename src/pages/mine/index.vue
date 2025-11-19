@@ -19,13 +19,13 @@
 
             <div class="badges">
               <div class="badge blue">
-                <van-icon name="checked" size="14px" />
-                已实名
+                <van-icon name="checked" size="14px" v-show="userInfo?.isVerified" />
+                {{ userInfo?.isVerified ? '已实名' : '未实名认证' }}
               </div>
 
               <div class="badge orange">
-                <van-icon name="medal" size="14px" />
-                技能认证
+                <van-icon name="medal" size="14px" v-show="userInfo?.isSkillVerified" />
+                {{ userInfo?.isSkillVerified ? '技能认证通过' : '技能未认证' }}
               </div>
             </div>
           </div>
@@ -90,7 +90,13 @@ const goEdit = () => router.push('/mine/edit-info')
 
 const goRealNameAuth = () => router.push('/mine/real-name-auth')
 
-const goSkillAuth = () => router.push('/mine/skill-auth')
+const goSkillAuth = () => {
+  if (userInfo.value?.isSkillVerified) {
+    router.push('/mine/skill-auth')
+    return
+  }
+  router.push('/mine/work-kind-list')
+}
 
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
 

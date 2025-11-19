@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <custom-van-navbar />
-    <main>
+    <main class="fade-in-up">
       <div class="avatar">
         <van-uploader
           :after-read="handleImageSelect"

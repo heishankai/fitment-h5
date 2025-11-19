@@ -95,9 +95,10 @@ Request.interceptors.response.use(
 
     // 响应错误
     const { response } = error
+
     if (response && response.status) {
-      const { status, statusText } = response
-      const errorText = codeMessage[status] || statusText
+      const { status, statusText, data }: any = response
+      const errorText = data?.message || codeMessage[status] || statusText
       showToast(errorText)
     } else if (!response) {
       showToast('您的网络发生异常，无法连接服务器')

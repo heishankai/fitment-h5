@@ -46,6 +46,14 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: '/mine/work-kind-list',
+        name: '工种选择',
+        component: () => import('@/pages/work-kind-list/index.vue'),
+        meta: {
+          title: '工种选择'
+        }
+      },
+      {
         path: '/mine/personal-homepage',
         name: '个人主页',
         component: () => import('@/pages/personal-homepage/index.vue'),
