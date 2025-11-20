@@ -93,11 +93,11 @@
 import { showToast } from 'vant'
 import SectionTitle from '@/components/section-title.vue'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
-import { useRoute } from 'vue-router'
 import { uploadImage } from '@/service'
 import { isSkillVerifiedService, getisSkillVerifiedService } from './service'
+import { useRouter } from 'vue-router'
 
-const route = useRoute()
+const router = useRouter()
 
 const active = ref(0)
 const selectedWorkKind = ref({
@@ -158,6 +158,7 @@ const submit = async () => {
 
   if (!success) return
   showToast('提交成功，审核中......')
+  router.back()
 }
 
 // 获取用户信息
@@ -241,7 +242,8 @@ footer {
 }
 
 section {
-  margin: 16px 0;
+  margin: 12px 0px;
+  padding: 12px;
 
   background: #fff;
   border-radius: 12px;
@@ -272,7 +274,7 @@ section {
 }
 
 .upload-item {
-  padding: 0 16px 16px;
+  margin: 12px 0px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -318,12 +320,12 @@ section {
     background: rgba(0, 0, 0, 0.5);
     z-index: 10;
     position: absolute;
-    width: 36px;
-    height: 36px;
-    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
 
     .van-icon {
-      font-size: 20px;
+      font-size: 30px;
     }
 
     svg {
