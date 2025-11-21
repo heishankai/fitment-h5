@@ -66,8 +66,10 @@
 <script setup>
 import EditProfileButton from './components/EditProfileButton.vue'
 import MenuItem from './components/MenuItem.vue'
-import router from '@/router'
+import { useRouter } from 'vue-router'
 import { getUserInfoService } from './service'
+
+const router = useRouter()
 
 // 数据
 const completedOrders = ref(156)

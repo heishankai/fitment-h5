@@ -94,7 +94,7 @@ import { showToast } from 'vant'
 import SectionTitle from '@/components/section-title.vue'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { uploadImage } from '@/service'
-import { isSkillVerifiedService, getisSkillVerifiedService } from './service'
+import { isSkillVerifiedService, getIsSkillVerifiedService } from './service'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -163,7 +163,7 @@ const submit = async () => {
 
 // 获取用户信息
 const getisSkillVerified = async () => {
-  const { success, data } = await getisSkillVerifiedService()
+  const { success, data } = await getIsSkillVerifiedService()
   if (!success) return
 
   selectedWorkKind.value.workKindId = data.workKindId || route?.query?.workKindId

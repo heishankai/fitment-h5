@@ -9,7 +9,7 @@ export const isSkillVerifiedService = (params: any): Promise<BasicResp<any>> => 
   })
 }
 
-export const getisSkillVerifiedService = (): Promise<BasicResp<any>> => {
+export const getIsSkillVerifiedService = (): Promise<BasicResp<any>> => {
   return Request({
     url: `/api/is-skill-verified/my`,
     method: 'GET'
