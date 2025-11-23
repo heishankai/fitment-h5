@@ -156,7 +156,7 @@ const onSubmit = async (values) => {
 // 获取用户信息
 const getUserInfo = async () => {
   const { success, data } = await getIsVerifiedService()
-  if (!success) return
+  if (!success || !data) return
   cardInfo.value = data
 }
 

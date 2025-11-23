@@ -95,9 +95,10 @@ import SectionTitle from '@/components/section-title.vue'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { uploadImage } from '@/service'
 import { isSkillVerifiedService, getIsSkillVerifiedService } from './service'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 const active = ref(0)
 const selectedWorkKind = ref({
@@ -165,13 +166,14 @@ const submit = async () => {
 const getisSkillVerified = async () => {
   const { success, data } = await getIsSkillVerifiedService()
   if (!success) return
+  console.log(route?.query, 'route?.query')
 
-  selectedWorkKind.value.workKindId = data.workKindId || route?.query?.workKindId
-  selectedWorkKind.value.workKindName = data.workKindName || route?.query?.workKindName
+  selectedWorkKind.value.workKindId = data?.workKindId || route?.query?.workKindId
+  selectedWorkKind.value.workKindName = data?.workKindName || route?.query?.workKindName
 
-  skillInfo.value.promise_image = data.promise_image
-  skillInfo.value.operation_video = data.operation_video
-  skillInfo.value.isSkillVerified = data.isSkillVerified
+  skillInfo.value.promise_image = data?.promise_image
+  skillInfo.value.operation_video = data?.operation_video
+  skillInfo.value.isSkillVerified = data?.isSkillVerified
 }
 
 onMounted(() => {

@@ -25,6 +25,7 @@ interface Props {
   isMine: boolean
   // eslint-disable-next-line no-unused-vars
   formatTime: (time: string) => string
+  craftsmanUserAvatar?: string
   wechatUserAvatar?: string
 }
 const props = defineProps<Props>()
@@ -34,12 +35,30 @@ const msgType = computed(() => {
 })
 
 const avatarUrl = computed(() => {
-  if (props.isMine) {
-    // 微信用户使用传入的头像
+  // 根据消息的 sender_type 来确定使用哪个头像
+  const senderType = props.msg.sender_type || props.msg.senderType || ''
+
+  if (senderType === 'craftsman') {
+    // 工匠用户发送的消息，使用工匠头像
+    return props.craftsmanUserAvatar || ''
+  } else if (senderType === 'wechat') {
+    // 微信用户发送的消息，使用微信用户头像
     return props.wechatUserAvatar || ''
+  }
+
+  // 兼容其他类型（如 admin、service）或默认情况
+  // 如果是自己的消息，优先使用对应的头像
+  if (props.isMine) {
+    return props.craftsmanUserAvatar || props.wechatUserAvatar || ''
   } else {
-    // 客服消息，可以从 msg 中获取头像，或使用默认头像
-    return props.msg.serviceAvatar || props.msg.avatar || ''
+    return (
+      props.wechatUserAvatar ||
+      props.craftsmanUserAvatar ||
+      props.msg.wechatUserAvatar ||
+      props.msg.adminAvatar ||
+      props.msg.avatar ||
+      ''
+    )
   }
 })
 
@@ -47,7 +66,8 @@ const avatarText = computed(() => {
   if (props.isMine) {
     return '我'
   }
-  return '客服'
+  // 根据消息类型判断是客服还是微信用户
+  return props.msg.sender_type === 'wechat' ? '微' : '客服'
 })
 
 const previewImage = (url: string) => {

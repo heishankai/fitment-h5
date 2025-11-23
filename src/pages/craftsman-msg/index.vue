@@ -7,9 +7,9 @@
           v-for="msg in messages"
           :key="msg.id"
           :msg="msg"
-          :isMine="msg.sender_type === 'wechat'"
+          :isMine="msg.sender_type === 'craftsman'"
           :formatTime="formatTime"
-          :wechatUserAvatar="wechatUserAvatar"
+          :craftsmanUserAvatar="craftsmanUserAvatar"
         />
       </template>
 
@@ -60,9 +60,9 @@ const {
   handleSendImage,
   init,
   disconnect,
-  wechatUserAvatar
+  craftsmanUserAvatar
 } = useChat()
-// ?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsIm9wZW5pZCI6Im8zY2xmMXdic3E3aXNYSHBDaHFwVDd0SlFRSEkiLCJ0eXBlIjoid2VjaGF0IiwiaWF0IjoxNzYzNzI2MTgwLCJleHAiOjE3Njk3NzQxODB9.FWxo2J6a9___k8l90-6IrxNWcBjXcO1tv7jWRimmJbc
+
 const handleImageSelect = (file: any) => {
   if (file.file) {
     handleSendImage(file.file)

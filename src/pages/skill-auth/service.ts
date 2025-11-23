@@ -9,6 +9,9 @@ export const isSkillVerifiedService = (params: any): Promise<BasicResp<any>> => 
   })
 }
 
+/**
+ * 获取用户技能认证信息
+ */
 export const getIsSkillVerifiedService = (): Promise<BasicResp<any>> => {
   return Request({
     url: `/api/is-skill-verified/my`,

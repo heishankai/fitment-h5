@@ -3,11 +3,103 @@ import { type RouteRecordRaw } from 'vue-router'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/wechat-msg',
-    name: '微信用户聊天页面',
+    name: '微信用户联系在线客服',
     component: () => import('@/pages/wechat-msg/index.vue'),
     meta: {
-      title: '微信用户聊天页面'
+      title: '在线客服'
     }
+  },
+  {
+    path: '/craftsman-msg',
+    name: '工匠用户联系在线客服',
+    component: () => import('@/pages/craftsman-msg/index.vue'),
+    meta: {
+      title: '联系客服'
+    }
+  },
+  {
+    path: '/notice',
+    name: '公告',
+    children: [
+      {
+        path: '/notice/notice-list',
+        name: '平台公告',
+        component: () => import('@/pages/notice/notice-list/index.vue'),
+        meta: {
+          title: '平台公告'
+        }
+      },
+      {
+        path: '/notice/notice-detail',
+        name: '公告详情',
+        component: () => import('@/pages/notice/notice-detail/index.vue'),
+        meta: {
+          title: '公告详情'
+        }
+      },
+      {
+        path: '/notice/craftsman-system-message',
+        name: '工匠用户系统通知',
+        component: () => import('@/pages/notice/craftsman-system-message/index.vue'),
+        meta: {
+          title: '系统通知'
+        }
+      },
+      {
+        path: '/notice/wechat-system-message',
+        name: '微信用户系统通知',
+        component: () => import('@/pages/notice/wechat-system-message/index.vue'),
+        meta: {
+          title: '系统通知'
+        }
+      }
+    ]
+  },
+  {
+    path: '/chat',
+    name: '消息',
+    children: [
+      {
+        path: '/chat/wechat',
+        name: '微信用户消息',
+        meta: {
+          title: '微信用户消息'
+        },
+        component: () => import('@/pages/chat/wechat/index.vue')
+      },
+      {
+        path: '/chat/wechat/:id',
+        name: '微信用户聊天详情',
+        meta: {
+          title: '聊天'
+        },
+        component: () => import('@/pages/chat/wechat/[id].vue')
+      },
+      {
+        path: '/chat/craftsman',
+        name: '工匠用户消息',
+        component: () => import('@/pages/chat/craftsman/index.vue'),
+        meta: {
+          title: '在线客服'
+        }
+      },
+      {
+        path: '/chat/craftsman/:id',
+        name: '工匠用户聊天详情',
+        meta: {
+          title: '聊天'
+        },
+        component: () => import('@/pages/chat/craftsman/[id].vue')
+      },
+      {
+        path: '/chat/select-craftsman',
+        name: '选择工匠',
+        meta: {
+          title: '选择工匠'
+        },
+        component: () => import('@/pages/chat/select-craftsman/index.vue')
+      }
+    ]
   },
   {
     path: '/mine',

@@ -92,12 +92,7 @@ small,
 
 /* van-empty 组件全局样式 - 使用主题色 */
 
-.van-empty__image svg path {
-  fill: var(--van-primary-color) !important;
-}
-
 .van-empty__description {
-  color: #64748b;
   font-weight: 600;
 }
 

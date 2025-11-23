@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <custom-van-navbar />
+    <custom-van-navbar :title="craftsmanUserName || '工匠用户'" />
     <main ref="messagesRef">
       <template v-if="messages.length">
         <ChatMessage
@@ -9,6 +9,7 @@
           :msg="msg"
           :isMine="msg.sender_type === 'wechat'"
           :formatTime="formatTime"
+          :craftsmanUserAvatar="craftsmanUserAvatar"
           :wechatUserAvatar="wechatUserAvatar"
         />
       </template>
@@ -47,8 +48,15 @@
 
 <script lang="ts" setup>
 import { useChat } from './useChat'
-import ChatMessage from './components/chat-message.vue'
+import ChatMessage from '../../craftsman-msg/components/chat-message.vue'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const roomId = Number(route.params.id)
+const craftsmanUserId = Number(route.query.craftsmanUserId)
+const craftsmanUserName = (route.query.craftsmanUserName as string) || '工匠用户'
+
 const {
   messages,
   inputText,
@@ -60,9 +68,10 @@ const {
   handleSendImage,
   init,
   disconnect,
+  craftsmanUserAvatar,
   wechatUserAvatar
-} = useChat()
-// ?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsIm9wZW5pZCI6Im8zY2xmMXdic3E3aXNYSHBDaHFwVDd0SlFRSEkiLCJ0eXBlIjoid2VjaGF0IiwiaWF0IjoxNzYzNzI2MTgwLCJleHAiOjE3Njk3NzQxODB9.FWxo2J6a9___k8l90-6IrxNWcBjXcO1tv7jWRimmJbc
+} = useChat(roomId, craftsmanUserId)
+
 const handleImageSelect = (file: any) => {
   if (file.file) {
     handleSendImage(file.file)
@@ -88,7 +97,7 @@ onUnmounted(disconnect)
     padding: 6px;
     display: flex;
     flex-direction: column;
-    min-height: 0; // 允许 flex 子元素收缩
+    min-height: 0;
   }
 
   footer {
@@ -97,27 +106,15 @@ onUnmounted(disconnect)
     gap: 8px;
     padding: 12px 8px;
     background: #fff;
-    flex-shrink: 0; // 防止 footer 被压缩
 
     .upload-icon {
-      font-size: 30px;
+      font-size: 24px;
       color: #666;
       cursor: pointer;
-      flex-shrink: 0;
     }
 
     .van-field {
       flex: 1;
-      background: #f7f7f7;
-      border-radius: 40px;
-      padding: 8px;
-      min-width: 0; // 允许字段收缩
-    }
-
-    .van-button {
-      flex-shrink: 0;
-      border-radius: 40px;
-      padding: 14px;
     }
   }
 }
