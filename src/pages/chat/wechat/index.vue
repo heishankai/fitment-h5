@@ -1,38 +1,48 @@
 <template>
   <div class="page">
-    <Notice />
+    <Notice ref="noticeRef" />
     <main>
-      <van-empty v-if="!msgList?.length" description="暂无消息" class="empty-state" />
+      <van-pull-refresh class="pull-refresh" v-model="refreshing" @refresh="onRefresh">
+        <van-empty
+          v-if="!msgList?.length && !refreshing"
+          description="暂无消息"
+          class="empty-state"
+        />
 
-      <van-swipe-cell v-for="item in msgList" :key="item.id">
-        <div @click="handleClick(item)" class="notice-card fade-in-up">
-          <img class="card-icon" :src="item.craftsman_user?.avatar" />
-          <van-badge v-if="item.unreadCount > 0" :content="item.unreadCount" class="unread-badge" />
-          <div class="card-content-wrapper">
-            <div class="card-title">{{ item.craftsman_user?.nickname }}</div>
-            <div class="card-content" v-if="item.lastMessage">
-              {{ item.lastMessage.content }}
-            </div>
-            <div class="card-time">
-              <van-icon name="clock-o" size="12" />
-              {{
-                item.lastMessage
-                  ? dayjs(item.lastMessage.createdAt).format('MM-DD HH:mm')
-                  : dayjs(item.updatedAt).format('MM-DD HH:mm')
-              }}
+        <van-swipe-cell v-for="item in msgList" :key="item.id">
+          <div @click="handleClick(item)" class="notice-card fade-in-up">
+            <img class="card-icon" :src="item.craftsman_user?.avatar" />
+            <van-badge
+              v-if="item.unreadCount > 0"
+              :content="item.unreadCount"
+              class="unread-badge"
+            />
+            <div class="card-content-wrapper">
+              <div class="card-title">{{ item.craftsman_user?.nickname }}</div>
+              <div class="card-content" v-if="item.lastMessage">
+                {{ item.lastMessage.content }}
+              </div>
+              <div class="card-time">
+                <van-icon name="clock-o" size="12" />
+                {{
+                  item.lastMessage
+                    ? dayjs(item.lastMessage.createdAt).format('MM-DD HH:mm')
+                    : dayjs(item.updatedAt).format('MM-DD HH:mm')
+                }}
+              </div>
             </div>
           </div>
-        </div>
-        <template #right>
-          <van-button
-            square
-            type="danger"
-            text="删除"
-            class="delete-button"
-            @click="handleDelete(item)"
-          />
-        </template>
-      </van-swipe-cell>
+          <template #right>
+            <van-button
+              square
+              type="danger"
+              text="删除"
+              class="delete-button"
+              @click="handleDelete(item)"
+            />
+          </template>
+        </van-swipe-cell>
+      </van-pull-refresh>
     </main>
   </div>
 </template>
@@ -47,12 +57,24 @@ import { showConfirmDialog, showToast } from 'vant'
 const router = useRouter()
 
 const msgList = ref<any[]>([])
+const refreshing = ref(false)
+const noticeRef = ref<InstanceType<typeof Notice> | null>(null)
 
 // 加载数据
 const loadData = async () => {
   const { success, data } = await getWechatUserRooms()
   if (success && data) {
     msgList.value = data
+  }
+}
+
+// 下拉刷新
+const onRefresh = async () => {
+  refreshing.value = true
+  try {
+    await Promise.all([loadData(), noticeRef.value?.refresh?.()])
+  } finally {
+    refreshing.value = false
   }
 }
 
@@ -114,10 +136,10 @@ onMounted(() => {
 
 main {
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overflow: hidden;
   margin: 0 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 :deep(.van-swipe-cell) {
@@ -193,6 +215,10 @@ main {
 }
 
 .delete-button {
+  height: 100%;
+}
+
+.pull-refresh {
   height: 100%;
 }
 </style>

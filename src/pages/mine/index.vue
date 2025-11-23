@@ -56,9 +56,7 @@
       <MenuItem icon="shield-o" color="#007bff" title="实名认证" @click="goRealNameAuth" />
       <MenuItem icon="medal-o" color="#ff9800" title="技能认证" @click="goSkillAuth" />
       <MenuItem icon="contact-o" color="#4caf50" title="个人主页" @click="goPersonalHomepage" />
-      <MenuItem icon="location-o" color="#f44336" title="我的工地" @click="goMyConstruction" />
-      <MenuItem icon="orders-o" color="#8a2be2" title="我的订单" @click="goMyOrders" />
-      <MenuItem icon="setting-o" color="#2196f3" title="屏幕适配测试" />
+      <MenuItem icon="location-o" color="#f44336" title="我的工地订单" @click="goMyConstruction" />
     </div>
   </div>
 </template>
@@ -103,8 +101,6 @@ const goSkillAuth = () => {
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
 
 const goMyConstruction = () => router.push('/mine/my-construction')
-
-const goMyOrders = () => router.push('/mine/my-orders')
 </script>
 
 <style lang="less" scoped>

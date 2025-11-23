@@ -48,7 +48,7 @@
 
 <script lang="ts" setup>
 import { useChat } from './useChat'
-import ChatMessage from '../../craftsman-msg/components/chat-message.vue'
+import ChatMessage from '../../admin-service/craftsman-msg/components/chat-message.vue'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { useRoute } from 'vue-router'
 

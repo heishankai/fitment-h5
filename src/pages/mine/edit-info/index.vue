@@ -74,7 +74,7 @@ onMounted(() => {
 
 // 退出登录
 const handleLogout = async () => {
-  window?.FlutterBridge?.logout()
+  window?.AppLogout()
 }
 
 // 获取用户信息

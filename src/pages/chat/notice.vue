@@ -60,12 +60,17 @@ const getUnreadNotificationCount = async () => {
   }
 }
 
+// 暴露刷新方法供父组件调用
+defineExpose({
+  refresh: getUnreadNotificationCount
+})
+
 // 点击客服消息
 const handleClickService = () => {
   if (route.path.includes('wechat')) {
-    router.push(`/wechat-msg`)
+    router.push(`/admin-service/wechat-msg`)
   } else {
-    router.push(`/craftsman-msg`)
+    router.push(`/admin-service/craftsman-msg`)
   }
 }
 
