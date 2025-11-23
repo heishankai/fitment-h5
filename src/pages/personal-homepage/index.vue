@@ -43,7 +43,7 @@
         </div>
       </section>
     </main>
-    <footer v-show="!personalInfo?.isHomePageVerified">
+    <footer v-show="!personalInfo?.isHomePageVerified" class="fade-in-up">
       <van-button type="primary" size="large" round block @click="handleSubmit" class="save-btn">
         <van-icon name="success" />
         提交审核

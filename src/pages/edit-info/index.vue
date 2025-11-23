@@ -40,7 +40,7 @@
         </van-cell-group>
       </van-form>
     </main>
-    <footer>
+    <footer class="fade-in-up">
       <van-button type="danger" size="large" round block @click="handleLogout" class="logout-btn">
         <van-icon name="revoke" />
         退出登录
@@ -71,6 +71,11 @@ const formRef = ref(null)
 onMounted(() => {
   getUserInfo()
 })
+
+// 退出登录
+const handleLogout = async () => {
+  window?.FlutterBridge?.logout()
+}
 
 // 获取用户信息
 const getUserInfo = async () => {

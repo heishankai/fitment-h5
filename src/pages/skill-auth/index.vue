@@ -47,7 +47,7 @@
         </van-uploader>
       </section>
     </main>
-    <footer>
+    <footer class="fade-in-up">
       <van-button
         v-if="active > 0"
         type="primary"

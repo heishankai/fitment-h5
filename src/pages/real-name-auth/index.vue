@@ -75,7 +75,7 @@
         />
       </div>
     </main>
-    <footer v-show="!cardInfo?.isVerified">
+    <footer v-show="!cardInfo?.isVerified" class="fade-in-up">
       <van-button type="primary" size="large" round block native-type="submit" class="save-btn">
         提交认证
       </van-button>

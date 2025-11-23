@@ -103,8 +103,8 @@ onUnmounted(disconnect)
   footer {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 8px;
+    gap: 12px;
+    padding: 24px 16px;
     background: #fff;
 
     .upload-icon {
