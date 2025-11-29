@@ -12,6 +12,8 @@ const getEnvProxy = (mode: string) => {
   switch (mode) {
     case 'test':
       return {
+        host: '0.0.0.0', // 监听所有网络接口，允许 Android 模拟器通过 10.0.2.2 访问
+        port: 5173,
         proxy: {
           '/api': {
             target: 'http://localhost:3000',
@@ -22,6 +24,8 @@ const getEnvProxy = (mode: string) => {
       }
     case 'development':
       server = {
+        host: '0.0.0.0', // 监听所有网络接口，允许 Android 模拟器通过 10.0.2.2 访问
+        port: 5173,
         proxy: {
           '/api': {
             target: 'http://localhost:3000',

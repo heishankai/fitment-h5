@@ -88,6 +88,21 @@ export const createOrGetRoom = (craftsmanUserId: number): Promise<BasicResp<any>
 }
 
 /**
+ * 创建或获取聊天房间（工匠用户视角）
+ * @param wechatUserId 微信用户ID
+ * 注意：craftsman_user_id 会从token中自动获取，无需传递
+ */
+export const createOrGetRoomByCraftsman = (wechatUserId: number): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/craftsman-wechat-chat/rooms`,
+    method: 'POST',
+    data: {
+      wechat_user_id: wechatUserId
+    }
+  }) as Promise<BasicResp<any>>
+}
+
+/**
  * 标记房间消息为已读
  * @param roomId 房间ID
  */

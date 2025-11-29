@@ -87,7 +87,14 @@ const getUserInfo = async () => {
 // 手动触发表单提交
 const handleSubmit = async () => {
   await formRef.value?.submit()
-  const { success } = await updatInfoService({ ...userInfo.value })
+  const { success } = await updatInfoService({
+    ...userInfo.value
+    // province: '浙江省',
+    // city: '杭州市',
+    // district: '西湖区',
+    // latitude: 30.15357010113589,
+    // longitude: 120.1088718657033
+  })
   if (!success) return
   router.back()
 }

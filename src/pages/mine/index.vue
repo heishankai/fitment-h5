@@ -34,14 +34,14 @@
         <!-- 统计数据 -->
         <div class="stats">
           <div class="stat-item">
-            <div class="value">{{ completedOrders }}</div>
+            <div class="value">{{ userInfo?.completedOrdersCount }}</div>
             <div class="label">已完成订单</div>
           </div>
 
           <div class="divider"></div>
 
           <div class="stat-item">
-            <div class="value">{{ rating }}</div>
+            <div class="value">{{ userInfo?.score }}</div>
             <div class="label">综合评分</div>
           </div>
         </div>
@@ -70,9 +70,6 @@ import { getUserInfoService } from './service'
 const router = useRouter()
 
 // 数据
-const completedOrders = ref(156)
-const rating = ref(4.9)
-
 const userInfo = ref({})
 
 // 加载用户信息

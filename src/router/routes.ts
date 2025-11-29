@@ -166,6 +166,66 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: '我的工地订单'
         }
+      },
+      {
+        path: '/mine/construction-order/:id',
+        name: '工地详情',
+        meta: { title: '工地详情' },
+        component: () => import('@/pages/mine/construction-order/index.vue')
+      },
+      {
+        path: '/mine/construction-progress/:id',
+        name: '施工进度',
+        meta: { title: '施工进度' },
+        component: () => import('@/pages/mine/construction-progress/index.vue')
+      },
+      {
+        path: '/mine/designer-price/:id',
+        name: '设计师工价',
+        meta: { title: '设计师工价' },
+        component: () => import('@/pages/mine/designer-price/index.vue')
+      },
+      {
+        path: '/mine/foreman-price/:id',
+        name: '工长工价',
+        meta: { title: '工价' },
+        component: () => import('@/pages/mine/foreman-price/index.vue')
+      },
+      {
+        path: '/mine/create-material-order/:id',
+        name: '创建辅料单',
+        meta: { title: '创建辅料单' },
+        component: () => import('@/pages/mine/create-material-order/index.vue')
+      },
+      {
+        path: '/mine/create-material-order/detail/:id',
+        name: '商品详情',
+        meta: { title: '商品详情' },
+        component: () => import('@/pages/mine/create-material-order/detail.vue')
+      },
+      {
+        path: '/mine/create-material-order/search/:id',
+        name: '搜索商品',
+        meta: { title: '搜索商品' },
+        component: () => import('@/pages/mine/create-material-order/search.vue')
+      }
+    ]
+  },
+  {
+    path: '/home',
+    name: '首页',
+    children: [
+      {
+        path: '/home',
+        name: '首页',
+        meta: { title: '首页' },
+        component: () => import('@/pages/home/index.vue')
+      },
+      {
+        path: '/home/order/:id',
+        name: '订单详情',
+        meta: { title: '订单详情' },
+        component: () => import('@/pages/home/order-detail/index.vue')
       }
     ]
   },
