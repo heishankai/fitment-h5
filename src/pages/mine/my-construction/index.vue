@@ -5,7 +5,7 @@
       v-model:active="activeTab"
       @change="onTabChange"
       sticky
-      class="tabs-container"
+      class="tabs-container fade-in-up"
       swipeable
     >
       <van-tab title="已接单" name="accepted">
@@ -122,6 +122,19 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  :deep(.van-tabs__wrap) {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  :deep(.van-tabs__nav) {
+    background: transparent;
+  }
+
+  :deep(.van-tab) {
+    transition: color 0.3s ease;
+  }
 
   :deep(.van-tabs__content) {
     flex: 1;

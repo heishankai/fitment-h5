@@ -9,14 +9,15 @@
       <van-empty
         v-if="!loading && orders.length === 0"
         description="暂无订单"
-        class="empty-state"
+        class="empty-state fade-in-up"
       />
 
       <div v-else class="order-list">
         <van-card
-          v-for="order in orders"
+          v-for="(order, index) in orders"
           :key="order.id"
-          class="order-card"
+          class="order-card fade-in-up shine-effect"
+          :style="{ animationDelay: `${index * 0.1}s` }"
           @click="$emit('go-to-detail', order.id)"
         >
           <template #thumb>
@@ -155,6 +156,12 @@ const getStatusType = (
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   background: #fff;
+  opacity: 0;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
 
   &:active {
     transform: translateY(-2px) scale(0.98);
@@ -177,6 +184,9 @@ const getStatusType = (
     box-shadow: 0 4px 12px rgba(0, 206, 201, 0.25);
     position: relative;
     overflow: hidden;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
 
     &::before {
       content: '';
@@ -194,6 +204,16 @@ const getStatusType = (
       font-size: 24px;
       position: relative;
       z-index: 1;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:hover .work-kind-icon {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 206, 201, 0.35);
+
+    .van-icon {
+      transform: rotate(5deg);
     }
   }
 
@@ -246,6 +266,7 @@ const getStatusType = (
       gap: 10px;
       flex: 1;
       min-width: 0;
+      transition: transform 0.3s ease;
 
       .icon-wrapper {
         width: 32px;
@@ -257,10 +278,27 @@ const getStatusType = (
         justify-content: center;
         flex-shrink: 0;
         margin-top: 2px;
+        transition:
+          transform 0.3s ease,
+          background 0.3s ease;
 
         .van-icon {
           color: #00cec9;
           font-size: 16px;
+          transition: transform 0.3s ease;
+        }
+      }
+
+      &:hover .icon-wrapper {
+        transform: scale(1.1);
+        background: linear-gradient(
+          135deg,
+          rgba(0, 206, 201, 0.15) 0%,
+          rgba(0, 180, 216, 0.15) 100%
+        );
+
+        .van-icon {
+          transform: scale(1.1);
         }
       }
 

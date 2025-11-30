@@ -86,9 +86,9 @@ export const handleContactUser = async (
  */
 export const getButtonTextByWorkKind = (workKindName?: string): string => {
   if (workKindName === WorkKind.DESIGNER) {
-    return '设计师工价'
+    return '创建工价'
   } else if (workKindName === WorkKind.FOREMAN) {
-    return '工价'
+    return '创建工价'
   } else {
     return '创建辅料单'
   }
@@ -101,11 +101,8 @@ export const getButtonTextByWorkKind = (workKindName?: string): string => {
  * @returns 路由跳转配置
  */
 export const getRouteByWorkKind = (workKindName?: string, orderId?: number): { path: string } => {
-  if (workKindName === WorkKind.DESIGNER) {
-    return {
-      path: `/mine/designer-price/${orderId || ''}`
-    }
-  } else if (workKindName === WorkKind.FOREMAN) {
+  if (workKindName === WorkKind.DESIGNER || workKindName === WorkKind.FOREMAN) {
+    // 设计师和工长都跳转到工价页面
     return {
       path: `/mine/foreman-price/${orderId || ''}`
     }

@@ -4,7 +4,7 @@
 
     <main>
       <!-- 位置信息 -->
-      <section class="section location-section">
+      <section class="section location-section fade-in-up">
         <div class="location-content">
           <van-icon name="location-o" class="location-icon" />
           <span class="location-text">{{ construction_progress.location || '定位中...' }}</span>
@@ -12,7 +12,7 @@
       </section>
 
       <!-- 施工照片 -->
-      <section class="section photos-section">
+      <section class="section photos-section fade-in-up" :style="{ animationDelay: '0.1s' }">
         <h2 class="section-title">施工照片</h2>
         <div class="photos-content">
           <div class="photos-count">{{ construction_progress.photos?.length || 0 }}/5</div>
@@ -28,11 +28,11 @@
       </section>
 
       <!-- 打卡区域 -->
-      <section class="section check-in-section">
+      <section class="section check-in-section fade-in-up" :style="{ animationDelay: '0.2s' }">
         <h2 class="section-title">打卡记录</h2>
         <div class="check-in-wrapper">
           <!-- 上班打卡 -->
-          <div class="check-in-card">
+          <div class="check-in-card shine-effect">
             <div class="check-in-header">
               <van-icon name="clock-o" class="check-in-icon" />
               <span class="check-in-label">上班打卡</span>
@@ -61,7 +61,7 @@
           </div>
 
           <!-- 下班打卡 -->
-          <div class="check-in-card">
+          <div class="check-in-card shine-effect" :style="{ animationDelay: '0.05s' }">
             <div class="check-in-header">
               <van-icon name="clock-o" class="check-in-icon" />
               <span class="check-in-label">下班打卡</span>
@@ -288,6 +288,14 @@ main {
   padding: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .section-title {
@@ -311,6 +319,8 @@ main {
       font-size: 16px;
       color: #00cec9;
       flex-shrink: 0;
+      transition: transform 0.3s ease;
+      animation: pulse 2s infinite;
     }
 
     .location-text {
@@ -319,7 +329,22 @@ main {
       flex: 1;
       line-height: 1.5;
       word-break: break-all;
+      transition: color 0.3s ease;
     }
+  }
+
+  &:hover .location-icon {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
   }
 }
 
@@ -339,6 +364,19 @@ main {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out both;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #00cec9;
+
+      .check-in-icon {
+        transform: rotate(15deg) scale(1.1);
+      }
+    }
 
     .check-in-header {
       display: flex;
@@ -349,6 +387,7 @@ main {
       .check-in-icon {
         font-size: 18px;
         color: #00cec9;
+        transition: transform 0.3s ease;
       }
 
       .check-in-label {
@@ -416,17 +455,35 @@ main {
         border-radius: 6px;
         width: 60px;
         height: 60px;
+        transition: all 0.3s ease;
+
+        &:active {
+          transform: scale(0.95);
+          border-color: #00cec9;
+          background: rgba(0, 206, 201, 0.05);
+        }
       }
 
       :deep(.van-uploader__preview-image) {
         border-radius: 6px;
         width: 60px;
         height: 60px;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
 
       :deep(.van-uploader__preview) {
         margin-right: 8px;
         margin-bottom: 8px;
+        animation: fadeInUp 0.4s ease-out both;
       }
     }
   }
@@ -439,6 +496,8 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.5s ease-out both;
+  animation-delay: 0.3s;
 
   display: flex;
   gap: 10px;
@@ -451,10 +510,44 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &:active {
+      transform: scale(0.96);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
 
     .van-icon {
       font-size: 16px;
+      transition: transform 0.3s ease;
     }
+
+    &:active .van-icon {
+      transform: scale(1.1);
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>

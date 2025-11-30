@@ -187,9 +187,15 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: '/mine/foreman-price/:id',
-        name: '工长工价',
+        name: '工价',
         meta: { title: '工价' },
         component: () => import('@/pages/mine/foreman-price/index.vue')
+      },
+      {
+        path: '/mine/foreman-price/detail/:id',
+        name: '工价详情',
+        meta: { title: '工价详情' },
+        component: () => import('@/pages/mine/foreman-price/detail.vue')
       },
       {
         path: '/mine/create-material-order/:id',

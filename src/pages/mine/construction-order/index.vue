@@ -3,18 +3,32 @@
     <custom-van-navbar />
 
     <main v-if="order">
-      <!-- 订单头部 -->
-      <detail-header :order="order" />
+      <!-- 订单头部（包含用户信息） -->
+      <detail-header :order="order" :user="order?.wechat_user" class="fade-in-up" />
 
       <!-- 订单信息 -->
+      <order-info :order="order" class="fade-in-up" :style="{ animationDelay: '0.2s' }" />
 
-      <user-info :user="order?.wechat_user" />
+      <!-- 辅材清单 -->
+      <material-list
+        :materials="order?.materials_list"
+        class="fade-in-up"
+        :style="{ animationDelay: '0.3s' }"
+      />
 
-      <!-- 订单信息 -->
-      <order-info :order="order" />
+      <!-- 工价清单 -->
+      <price-list
+        :work-prices="order?.work_prices"
+        class="fade-in-up"
+        :style="{ animationDelay: '0.35s' }"
+      />
 
       <!-- 施工进度-->
-      <construction-progress :construction_progress="order?.construction_progress" />
+      <construction-progress
+        :construction_progress="order?.construction_progress"
+        class="fade-in-up"
+        :style="{ animationDelay: '0.4s' }"
+      />
     </main>
 
     <footer v-if="order?.order_status === 2">
@@ -24,8 +38,8 @@
         round
         class="action-btn"
         @click="goToConstructionProgress"
+        icon="location"
       >
-        <van-icon name="orders-o" />
         施工打卡
       </van-button>
       <van-button
@@ -34,8 +48,8 @@
         round
         class="action-btn"
         @click="handleCreateMaterialOrder"
+        icon="plus"
       >
-        <van-icon name="shopping-cart-o" />
         {{ buttonText }}
       </van-button>
     </footer>
@@ -54,8 +68,9 @@ import { useRoute, useRouter } from 'vue-router'
 // components
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import DetailHeader from './components/detail-header.vue'
-import UserInfo from './components/user-info.vue'
 import OrderInfo from './components/order-info.vue'
+import MaterialList from './components/material-list.vue'
+import PriceList from './components/price-list.vue'
 import ConstructionProgress from './components/construction-progress.vue'
 // utils
 import { getOrderDetail, getUserInfoService } from './service'
@@ -110,6 +125,9 @@ const loadOrderDetail = async () => {
   const { success, data } = await getOrderDetail(orderId)
   if (!success) return
   order.value = data
+
+  console.log('订单数据:', order.value)
+  console.log('工价清单数据:', order.value?.work_prices)
 
   const { success: userSuccess, data: userData } = await getUserInfoService()
   if (!userSuccess) return
@@ -179,6 +197,8 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.5s ease-out both;
+  animation-delay: 0.5s;
 
   display: flex;
   gap: 10px;
@@ -191,10 +211,33 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &:active {
+      transform: scale(0.96);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
 
     .van-icon {
       font-size: 16px;
+      transition: transform 0.3s ease;
     }
+
+    &:active .van-icon {
+      transform: scale(1.1);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>

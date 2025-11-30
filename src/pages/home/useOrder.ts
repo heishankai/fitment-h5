@@ -246,11 +246,21 @@ export function useOrder() {
   const loadOrders = async () => {
     try {
       const res = await getCraftsmanOrders()
+      console.log('订单列表接口返回:', res)
       if (res?.success && res.data) {
-        orders.value = res.data.filter((order: Order) => order.order_status !== 4) // 过滤已取消的订单
+        // 确保 res.data 是数组
+        const orderList = Array.isArray(res.data) ? res.data : []
+        console.log('原始订单数据:', orderList)
+        orders.value = orderList.filter((order: Order) => order.order_status !== 4) // 过滤已取消的订单
+        console.log('过滤后的订单列表:', orders.value)
+        console.log('订单列表长度:', orders.value.length)
+      } else {
+        console.warn('订单列表接口返回数据格式不正确:', res)
+        orders.value = []
       }
     } catch (error) {
       console.error('加载订单列表失败:', error)
+      orders.value = []
     }
   }
 

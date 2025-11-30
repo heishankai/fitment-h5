@@ -1,154 +1,192 @@
 <template>
   <div class="page-container">
     <custom-van-navbar />
-
     <!-- 搜索栏 -->
-    <div class="search-header">
-      <div class="search-bar" @click="navigateToSearch">
-        <van-icon name="search" color="#00cec9" size="18" />
-        <div class="search-placeholder">搜索您想要的商品...</div>
-      </div>
-    </div>
-
-    <!-- 品类选择组件 -->
-    <category-selector @category-change="onCategoryChange" ref="categorySelectorRef" />
-
-    <main ref="mainRef" @scroll="handleScroll">
-      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-        <!-- 商品瀑布流组件 -->
-        <product-waterfall :selected-category="selectedCategory" ref="productWaterfallRef" />
+    <SearchBar class="fade-in-up" />
+    <main>
+      <van-pull-refresh v-model="refreshing" @refresh="onRefresh" class="pull-refresh-wrapper">
+        <van-tree-select
+          v-model:main-active-index="activeIndex"
+          height="100%"
+          :items="categories"
+          @click-nav="onClickNav"
+          class="fade-in-up"
+          :style="{ animationDelay: '0.1s' }"
+        >
+          <template #content>
+            <div v-if="commodityList?.length" class="product-list">
+              <van-card
+                v-for="(product, index) in commodityList"
+                :key="product?.id"
+                :title="product?.commodity_name"
+                :desc="product?.commodity_description"
+                :thumb="product?.commodity_cover"
+                class="product-card fade-in-up shine-effect"
+                :style="{ animationDelay: `${0.2 + index * 0.05}s` }"
+                @click="navigateToDetail(product)"
+              >
+                <template #price>
+                  <div class="product-price-wrapper">
+                    <span class="product-price">¥{{ product?.commodity_price }}</span>
+                    <span class="product-unit">/{{ product?.commodity_unit }}</span>
+                  </div>
+                </template>
+                <template #footer>
+                  <van-button
+                    size="mini"
+                    type="primary"
+                    class="add-btn"
+                    @click.stop="handleAddToCart(product)"
+                    icon="shopping-cart-o"
+                  >
+                    加入清单
+                  </van-button>
+                </template>
+              </van-card>
+            </div>
+            <van-empty v-else description="暂无商品" />
+          </template>
+        </van-tree-select>
       </van-pull-refresh>
     </main>
 
     <footer>
       <van-button
+        icon="shopping-cart-o"
         type="primary"
         size="normal"
         round
         class="action-btn"
-        @click="onSubmit"
-        :disabled="selectedCommodities.length === 0"
+        @click="showCartList = true"
       >
-        <van-icon name="checked" />
-        提交 ({{ selectedCommodities.length }})
+        查看清单
+        <van-badge v-if="cartTotalCount > 0" :content="cartTotalCount" />
       </van-button>
     </footer>
+
+    <!-- 清单弹出层 -->
+    <CartPopup
+      v-model="showCartList"
+      :cart-list="cartList"
+      @update-item="updateCartItem"
+      @remove-item="removeCartItem"
+      @submit="handleSubmit"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { showToast } from 'vant'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
-import CategorySelector from './components/category-selector.vue'
-import ProductWaterfall from './components/product-waterfall.vue'
-import { createMaterialOrder } from './service'
+import SearchBar from './components/search-bar.vue'
+import CartPopup from './components/cart-popup.vue'
+import {
+  getCategoryListService,
+  getCommodityConfigListService,
+  addMaterialService
+} from './service'
+import { useRouter, useRoute } from 'vue-router'
+import { showToast, showConfirmDialog } from 'vant'
+import { useCart } from './composables/useCart'
 
-const route = useRoute()
 const router = useRouter()
+const route = useRoute()
 
-// 响应式数据
 const refreshing = ref(false)
-const selectedCategory = ref<number | null>(null)
-const selectedCommodities = ref<Array<{ commodityId: number; quantity: number }>>([])
-const isLoadingMore = ref(false)
+const activeIndex = ref(0)
+const showCartList = ref(false)
 
-// 组件引用
-const categorySelectorRef = ref<InstanceType<typeof CategorySelector> | null>(null)
-const productWaterfallRef = ref<InstanceType<typeof ProductWaterfall> | null>(null)
-const mainRef = ref<HTMLElement | null>(null)
+const categories = ref<any[]>([])
+const commodityList = ref<any[]>([])
 
-// 品类变化处理
-const onCategoryChange = (categoryId: number | null): void => {
-  selectedCategory.value = categoryId
-}
+// 使用购物车功能
+const {
+  cartList,
+  cartTotalCount,
+  totalPrice,
+  addToCart,
+  updateCartItem,
+  removeCartItem,
+  clearCart
+} = useCart()
 
-// 下拉刷新
-const onRefresh = async (): Promise<void> => {
-  refreshing.value = true
-  // 重置商品数据并重新加载
-  productWaterfallRef.value?.resetProducts()
-  await productWaterfallRef.value?.loadProducts()
-  refreshing.value = false
-}
-
-// 滚动加载更多
-const handleScroll = async (e: Event) => {
-  const target = e.target as HTMLElement
-  if (!target || isLoadingMore.value || refreshing.value) return
-
-  // 计算是否滚动到底部（距离底部 200px 时触发）
-  const scrollTop = target.scrollTop
-  const scrollHeight = target.scrollHeight
-  const clientHeight = target.clientHeight
-  const distanceToBottom = scrollHeight - scrollTop - clientHeight
-
-  // 距离底部 200px 时加载更多
-  if (distanceToBottom < 200) {
-    isLoadingMore.value = true
-    try {
-      await productWaterfallRef.value?.getMore()
-    } finally {
-      isLoadingMore.value = false
-    }
-  }
-}
-
-// 跳转搜索页面
-const navigateToSearch = (): void => {
-  const orderId = route.params.id
-  router.push({
-    path: `/mine/create-material-order/search/${orderId}`
-  })
+// 加入清单
+const handleAddToCart = (product: any) => {
+  addToCart(product)
 }
 
 // 提交辅料单
-const onSubmit = async () => {
-  if (selectedCommodities.value.length === 0) {
-    showToast('请先选择商品')
+const handleSubmit = async () => {
+  if (cartList.value.length === 0) {
+    showToast('清单为空，请先添加商品')
     return
   }
 
   try {
-    const orderId = Number(route.params.id)
-    const { success, message } = await createMaterialOrder({
-      orderId,
-      commodities: selectedCommodities.value
+    await showConfirmDialog({
+      title: '确认提交',
+      message: `共 ${cartTotalCount.value} 件商品，总计 ¥${totalPrice.value.toFixed(2)}，确认提交吗？`
     })
 
+    console.log('提交清单:', cartList.value)
+
+    const { success } = await addMaterialService({
+      orderId: Number(route.params.id),
+      materials: [
+        {
+          total_price: totalPrice.value,
+          commodity_list: cartList.value
+        }
+      ]
+    })
     if (success) {
-      showToast('创建成功')
+      showToast('提交成功')
+      clearCart()
       router.back()
-    } else {
-      showToast(message || '创建失败')
+      showCartList.value = false
     }
-  } catch (error: any) {
-    showToast(error?.message || '创建失败')
+  } catch {
+    console.log('用户取消')
   }
 }
 
-// 暴露方法供详情页调用
-defineExpose({
-  addCommodity: (commodityId: number, quantity: number) => {
-    const existing = selectedCommodities.value.find((item) => item.commodityId === commodityId)
-    if (existing) {
-      existing.quantity += quantity
-    } else {
-      selectedCommodities.value.push({ commodityId, quantity })
-    }
-  },
-  removeCommodity: (commodityId: number) => {
-    const index = selectedCommodities.value.findIndex((item) => item.commodityId === commodityId)
-    if (index > -1) {
-      selectedCommodities.value.splice(index, 1)
-    }
-  },
-  getCommodityQuantity: (commodityId: number) => {
-    const item = selectedCommodities.value.find((item) => item.commodityId === commodityId)
-    return item ? item.quantity : 0
-  }
-})
+// 下拉刷新
+const onRefresh = async () => {
+  refreshing.value = true
+  await getCategoryList()
+  refreshing.value = false
+}
+
+// 点击导航
+const onClickNav = (index: number) => getCommodityConfig(categories.value[index].value)
+
+// 获取分类列表
+const getCategoryList = async () => {
+  const { success, data } = await getCategoryListService()
+  if (!success || !data) return
+
+  categories.value = data.map((item: any) => ({
+    text: item.category_name,
+    value: item.id
+  }))
+
+  onClickNav(0)
+}
+
+// 获取商品列表
+const getCommodityConfig = async (category_id: number) => {
+  const { success, data } = await getCommodityConfigListService({ category_id })
+  if (!success || !data) return
+  commodityList.value = data
+}
+
+// 跳转商品详情
+const navigateToDetail = (product: any) => {
+  router.push({
+    path: `/mine/create-material-order/detail/${product.id}`
+  })
+}
+
+onMounted(getCategoryList)
 </script>
 
 <style lang="less" scoped>
@@ -165,44 +203,22 @@ defineExpose({
   overscroll-behavior: none;
 }
 
-/* 搜索栏 */
-.search-header {
-  padding: 12px 16px;
-  background: #fff;
-  flex-shrink: 0;
-
-  .search-bar {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 25px;
-    padding: 14px 20px;
-    gap: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 206, 201, 0.2);
-    transition: all 0.3s ease;
-    cursor: pointer;
-
-    &:active {
-      transform: scale(0.98);
-      box-shadow: 0 4px 16px rgba(0, 206, 201, 0.15);
-      border-color: rgba(0, 206, 201, 0.4);
-    }
-
-    .search-placeholder {
-      color: #999;
-      font-size: 15px;
-      font-weight: 400;
-    }
-  }
-}
-
 main {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  min-height: 0;
+}
+
+.pull-refresh-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 footer {
@@ -212,6 +228,8 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.5s ease-out both;
+  animation-delay: 0.3s;
 
   display: flex;
   gap: 10px;
@@ -224,9 +242,224 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &:active {
+      transform: scale(0.96);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
 
     .van-icon {
       font-size: 16px;
+      transition: transform 0.3s ease;
+    }
+
+    &:active .van-icon {
+      transform: scale(1.1);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+::v-deep(.van-tree-select) {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  height: 100%;
+}
+
+::v-deep(.van-tree-select__nav) {
+  flex: none;
+  width: 100px;
+  overflow-y: auto;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 40px;
+  letter-spacing: 0.58px;
+  transition: background 0.3s ease;
+
+  .van-sidebar-item {
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(0, 206, 201, 0.05);
+    }
+
+    &--active {
+      background: rgba(0, 206, 201, 0.1);
+    }
+  }
+}
+
+::v-deep(.van-tree-select__content) {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: #f5f5f5;
+}
+
+.product-list {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.product-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  opacity: 0;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  :deep(.van-card) {
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 16px;
+    background: #fff;
+  }
+
+  :deep(.van-card__thumb) {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-right: 16px;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:active :deep(.van-card__thumb img) {
+    transform: scale(1.05);
+  }
+
+  :deep(.van-card__content) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :deep(.van-card__title) {
+    font-size: 16px;
+    font-weight: 600;
+    color: #323233;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  :deep(.van-card__desc) {
+    font-size: 13px;
+    color: #646566;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  :deep(.van-card__tags) {
+    margin-top: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .van-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+      border-color: rgba(0, 206, 201, 0.3);
+      color: #00cec9;
+    }
+  }
+
+  :deep(.van-card__price) {
+    margin-top: 8px;
+  }
+
+  .product-price-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .product-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #00cec9;
+  }
+
+  .product-unit {
+    font-size: 12px;
+    color: #969799;
+    font-weight: 400;
+  }
+
+  :deep(.van-card__footer) {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .add-btn {
+    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+    transition: all 0.3s ease;
+
+    &:active {
+      transform: scale(0.95);
+      box-shadow: 0 1px 4px rgba(0, 206, 201, 0.4);
     }
   }
 }

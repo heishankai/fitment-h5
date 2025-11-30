@@ -12,6 +12,27 @@
           </van-tag>
         </div>
       </div>
+
+      <!-- 用户信息 -->
+      <div class="user-section" v-if="user">
+        <van-image
+          :src="user.avatar || 'https://via.placeholder.com/40'"
+          round
+          width="40"
+          height="40"
+          fit="cover"
+          class="user-avatar"
+          :alt="`${user.nickname || '用户'}的头像`"
+        />
+        <div class="user-info">
+          <div class="user-name">{{ user.nickname || '用户' }}</div>
+          <a v-if="user.phone" :href="`tel:${user.phone}`" class="user-phone">
+            <van-icon name="phone-o" />
+            <span>{{ encryptPhone(user.phone) }}</span>
+          </a>
+        </div>
+      </div>
+
       <time class="order-time" v-if="order.createdAt" :datetime="order.createdAt">
         {{ formatTime(order.createdAt) }}
       </time>
@@ -20,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatTime } from '@/utils/index'
+import { formatTime, encryptPhone } from '@/utils/index'
 
 defineProps<{
   order: {
@@ -29,6 +50,11 @@ defineProps<{
     order_status_name: string
     createdAt?: string
   }
+  user?: {
+    avatar?: string
+    nickname?: string
+    phone?: string
+  } | null
 }>()
 
 // 获取订单状态类型
@@ -52,8 +78,8 @@ const getStatusType = (status: number) => {
 .detail-header {
   background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
   color: #fff;
 
   .header-content {
@@ -72,6 +98,7 @@ const getStatusType = (status: number) => {
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
 
         .van-icon {
           font-size: 24px;
@@ -81,15 +108,68 @@ const getStatusType = (status: number) => {
 
       .work-kind-info {
         flex: 1;
+        min-width: 0;
 
         .work-kind-name {
           font-size: 20px;
           font-weight: 700;
           margin: 0 0 8px 0;
+          line-height: 1.3;
         }
 
         .status-tag {
           font-weight: 600;
+        }
+      }
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      margin-bottom: 12px;
+
+      .user-avatar {
+        flex-shrink: 0;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .user-info {
+        flex: 1;
+        min-width: 0;
+
+        .user-name {
+          font-size: 15px;
+          font-weight: 600;
+          color: #fff;
+          margin: 0 0 6px 0;
+          line-height: 1.3;
+        }
+
+        .user-phone {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.9);
+          text-decoration: none;
+          transition: opacity 0.2s;
+
+          &:hover {
+            opacity: 0.8;
+          }
+
+          &:active {
+            opacity: 0.7;
+          }
+
+          .van-icon {
+            font-size: 14px;
+          }
         }
       }
     }

@@ -11,7 +11,7 @@
     />
 
     <!-- 顶部标题栏 -->
-    <div class="header">
+    <div class="header fade-in-up">
       <div class="header-content">
         <div class="header-top">
           <div class="title-wrapper">
@@ -23,8 +23,13 @@
               <div class="subtitle">实时接收订单</div>
             </div>
           </div>
-          <van-badge v-if="newOrderCount > 0" :content="newOrderCount" class="badge">
-            <div class="new-order-badge" @click="clearNewOrderCount">
+          <van-badge
+            v-if="newOrderCount > 0"
+            :content="newOrderCount"
+            class="badge fade-in-up"
+            :style="{ animationDelay: '0.1s' }"
+          >
+            <div class="new-order-badge bounce" @click="clearNewOrderCount">
               <van-icon name="bell" />
               <span>新订单</span>
             </div>
@@ -33,8 +38,13 @@
       </div>
 
       <!-- 当前位置信息 -->
-      <div class="location-wrapper" v-if="location?.address" @click.stop="loadCurrentLocation">
-        <div class="location-card">
+      <div
+        class="location-wrapper fade-in-up"
+        v-if="location?.address"
+        :style="{ animationDelay: '0.2s' }"
+        @click.stop="loadCurrentLocation"
+      >
+        <div class="location-card shine-effect">
           <div class="location-icon-wrapper">
             <van-icon name="location-o" class="location-icon" />
             <div class="location-pulse"></div>
@@ -52,7 +62,11 @@
           </div>
         </div>
       </div>
-      <div class="location-loading" v-else-if="!location?.address && currentLocation">
+      <div
+        class="location-loading fade-in-up"
+        v-else-if="!location?.address && currentLocation"
+        :style="{ animationDelay: '0.2s' }"
+      >
         <div class="location-card">
           <van-loading size="16px" color="#00cec9" />
           <span class="loading-text">定位中...</span>
@@ -63,18 +77,34 @@
     <!-- 订单列表 -->
     <div class="content">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <!-- 调试信息（开发环境） -->
+        <div
+          v-if="orders.length > 0"
+          style="
+            padding: 8px;
+            font-size: 12px;
+            color: #999;
+            background: #f5f5f5;
+            margin-bottom: 8px;
+            border-radius: 4px;
+          "
+        >
+          订单数量: {{ orders.length }}
+        </div>
+
         <van-empty
           v-if="orders.length === 0"
           description="暂无订单，等待新订单..."
-          class="empty-state"
+          class="empty-state fade-in-up"
         />
 
         <div v-else class="order-list">
           <div
-            v-for="order in orders"
-            :key="order.id"
-            class="order-card"
+            v-for="(order, index) in orders"
+            :key="`order-${order.id}-${index}`"
+            class="order-card fade-in-up shine-effect"
             :class="{ 'new-order': order.order_status === 1 }"
+            :style="{ animationDelay: `${index * 0.1}s` }"
             @click="goToOrderDetail(order.id)"
           >
             <!-- 订单头部 -->
@@ -352,9 +382,16 @@ const onRefresh = async () => {
 
 <style lang="less" scoped>
 .page-container {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f0f9ff 0%, #e8f4f8 50%, #f5f5f5 100%);
-  padding-bottom: env(safe-area-inset-bottom, 20px);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f5f5f5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overscroll-behavior: none;
 }
 
 .header {
@@ -385,10 +422,38 @@ const onRefresh = async () => {
           align-items: center;
           justify-content: center;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
+          position: relative;
+          overflow: hidden;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: shine 3s infinite;
+          }
 
           .title-icon {
             font-size: 28px;
             color: #fff;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+          }
+        }
+
+        .title-wrapper:hover .icon-circle {
+          transform: scale(1.05);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+
+          .title-icon {
+            transform: rotate(5deg);
           }
         }
 
@@ -454,6 +519,17 @@ const onRefresh = async () => {
       gap: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
 
       .location-icon-wrapper {
         position: relative;
@@ -564,6 +640,7 @@ const onRefresh = async () => {
 
 .empty-state {
   padding: 60px 20px;
+  animation: fadeInUp 0.5s ease-out both;
 }
 
 .order-list {
@@ -574,21 +651,30 @@ const onRefresh = async () => {
 
 .order-card {
   background: #fff;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #f0f0f0;
   cursor: pointer;
+  opacity: 1;
+  animation: fadeInUp 0.4s ease-out forwards;
 
-  &:active {
-    transform: scale(0.99);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: #00cec9;
   }
 
   &:active {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px) scale(0.98);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  &.new-order {
+    border-color: #ff9800;
+    box-shadow: 0 2px 12px rgba(255, 152, 0, 0.2);
+    animation: pulse 2s infinite;
   }
 
   .order-header {
@@ -610,10 +696,30 @@ const onRefresh = async () => {
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 206, 201, 0.25);
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+          animation: shine 3s infinite;
+        }
 
         .van-icon {
           color: #fff;
           font-size: 14px;
+          transition: transform 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
       }
 
@@ -650,6 +756,15 @@ const onRefresh = async () => {
         }
       }
     }
+
+    &:hover .work-kind-icon {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 206, 201, 0.35);
+
+      .van-icon {
+        transform: rotate(5deg);
+      }
+    }
   }
 
   .order-info {
@@ -665,17 +780,34 @@ const onRefresh = async () => {
       font-size: 12px;
       color: #646566;
       line-height: 1.4;
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+
+      &:hover {
+        transform: translateX(2px);
+        color: #323233;
+      }
 
       .info-icon {
         color: #00cec9;
         font-size: 14px;
         flex-shrink: 0;
+        transition:
+          transform 0.3s ease,
+          color 0.3s ease;
+      }
+
+      &:hover .info-icon {
+        transform: scale(1.2) rotate(5deg);
+        color: #00b4d8;
       }
 
       .info-text {
         flex: 1;
         min-width: 0;
         word-break: break-all;
+        transition: color 0.2s ease;
       }
     }
   }
@@ -695,13 +827,25 @@ const onRefresh = async () => {
       align-items: center;
       justify-content: center;
       gap: 4px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
       .van-icon {
         font-size: 13px;
+        transition: transform 0.3s ease;
+      }
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 206, 201, 0.35);
       }
 
       &:active {
-        transform: scale(0.98);
+        transform: scale(0.96);
+        box-shadow: 0 1px 4px rgba(0, 206, 201, 0.3);
+      }
+
+      &:active .van-icon {
+        transform: scale(1.1);
       }
     }
 
@@ -749,6 +893,26 @@ const onRefresh = async () => {
   }
   50% {
     transform: translateY(-4px) scale(1.1);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 </style>
