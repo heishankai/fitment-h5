@@ -1,7 +1,6 @@
 <template>
   <div class="page">
     <header>
-      <custom-van-navbar title="系统通知" />
       <div class="action-bar" v-if="notificationList.length > 0">
         <div class="unread-info" v-if="unreadCount > 0">
           <div class="unread-dot"></div>
@@ -54,7 +53,6 @@
 </template>
 
 <script lang="ts" setup>
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import {
   getSystemNotificationListService,
   markNotificationAsReadService,

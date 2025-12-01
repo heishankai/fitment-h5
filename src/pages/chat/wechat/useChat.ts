@@ -1,7 +1,7 @@
 import { ref, nextTick } from 'vue'
 import { showToast } from 'vant'
 import { getCraftsmanWechatRoomMessages, uploadImage, markRoomAsRead } from '../service'
-import { getToken } from '@/utils/index'
+import { getToken, updateMiniProgramTitle } from '@/utils/index'
 import Request from '@/utils/request'
 import dayjs from 'dayjs'
 
@@ -25,6 +25,7 @@ export function useChat(roomId: number, craftsmanUserId: number) {
   const messagesRef = ref<HTMLElement>()
   const craftsmanUserAvatar = ref<string>('')
   const wechatUserAvatar = ref<string>('')
+  const craftsmanUserName = ref<string>('')
 
   const getWsUrl = () => {
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
@@ -71,6 +72,13 @@ export function useChat(roomId: number, craftsmanUserId: number) {
         if (roomRes.data.craftsman_user?.avatar) {
           craftsmanUserAvatar.value = roomRes.data.craftsman_user.avatar
           console.log('设置工匠用户头像:', craftsmanUserAvatar.value)
+        }
+        // 获取工匠用户名称（对方）
+        if (roomRes.data.craftsman_user?.nickname) {
+          craftsmanUserName.value = roomRes.data.craftsman_user.nickname
+          // 更新小程序导航栏标题
+          updateMiniProgramTitle(craftsmanUserName.value)
+          console.log('设置工匠用户名称:', craftsmanUserName.value)
         }
       }
     } catch (e) {
@@ -195,6 +203,7 @@ export function useChat(roomId: number, craftsmanUserId: number) {
     init,
     disconnect,
     craftsmanUserAvatar,
-    wechatUserAvatar
+    wechatUserAvatar,
+    craftsmanUserName
   }
 }

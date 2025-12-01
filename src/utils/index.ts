@@ -440,3 +440,49 @@ export const encryptPhone = (phone: string): string => {
   // 显示前3位和后4位
   return `${phoneStr.substring(0, 3)}****${phoneStr.substring(phoneStr.length - 4)}`
 }
+
+/**
+ * 检测是否在微信小程序 web-view 环境中
+ */
+export const isInMiniProgram = (): boolean => {
+  if (typeof window === 'undefined') return false
+  // 检查是否存在 wx.miniProgram
+  return !!(window as any).wx?.miniProgram
+}
+
+/**
+ * 向小程序发送消息（用于更新标题等）
+ * @param data 要发送的数据
+ */
+export const postMessageToMiniProgram = (data: any): void => {
+  if (!isInMiniProgram()) {
+    console.log('不在小程序环境中，跳过消息发送')
+    return
+  }
+
+  try {
+    const wx = (window as any).wx
+    if (wx?.miniProgram?.postMessage) {
+      wx.miniProgram.postMessage({
+        data: data
+      })
+      console.log('已向小程序发送消息:', data)
+    } else {
+      console.warn('wx.miniProgram.postMessage 不可用')
+    }
+  } catch (error) {
+    console.error('向小程序发送消息失败:', error)
+  }
+}
+
+/**
+ * 更新小程序导航栏标题
+ * @param title 标题文本
+ */
+export const updateMiniProgramTitle = (title: string): void => {
+  if (!title) return
+  postMessageToMiniProgram({
+    type: 'title',
+    title: title
+  })
+}

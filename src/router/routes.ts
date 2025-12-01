@@ -67,9 +67,9 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '/chat/wechat',
-        name: '微信用户消息',
+        name: '消息列表',
         meta: {
-          title: '微信用户消息'
+          title: '消息列表'
         },
         component: () => import('@/pages/chat/wechat/index.vue')
       },

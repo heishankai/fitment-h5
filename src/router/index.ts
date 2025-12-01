@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // data
 import routes from './routes'
 // utils
-import { setToken } from '@/utils/index'
+import { setToken, updateMiniProgramTitle } from '@/utils/index'
 
 /**
  * @路由配置详解
@@ -31,7 +31,12 @@ const router = createRouter({
  * 前置路由守卫获取 URL 中的 token
  */
 router.beforeEach(async (to: any, from: any, next: any) => {
-  window.document.title = to.meta.title
+  const title = to.meta?.title || '装修助手'
+  window.document.title = title
+
+  // 更新小程序导航栏标题
+  updateMiniProgramTitle(title)
+
   const { token } = to.query ?? {}
 
   const userInfo: any = JSON.parse(localStorage.getItem('userInfo') ?? '{}')
@@ -50,6 +55,10 @@ router.beforeEach(async (to: any, from: any, next: any) => {
 /**
  * 后置路由守卫
  */
-router.afterEach(() => {})
+router.afterEach((to: any) => {
+  // 路由切换后再次更新标题（确保标题更新）
+  const title = to.meta?.title || '装修助手'
+  updateMiniProgramTitle(title)
+})
 
 export default router

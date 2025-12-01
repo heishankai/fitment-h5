@@ -1,6 +1,5 @@
 <template>
   <div class="chat-page">
-    <custom-van-navbar :title="craftsmanUserName || '工匠用户'" />
     <main ref="messagesRef">
       <template v-if="messages.length">
         <ChatMessage
@@ -49,13 +48,14 @@
 <script lang="ts" setup>
 import { useChat } from './useChat'
 import ChatMessage from '../../admin-service/craftsman-msg/components/chat-message.vue'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
+// import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { useRoute } from 'vue-router'
+import { updateMiniProgramTitle } from '@/utils/index'
 
 const route = useRoute()
 const roomId = Number(route.params.id)
 const craftsmanUserId = Number(route.query.craftsmanUserId)
-const craftsmanUserName = (route.query.craftsmanUserName as string) || '工匠用户'
+const queryCraftsmanUserName = (route.query.craftsmanUserName as string) || ''
 
 const {
   messages,
@@ -69,8 +69,21 @@ const {
   init,
   disconnect,
   craftsmanUserAvatar,
-  wechatUserAvatar
+  wechatUserAvatar,
+  craftsmanUserName
 } = useChat(roomId, craftsmanUserId)
+
+// 如果 URL 参数中有工匠名称，先更新标题
+if (queryCraftsmanUserName) {
+  updateMiniProgramTitle(queryCraftsmanUserName)
+}
+
+// 监听 craftsmanUserName 变化，更新标题
+watch(craftsmanUserName, (newName) => {
+  if (newName) {
+    updateMiniProgramTitle(newName)
+  }
+})
 
 const handleImageSelect = (file: any) => {
   if (file.file) {
