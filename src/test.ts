@@ -3,13 +3,18 @@
 /*
 import { setUserInfo, setToken } from '@/utils/index'
 
-// 工长数据
+工长数据
 const user1 = {
   phone: '18667177723',
   nickname: '叮当优+师傅',
   avatar: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png',
   token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInBob25lIjoiMTg2NjcxNzc3MjMiLCJjb2RlIjoiODAyMSIsInR5cGUiOiJjcmFmdHNtYW4iLCJpYXQiOjE3NjQ0OTE0NDUsImV4cCI6MTc3MDUzOTQ0NX0.V9YesJspQ1jS_5u8jR7vQ6UxcDb4UGWbxGliGar1p1I'
 }
+
+工长token
+17681540570
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInBob25lIjoiMTc2ODE1NDA1NzAiLCJjb2RlIjoiODEzNSIsInR5cGUiOiJjcmFmdHNtYW4iLCJpYXQiOjE3NjQ5MzkyMDMsImV4cCI6MTc3MDk4NzIwM30.yfYC_qRXBdvxg6tTdtRsLaQkGpVKeuQvViWKCCtSZnU
+
 
 // 工匠数据
 const user2 = {

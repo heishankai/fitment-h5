@@ -77,7 +77,7 @@ const handleClickService = () => {
 // 点击平台公告
 const handleClickNotice = () => {
   if (route.path.includes('wechat')) {
-    router.push(`/notice/notice-list?notice_type=1`)
+    router.push(`/notice/wechat-notice-list?notice_type=1`)
   } else {
     router.push(`/notice/notice-list?notice_type=2`)
   }

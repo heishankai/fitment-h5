@@ -95,20 +95,58 @@ export const getButtonTextByWorkKind = (workKindName?: string): string => {
 }
 
 /**
- * 根据工种获取跳转路径和参数
- * @param workKindName 工种名称
- * @param orderId 订单ID
- * @returns 路由跳转配置
+ * 计算浮动气泡位置（右下角）
+ * @param windowSize 窗口尺寸 { width, height }
+ * @param orderStatus 订单状态
+ * @returns 气泡位置 { x, y }
  */
-export const getRouteByWorkKind = (workKindName?: string, orderId?: number): { path: string } => {
-  if (workKindName === WorkKind.DESIGNER || workKindName === WorkKind.FOREMAN) {
-    // 设计师和工长都跳转到工价页面
-    return {
-      path: `/mine/foreman-price/${orderId || ''}`
-    }
-  } else {
-    return {
-      path: `/mine/create-material-order/${orderId || ''}`
-    }
+export const calculateChatBubbleOffset = (
+  windowSize: { width: number; height: number },
+  orderStatus?: number
+): { x: number; y: number } => {
+  // 气泡大小约 56px
+  // footer 高度约 60px + padding
+  // 计算距离右边的 x 和距离底部的 y
+  const bubbleSize = 56
+  const footerHeight = orderStatus === 2 ? 80 : 0
+  const padding = 16
+  // 考虑安全区域
+  const safeAreaBottom =
+    parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)') ||
+        '0',
+      10
+    ) || 0
+
+  return {
+    x: windowSize.width - bubbleSize - padding, // 距离右边 16px
+    y: windowSize.height - footerHeight - bubbleSize - padding - safeAreaBottom // 距离底部，考虑 footer 和安全区域
+  }
+}
+
+/**
+ * 计算 plus 气泡位置（在 chat 气泡上方）
+ * @param windowSize 窗口尺寸 { width, height }
+ * @param orderStatus 订单状态
+ * @returns 气泡位置 { x, y }
+ */
+export const calculatePlusBubbleOffset = (
+  windowSize: { width: number; height: number },
+  orderStatus?: number
+): { x: number; y: number } => {
+  const bubbleSize = 56
+  const footerHeight = orderStatus === 2 ? 80 : 0
+  const padding = 16
+  const gap = 12 // 两个气泡之间的间距
+  const safeAreaBottom =
+    parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)') ||
+        '0',
+      10
+    ) || 0
+
+  return {
+    x: windowSize.width - bubbleSize - padding, // 距离右边 16px
+    y: windowSize.height - footerHeight - bubbleSize * 2 - padding - gap - safeAreaBottom // 在 chat 气泡上方
   }
 }

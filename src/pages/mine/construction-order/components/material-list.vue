@@ -48,6 +48,25 @@
           <span class="subtotal-price">¥{{ Number(group.total_price).toFixed(2) }}</span>
         </div>
 
+        <!-- 支付状态和验收状态 -->
+        <div
+          class="acceptance-status"
+          v-if="group.is_paid !== undefined || group.total_is_accepted !== undefined"
+        >
+          <div class="status-tags-wrapper">
+            <!-- 支付状态 -->
+            <van-tag :type="group.is_paid ? 'success' : 'warning'" class="status-tag">
+              <van-icon :name="group.is_paid ? 'checked' : 'clock-o'" />
+              {{ group.is_paid ? '已支付' : '未支付' }}
+            </van-tag>
+            <!-- 验收状态 -->
+            <van-tag :type="group.total_is_accepted ? 'success' : 'warning'" class="status-tag">
+              <van-icon :name="group.total_is_accepted ? 'success' : 'clock-o'" />
+              {{ group.total_is_accepted ? '已验收' : '待验收' }}
+            </van-tag>
+          </div>
+        </div>
+
         <van-divider v-if="groupIndex !== materials.length - 1" class="group-divider" />
       </div>
     </div>
@@ -70,6 +89,8 @@ interface Commodity {
 interface MaterialGroup {
   total_price: number | string
   commodity_list: Commodity[]
+  is_paid?: boolean
+  total_is_accepted?: boolean
 }
 
 defineProps<{
@@ -267,6 +288,34 @@ const navigateToDetail = (commodity: Commodity) => {
 .group-divider {
   margin: 16px 0;
   border-color: #f0f0f0;
+}
+
+.acceptance-status {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+
+  .status-tags-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .status-tag {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+
+    :deep(.van-icon) {
+      font-size: 14px;
+    }
+  }
 }
 
 /* 动画效果 */

@@ -44,6 +44,22 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: '/notice/wechat-notice-list',
+        name: '微信用户平台公告',
+        component: () => import('@/pages/notice/wechat-notice-list/index.vue'),
+        meta: {
+          title: '平台公告'
+        }
+      },
+      {
+        path: '/notice/wechat-notice-detail',
+        name: '微信用户公告详情',
+        component: () => import('@/pages/notice/wechat-notice-detail/index.vue'),
+        meta: {
+          title: '公告详情'
+        }
+      },
+      {
         path: '/notice/craftsman-system-message',
         name: '工匠用户系统通知',
         component: () => import('@/pages/notice/craftsman-system-message/index.vue'),
@@ -232,6 +248,36 @@ const routes: Array<RouteRecordRaw> = [
         name: '订单详情',
         meta: { title: '订单详情' },
         component: () => import('@/pages/home/order-detail/index.vue')
+      }
+    ]
+  },
+  {
+    path: '/wallet',
+    name: 'wallet',
+    children: [
+      {
+        path: '/wallet',
+        name: '钱包',
+        meta: { title: '钱包' },
+        component: () => import('@/pages/wallet/index.vue')
+      },
+      {
+        path: '/wallet/withdraw-record',
+        name: '提现记录',
+        meta: { title: '提现记录' },
+        component: () => import('@/pages/wallet/withdraw-record.vue')
+      },
+      {
+        path: '/wallet/craftsman_bank_card',
+        name: '银行卡',
+        meta: { title: '银行卡' },
+        component: () => import('@/pages/wallet/craftsman_bank_card.vue')
+      },
+      {
+        path: '/wallet/withdraw',
+        name: '提现',
+        meta: { title: '提现' },
+        component: () => import('@/pages/wallet/withdraw.vue')
       }
     ]
   },

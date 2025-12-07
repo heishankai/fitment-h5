@@ -129,9 +129,14 @@ const showCartList = ref(false)
 
 const workKinds = ref<any[]>([])
 const priceList = ref<any[]>([])
+const currentUserWorkKindName = ref<string | undefined>(undefined)
 
 // 使用工价清单功能（传入订单ID）
 const orderId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+// 从查询参数中获取 area
+const { area, craftsman_user_work_kind_name } = route.query ?? {}
+
+console.log('area', area)
 const {
   cartList,
   cartTotalCount,
@@ -160,16 +165,37 @@ const handleSubmit = async () => {
       message: `共 ${cartTotalCount.value} 项工价，确认提交吗？`
     })
 
-    console.log('总价:', totalPrice.value)
-
-    console.log('提交工价清单:', cartList.value)
-
     const { success } = await submitWorkPriceService({
       orderId: Number(route.params.id),
       work_prices: [
         {
-          total_price: totalPrice.value,
-          prices_list: cartList.value
+          area, // 平米数
+          total_price: totalPrice.value, // 施工总费用
+          craftsman_user_work_kind_name, // 当前用户的工种名称
+          prices_list: (cartList.value || [])?.map((item) => {
+            const {
+              quantity,
+              id,
+              work_kind,
+              work_price,
+              work_title,
+              labour_cost,
+              work_kind_id,
+              minimum_price,
+              is_set_minimum_price
+            } = item ?? {}
+            return {
+              id,
+              quantity, // 数量
+              work_kind, // 工种
+              work_price, // 工价
+              work_title, // 工价标题
+              labour_cost, // 单位
+              work_kind_id, // 工种id
+              minimum_price, // 最低价格
+              is_set_minimum_price // 是否设置最低价格
+            }
+          })
         }
       ]
     })
@@ -205,6 +231,9 @@ const getWorkKindList = async () => {
   const { success: userSuccess, data: userData } = await getUserInfoService()
   if (!userSuccess || !userData) return
 
+  // 保存当前用户的工种名称
+  currentUserWorkKindName.value = userData?.skillInfo?.workKindName
+
   // 获取所有工种
   const { success, data } = await getWorkKindListService()
   if (!success || !data) return
@@ -213,12 +242,14 @@ const getWorkKindList = async () => {
   let filteredData = data
   const workKindName = userData?.skillInfo?.workKindName
 
-  if (workKindName === '设计师') {
-    // 如果是设计师，只显示设计师的工种
-    filteredData = data.filter((item: any) => item.work_kind_name === '设计师')
+  if (workKindName === '工长') {
+    // 如果是工长，展示全部工种
+    filteredData = data
+  } else {
+    // 否则，只展示对应工种的
+    filteredData = data.filter((item: any) => item.work_kind_name === workKindName)
   }
 
-  // 如果是工长或其他，显示所有工种（或根据需要过滤）
   workKinds.value = filteredData.map((item: any) => ({
     text: item.work_kind_name,
     value: item.id
@@ -234,7 +265,17 @@ const getWorkKindList = async () => {
 const getWorkKindPrice = async (workKindId: number) => {
   const { success, data } = await getWorkKindPriceService(workKindId)
   if (!success || !data) return
-  priceList.value = data
+
+  // 根据用户工种过滤工价
+  if (currentUserWorkKindName.value === '工长') {
+    // 如果是工长，展示全部工价
+    priceList.value = data
+  } else {
+    // 否则，只展示对应工种的工价
+    priceList.value = data.filter(
+      (item: any) => item?.work_kind?.work_kind_name === currentUserWorkKindName.value
+    )
+  }
 }
 
 // 跳转工价详情

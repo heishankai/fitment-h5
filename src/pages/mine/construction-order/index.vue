@@ -3,32 +3,35 @@
     <custom-van-navbar />
 
     <main v-if="order">
-      <!-- 订单头部（包含用户信息） -->
-      <detail-header :order="order" :user="order?.wechat_user" class="fade-in-up" />
+      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <!-- 订单头部（包含用户信息） -->
+        <detail-header :order="order" :user="order?.wechat_user" class="fade-in-up" />
 
-      <!-- 订单信息 -->
-      <order-info :order="order" class="fade-in-up" :style="{ animationDelay: '0.2s' }" />
+        <!-- 订单信息 -->
+        <order-info :order="order" class="fade-in-up" :style="{ animationDelay: '0.2s' }" />
 
-      <!-- 辅材清单 -->
-      <material-list
-        :materials="order?.materials_list"
-        class="fade-in-up"
-        :style="{ animationDelay: '0.3s' }"
-      />
+        <!-- 辅材清单 -->
+        <material-list
+          :materials="order?.materials_list"
+          class="fade-in-up"
+          :style="{ animationDelay: '0.3s' }"
+        />
 
-      <!-- 工价清单 -->
-      <price-list
-        :work-prices="order?.work_prices"
-        class="fade-in-up"
-        :style="{ animationDelay: '0.35s' }"
-      />
+        <!-- 工价清单 -->
+        <price-list
+          :work-prices="order?.work_prices"
+          :sub-work-prices="order?.sub_work_prices"
+          class="fade-in-up"
+          :style="{ animationDelay: '0.35s' }"
+        />
 
-      <!-- 施工进度-->
-      <construction-progress
-        :construction_progress="order?.construction_progress"
-        class="fade-in-up"
-        :style="{ animationDelay: '0.4s' }"
-      />
+        <!-- 施工进度-->
+        <construction-progress
+          :construction_progress="order?.construction_progress"
+          class="fade-in-up"
+          :style="{ animationDelay: '0.4s' }"
+        />
+      </van-pull-refresh>
     </main>
 
     <footer v-if="order?.order_status === 2">
@@ -37,12 +40,13 @@
         size="normal"
         round
         class="action-btn"
-        @click="goToConstructionProgress"
-        icon="location"
+        @click="handleCreateForemanPrice"
+        icon="plus"
       >
-        施工打卡
+        创建工价
       </van-button>
       <van-button
+        v-if="order?.work_prices?.[0]?.is_paid"
         type="warning"
         size="normal"
         round
@@ -56,8 +60,15 @@
     <van-floating-bubble
       v-if="order?.order_status === 2"
       icon="chat"
-      :offset="bubbleOffset"
+      :offset="chatBubbleOffset"
       @click="onContactUser"
+      class="chat-bubble"
+    />
+    <van-floating-bubble
+      icon="location"
+      :offset="plusBubbleOffset"
+      @click="goToConstructionProgress"
+      class="plus-bubble"
     />
   </div>
 </template>
@@ -74,13 +85,19 @@ import PriceList from './components/price-list.vue'
 import ConstructionProgress from './components/construction-progress.vue'
 // utils
 import { getOrderDetail, getUserInfoService } from './service'
-import { handleContactUser, getButtonTextByWorkKind, getRouteByWorkKind } from './utils'
+import {
+  handleContactUser,
+  getButtonTextByWorkKind,
+  calculateChatBubbleOffset,
+  calculatePlusBubbleOffset
+} from './utils'
 
 const route = useRoute()
 const router = useRouter()
 
 const order = ref<any>(null)
 const user = ref<any>(null)
+const refreshing = ref(false)
 const windowSize = ref({ width: window.innerWidth, height: window.innerHeight })
 
 // 监听窗口大小变化
@@ -92,25 +109,14 @@ const handleResize = () => {
 }
 
 // 计算浮动气泡位置（右下角）
-const bubbleOffset = computed(() => {
-  // 气泡大小约 56px
-  // footer 高度约 60px + padding
-  // 计算距离右边的 x 和距离底部的 y
-  const bubbleSize = 56
-  const footerHeight = order.value?.order_status === 2 ? 80 : 0
-  const padding = 16
-  // 考虑安全区域
-  const safeAreaBottom =
-    parseInt(
-      getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)') ||
-        '0',
-      10
-    ) || 0
+// chat 气泡位置（下方）
+const chatBubbleOffset = computed(() => {
+  return calculateChatBubbleOffset(windowSize.value, order.value?.order_status)
+})
 
-  return {
-    x: windowSize.value.width - bubbleSize - padding, // 距离右边 16px
-    y: windowSize.value.height - footerHeight - bubbleSize - padding - safeAreaBottom // 距离底部，考虑 footer 和安全区域
-  }
+// plus 气泡位置（上方，在 chat 气泡上方）
+const plusBubbleOffset = computed(() => {
+  return calculatePlusBubbleOffset(windowSize.value, order.value?.order_status)
 })
 
 // 根据工种计算按钮文本
@@ -125,9 +131,6 @@ const loadOrderDetail = async () => {
   const { success, data } = await getOrderDetail(orderId)
   if (!success) return
   order.value = data
-
-  console.log('订单数据:', order.value)
-  console.log('工价清单数据:', order.value?.work_prices)
 
   const { success: userSuccess, data: userData } = await getUserInfoService()
   if (!userSuccess) return
@@ -148,12 +151,34 @@ const goToConstructionProgress = () => {
   })
 }
 
-// 创建辅料单 - 根据工种判断跳转
+// 创建辅料单
 const handleCreateMaterialOrder = () => {
-  const workKindName = user.value?.skillInfo?.workKindName
   const orderId = order.value?.id
-  const route = getRouteByWorkKind(workKindName, orderId)
-  router.push(route)
+  router.push(`/mine/create-material-order/${orderId}`)
+}
+
+// 创建工价
+const handleCreateForemanPrice = () => {
+  const orderId = order.value?.id
+  const { area, work_kind_name } = order.value ?? {}
+
+  router.push({
+    path: `/mine/foreman-price/${orderId}`,
+    query: {
+      area,
+      craftsman_user_work_kind_name: work_kind_name
+    }
+  })
+}
+
+// 下拉刷新
+const onRefresh = async () => {
+  refreshing.value = true
+  try {
+    await loadOrderDetail()
+  } finally {
+    refreshing.value = false
+  }
 }
 
 onMounted(() => {
@@ -239,5 +264,14 @@ footer {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+// 浮动气泡层级控制
+:deep(.chat-bubble) {
+  z-index: 1000;
+}
+
+:deep(.plus-bubble) {
+  z-index: 1001; // 确保 plus 气泡在 chat 气泡上方
 }
 </style>
