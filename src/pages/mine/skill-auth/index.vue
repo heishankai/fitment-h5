@@ -41,6 +41,7 @@
                 :src="skillInfo.operation_video[0]?.url"
                 class="video-thumbnail"
                 controls
+                @click.stop
               />
             </div>
           </template>
@@ -271,8 +272,8 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 0;
-  pointer-events: none;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .upload-item {
@@ -325,6 +326,7 @@ section {
     width: 30px;
     height: 30px;
     font-size: 16px;
+    pointer-events: auto;
 
     .van-icon {
       font-size: 30px;

@@ -103,6 +103,9 @@ const handleButtonClick = async () => {
 const handleSubmit = async () => {
   try {
     submitting.value = true
+    console.log(bankCardInfo.value.card_number, 'bankCardInfo.value')
+
+    console.log(bankCardInfo.value.card_number, ' bankCardInfo.value.card_number')
 
     const bindBankPromise = bankCardInfo.value.card_number
       ? updateBankCardService
@@ -123,6 +126,7 @@ const handleSubmit = async () => {
 
 const loadData = async () => {
   const { success, data } = await getBankCardService()
+  console.log(data, 'data')
   if (success && data) {
     bankCardInfo.value = data
   }

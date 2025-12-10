@@ -137,6 +137,9 @@ main {
     overflow: visible;
     margin: 0 auto 24px;
     position: relative;
+    // 确保容器是正方形
+    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
 
     :deep(.van-uploader) {
       width: 100%;
@@ -162,13 +165,19 @@ main {
       overflow: hidden;
       border: 4rpx solid #fff;
       box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+      // 确保容器是正方形
+      aspect-ratio: 1 / 1;
     }
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center; // 确保图片居中裁剪
       display: block;
+      // 防止图片变形
+      min-width: 100%;
+      min-height: 100%;
     }
 
     .camera-icon {

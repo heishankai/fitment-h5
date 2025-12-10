@@ -32,7 +32,7 @@
               </div>
             </div>
           </div>
-          <template #right>
+          <!-- <template #right>
             <van-button
               square
               type="danger"
@@ -40,7 +40,7 @@
               class="delete-button"
               @click="handleDelete(item)"
             />
-          </template>
+          </template> -->
         </van-swipe-cell>
       </van-pull-refresh>
     </main>
@@ -49,10 +49,13 @@
 
 <script lang="ts" setup>
 import Notice from '../notice.vue'
-import { getCraftsmanRooms, deleteRoom } from '../service'
+import {
+  getCraftsmanRooms
+  // deleteRoom
+} from '../service'
 import dayjs from 'dayjs'
 import { useRouter } from 'vue-router'
-import { showConfirmDialog, showToast } from 'vant'
+// import { showConfirmDialog, showToast } from 'vant'
 
 const router = useRouter()
 
@@ -88,27 +91,27 @@ const handleClick = (item: any) => {
   })
 }
 
-const handleDelete = async (item: any) => {
-  try {
-    await showConfirmDialog({
-      title: '确认删除',
-      message: '确定要删除这个聊天记录吗？'
-    })
+// const handleDelete = async (item: any) => {
+//   try {
+//     await showConfirmDialog({
+//       title: '确认删除',
+//       message: '确定要删除这个聊天记录吗？'
+//     })
 
-    const res = await deleteRoom(item.id)
-    if (res?.success) {
-      showToast('删除成功')
-      loadData()
-    } else {
-      showToast(res?.message || '删除失败')
-    }
-  } catch (error: any) {
-    // 用户取消删除
-    if (error !== 'cancel') {
-      showToast(error?.message || '删除失败')
-    }
-  }
-}
+//     const res = await deleteRoom(item.id)
+//     if (res?.success) {
+//       showToast('删除成功')
+//       loadData()
+//     } else {
+//       showToast(res?.message || '删除失败')
+//     }
+//   } catch (error: any) {
+//     // 用户取消删除
+//     if (error !== 'cancel') {
+//       showToast(error?.message || '删除失败')
+//     }
+//   }
+// }
 
 // 页面激活时重新加载数据（从聊天页面返回时）
 onActivated(() => {

@@ -74,6 +74,7 @@ const handleWithdraw = async () => {
   }
 
   const { success, data } = await getBankCardService()
+
   if (success && !data?.card_number) {
     showToast('请先绑定银行卡')
     goToBankCard()

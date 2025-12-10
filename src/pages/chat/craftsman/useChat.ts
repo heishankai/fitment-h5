@@ -27,8 +27,28 @@ export function useChat(roomId: number, wechatUserId: number) {
   const craftsmanUserAvatar = ref<string>('')
 
   const getWsUrl = () => {
+    // 优先使用 VITE_WS_URL
+    if (import.meta.env.VITE_WS_URL) {
+      return import.meta.env.VITE_WS_URL
+    }
+
+    // 从 VITE_API_BASE_URL 推导
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
-    return import.meta.env.VITE_WS_URL || baseURL.replace(/\/api$/, '') || 'http://localhost:3000'
+    if (baseURL) {
+      // 生产环境：保留 /api 后缀
+      // 开发环境：去掉 /api 后缀（因为使用代理，需要直连服务器）
+      const isProduction = import.meta.env.MODE === 'production'
+      if (isProduction) {
+        // 生产环境直接使用 baseURL（包含 /api）
+        return baseURL
+      } else {
+        // 开发环境去掉 /api 后缀
+        return baseURL.replace(/\/api$/, '')
+      }
+    }
+
+    // 开发环境默认值
+    return 'http://localhost:3000'
   }
 
   const formatTime = (time?: string) => {
@@ -88,17 +108,109 @@ export function useChat(roomId: number, wechatUserId: number) {
       if (!(window as any).io) return showToast('WebSocket库未加载')
     }
 
-    socket.value = (window as any).io(`${getWsUrl()}/craftsman-wechat-chat`, {
+    const wsUrl = getWsUrl()
+    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+
+    // Socket.io 连接配置
+    const socketOptions: any = {
       auth: { token: t },
       query: {
         token: t,
         wechatUserId: wechatUserId // 传递微信用户ID
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000
+    }
+
+    // 判断是否需要配置 path
+    const isHttps = window.location.protocol === 'https:'
+    const isNotLocalhost =
+      !window.location.hostname.includes('localhost') &&
+      !window.location.hostname.includes('127.0.0.1')
+    const needsPath = baseURL.includes('/api') || (isHttps && isNotLocalhost)
+
+    let wsFullUrl: string
+    if (needsPath) {
+      const baseUrl = wsUrl.replace(/\/api$/, '')
+      wsFullUrl = `${baseUrl}/craftsman-wechat-chat`
+      socketOptions.path = '/api/socket.io/'
+      socket.value = (window as any).io(wsFullUrl, socketOptions)
+    } else {
+      wsFullUrl = `${wsUrl}/craftsman-wechat-chat`
+      socket.value = (window as any).io(wsFullUrl, socketOptions)
+    }
+
+    console.log('🔗 WebSocket 连接信息:', {
+      url: wsFullUrl,
+      path: socketOptions.path,
+      needsPath,
+      baseURL,
+      wsUrl
     })
 
-    socket.value.on('connect', () => console.log('✅ WebSocket已连接'))
-    socket.value.on('connect_error', () => showToast('连接失败'))
+    socket.value.on('connect', () => {
+      console.log('✅ WebSocket已连接', {
+        id: socket.value?.id,
+        transport: socket.value?.io?.engine?.transport?.name
+      })
+    })
+
+    socket.value.on('connect_error', (err: any) => {
+      console.error('❌ WebSocket连接失败:', {
+        message: err?.message,
+        type: err?.type,
+        description: err?.description,
+        url: wsFullUrl,
+        error: err
+      })
+
+      let errorMsg = '连接失败'
+      const errorMessage = err?.message || err?.toString() || ''
+
+      if (errorMessage.includes('timeout') || errorMessage.includes('超时')) {
+        errorMsg = '连接超时，请检查网络或服务器状态'
+      } else if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        errorMsg = '认证失败，请重新登录'
+      } else if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
+        errorMsg = '聊天服务未找到，请检查服务器配置'
+      } else if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('拒绝连接')) {
+        errorMsg = '无法连接到服务器，请确认服务器是否运行'
+      } else if (
+        errorMessage.includes('xhr poll error') ||
+        errorMessage.includes('polling error')
+      ) {
+        errorMsg = '网络连接异常，请检查网络设置'
+      }
+
+      showToast(errorMsg)
+    })
+
+    socket.value.on('disconnect', (reason: string) => {
+      console.warn('⚠️ WebSocket断开连接:', reason)
+      if (reason === 'io server disconnect') {
+        showToast('连接已断开，请重新登录')
+      }
+    })
+
+    socket.value.on('reconnect', (attemptNumber: number) => {
+      console.log(`🔄 WebSocket重连成功 (第${attemptNumber}次尝试)`)
+    })
+
+    socket.value.on('reconnect_attempt', (attemptNumber: number) => {
+      console.log(`🔄 WebSocket重连尝试 (第${attemptNumber}次)`)
+    })
+
+    socket.value.on('reconnect_error', (error: any) => {
+      console.error('❌ WebSocket重连失败:', error)
+    })
+
+    socket.value.on('reconnect_failed', () => {
+      console.error('❌ WebSocket重连失败，已达到最大重试次数')
+      showToast('连接失败，请刷新页面重试')
+    })
     socket.value.on('new-message', (data: ChatMessage) => {
       const msg: ChatMessage = {
         ...data,
