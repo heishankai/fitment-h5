@@ -1,102 +1,20 @@
 <template>
   <div class="page-container">
-    <!-- 订单详情弹窗 -->
-    <OrderPopup
-      :show="showOrderPopup"
-      :order="currentOrder"
-      :distance="currentOrderDistance"
-      :on-grab-order="handleAcceptOrder"
-      @update:show="showOrderPopup = $event"
-      @close="handleClosePopup"
-    />
-
     <!-- 顶部标题栏 -->
-    <div class="header fade-in-up">
-      <div class="header-content">
-        <div class="header-top">
-          <div class="title-wrapper">
-            <div class="icon-circle">
-              <van-icon name="orders-o" class="title-icon" />
-            </div>
-            <div class="title-group">
-              <div class="title">抢单中心</div>
-              <div class="subtitle">实时接收订单</div>
-            </div>
-          </div>
-          <van-badge
-            v-if="newOrderCount > 0"
-            :content="newOrderCount"
-            class="badge fade-in-up"
-            :style="{ animationDelay: '0.1s' }"
-          >
-            <div class="new-order-badge bounce" @click="clearNewOrderCount">
-              <van-icon name="bell" />
-              <span>新订单</span>
-            </div>
-          </van-badge>
-        </div>
-      </div>
-
-      <!-- 当前位置信息 -->
-      <div
-        class="location-wrapper fade-in-up"
-        v-if="location?.address"
-        :style="{ animationDelay: '0.2s' }"
-        @click.stop="loadCurrentLocation"
-      >
-        <div class="location-card shine-effect">
-          <div class="location-icon-wrapper">
-            <van-icon name="location-o" class="location-icon" />
-            <div class="location-pulse"></div>
-          </div>
-          <div class="location-content">
-            <div class="location-text">
-              {{ location?.address }}
-            </div>
-            <div class="location-detail" v-if="location?.formattedAddress">
-              {{ location?.formattedAddress }}
-            </div>
-          </div>
-          <div class="location-status">
-            <van-icon name="success" class="success-icon" />
-          </div>
-        </div>
-      </div>
-      <div
-        class="location-loading fade-in-up"
-        v-else-if="!location?.address && currentLocation"
-        :style="{ animationDelay: '0.2s' }"
-      >
-        <div class="location-card">
-          <van-loading size="16px" color="#00cec9" />
-          <span class="loading-text">定位中...</span>
-        </div>
-      </div>
-    </div>
+    <header class="fade-in-up">
+      <header-content
+        :new-order-count="newOrderCount"
+        :location="location"
+        :current-location="currentLocation"
+        @clear-new-order-count="clearNewOrderCount"
+        @open-map-picker="handleOpenMapPicker"
+      />
+    </header>
 
     <!-- 订单列表 -->
-    <div class="content">
-      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-        <!-- 调试信息（开发环境） -->
-        <div
-          v-if="orders.length > 0"
-          style="
-            padding: 8px;
-            font-size: 12px;
-            color: #999;
-            background: #f5f5f5;
-            margin-bottom: 8px;
-            border-radius: 4px;
-          "
-        >
-          订单数量: {{ orders.length }}
-        </div>
-
-        <van-empty
-          v-if="orders.length === 0"
-          description="暂无订单，等待新订单..."
-          class="empty-state fade-in-up"
-        />
+    <main class="fade-in-up">
+      <van-pull-refresh v-model="refreshing" @refresh="onRefresh" class="refresh">
+        <van-empty v-if="orders.length === 0" description="暂无订单，等待新订单..." />
 
         <div v-else class="order-list">
           <div
@@ -131,16 +49,16 @@
             <div class="order-info">
               <div class="info-row">
                 <van-icon name="location-o" class="info-icon" />
-                <span class="info-text">{{
-                  order.location || `${order.province} ${order.city} ${order.district}`
-                }}</span>
+                <span class="info-text">
+                  {{ order.location || `${order.province} ${order.city} ${order.district}` }}
+                </span>
               </div>
               <div class="info-row">
                 <van-icon name="home-o" class="info-icon" />
-                <span class="info-text"
-                  >{{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
-                  {{ order.area }}m²</span
-                >
+                <span class="info-text">
+                  {{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
+                  {{ order.area }}m²
+                </span>
               </div>
               <div class="info-row" v-if="order.wechat_user">
                 <van-icon name="user-o" class="info-icon" />
@@ -190,17 +108,28 @@
           </div>
         </div>
       </van-pull-refresh>
-    </div>
+    </main>
+
+    <!-- 订单详情弹窗 -->
+    <order-popup
+      :show="showOrderPopup"
+      :order="currentOrder"
+      :distance="currentOrderDistance"
+      :on-grab-order="handleAcceptOrder"
+      @update:show="showOrderPopup = $event"
+      @close="handleClosePopup"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onActivated, watch } from 'vue'
+import { ref, onMounted, watch, onActivated } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useOrder } from './useOrder'
 import OrderPopup from './components/OrderPopup.vue'
+import HeaderContent from './components/HeaderContent.vue'
 import { getCurrentPosition, isWebView, formatTime } from '@/utils/index'
-import { getReverseGeocode, updateCraftsmanUser } from './service'
+import { getStatusType, loadLocationFromLocal } from './utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -224,22 +153,6 @@ const currentLocation = ref<any>(null)
 
 const location = ref<any>({})
 
-// 获取订单状态类型
-const getStatusType = (status: number) => {
-  switch (status) {
-    case 1:
-      return 'warning' // 待接单
-    case 2:
-      return 'primary' // 已接单
-    case 3:
-      return 'success' // 已完成
-    case 4:
-      return 'danger' // 已取消
-    default:
-      return 'default'
-  }
-}
-
 // 接单处理
 const handleAcceptOrder = async (orderId: number) => {
   const order = orders.value.find((o) => o.id === orderId)
@@ -248,10 +161,8 @@ const handleAcceptOrder = async (orderId: number) => {
   acceptingOrderId.value = orderId
   try {
     await acceptOrder(order)
-    // 接单成功后关闭弹窗
     showOrderPopup.value = false
     currentOrder.value = null
-    // 跳转到我的工地订单页面
     router.push('/mine/my-construction')
   } catch (error) {
     console.error('接单失败:', error)
@@ -266,71 +177,63 @@ const handleClosePopup = () => {
   currentOrder.value = null
 }
 
-// 获取用户当前位置
-const loadCurrentLocation = async () => {
+// 从本地存储加载位置信息
+const loadLocationFromStorage = () => {
+  const saved = loadLocationFromLocal()
+  if (saved && saved.location && saved.currentLocation) {
+    location.value = saved.location
+    currentLocation.value = saved.currentLocation
+  }
+}
+
+// 获取用户当前位置（用于打开地图选择器时）
+const getCurrentPositionForMap = async () => {
   try {
     const position = await getCurrentPosition({
       enableHighAccuracy: true,
       timeout: isWebView() ? 30000 : 15000,
       maximumAge: isWebView() ? 60000 : 0
     })
+    return position
+  } catch (error) {
+    console.error('获取位置失败:', error)
+    return null
+  }
+}
 
-    const res = await getReverseGeocode({
-      latitude: position.latitude,
-      longitude: position.longitude
-    })
+// 打开地图选择器 - 跳转到新页面
+const handleOpenMapPicker = async () => {
+  // 优先使用本地存储的位置，如果没有才实时获取
+  const saved = loadLocationFromLocal()
+  let initialLocation = null
 
-    if (!res?.success || !res.data) {
-      // 如果逆地理编码失败，至少保存坐标信息
-      location.value = {
-        latitude: position.latitude,
-        longitude: position.longitude,
-        address: `${position.latitude.toFixed(6)}, ${position.longitude.toFixed(6)}`
-      }
-      return
-    }
-
-    // 保存位置数据
-    location.value = res.data
-    currentLocation.value = position
-
-    // 更新用户位置信息
-    try {
-      await updateCraftsmanUser({
-        latitude: position.latitude,
-        longitude: position.longitude,
-        province: res.data.province,
-        city: res.data.city,
-        district: res.data.district,
-        address: res.data.formatted_address || res.data.address
-      })
-    } catch (error) {
-      console.error('更新用户位置信息失败:', error)
-    }
-  } catch (err: any) {
-    console.error('获取位置失败:', err)
-    // 即使失败也尝试保存坐标
-    try {
-      const position = await getCurrentPosition({
-        enableHighAccuracy: false,
-        timeout: 5000
-      })
-      location.value = {
-        latitude: position.latitude,
-        longitude: position.longitude,
-        address: `${position.latitude.toFixed(6)}, ${position.longitude.toFixed(6)}`
-      }
-    } catch (e) {
-      // 完全失败时不显示位置信息
-      location.value = {}
+  if (saved?.currentLocation) {
+    // 使用本地存储的位置
+    initialLocation = saved.currentLocation
+  } else {
+    // 没有本地存储的位置，实时获取
+    const position = await getCurrentPositionForMap()
+    if (position) {
+      initialLocation = position
     }
   }
+
+  // 跳转到地图选择页面，传递初始位置
+  const query: any = {}
+  if (initialLocation) {
+    query.latitude = initialLocation.latitude.toString()
+    query.longitude = initialLocation.longitude.toString()
+  }
+  router.push({
+    path: '/home/map-picker',
+    query
+  })
 }
 
 // 设置新订单弹窗回调
 onMounted(() => {
-  // 加载当前位置
-  loadCurrentLocation()
+  // 进入页面时从本地存储加载位置信息，不自动获取位置
+  loadLocationFromStorage()
 
   setOnNewOrderPopup((order: any, distance: number) => {
     currentOrder.value = order
@@ -338,44 +241,50 @@ onMounted(() => {
     showOrderPopup.value = true
   })
 
-  // 设置关闭弹窗回调（当订单被其他工匠接单时）
   setOnClosePopup((orderId: number) => {
-    if (currentOrder.value && currentOrder.value.id === orderId) {
+    if (currentOrder.value?.id === orderId) {
       showOrderPopup.value = false
       currentOrder.value = null
     }
   })
 })
 
-// 监听路由变化，当从详情页返回时刷新列表
+// 页面激活时重新加载位置信息（如果使用了 keep-alive）
 onActivated(() => {
-  if (route.query.refresh === '1') {
-    loadOrders()
-    // 清除 refresh 参数
-    router.replace({ path: '/home', query: {} })
-  }
+  loadLocationFromStorage()
 })
 
-// 监听路由 query 参数变化
+// 监听路由变化，当从详情页返回时刷新列表
 watch(
   () => route.query.refresh,
   (refresh) => {
     if (refresh === '1') {
       loadOrders()
-      // 清除 refresh 参数
       router.replace({ path: '/home', query: {} })
     }
   }
 )
 
-// 跳转到订单详情
+// 监听路由变化，当从地图选择页返回时重新加载位置信息
+let previousPath = route.path
+watch(
+  () => route.path,
+  (newPath) => {
+    // 如果从地图选择页返回首页，重新加载位置信息
+    if (previousPath === '/home/map-picker' && newPath === '/home') {
+      loadLocationFromStorage()
+    }
+    previousPath = newPath
+  },
+  { immediate: true }
+)
+
 const goToOrderDetail = (orderId: number) => {
   router.push(`/home/order/${orderId}`)
 }
 
-// 下拉刷新
 const onRefresh = async () => {
-  await Promise.all([loadOrders(), loadCurrentLocation()])
+  await loadOrders()
   refreshing.value = false
 }
 </script>
@@ -394,253 +303,22 @@ const onRefresh = async () => {
   overscroll-behavior: none;
 }
 
-.header {
+.refresh {
+  height: 100%;
+}
+
+header {
   background: #00cec9;
   padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px;
   color: #fff;
-
-  .header-content {
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-
-      .title-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        flex: 1;
-
-        .icon-circle {
-          width: 48px;
-          height: 48px;
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(10px);
-          border-radius: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          transition:
-            transform 0.3s ease,
-            box-shadow 0.3s ease;
-          position: relative;
-          overflow: hidden;
-
-          &::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-            animation: shine 3s infinite;
-          }
-
-          .title-icon {
-            font-size: 28px;
-            color: #fff;
-            transition: transform 0.3s ease;
-            position: relative;
-            z-index: 1;
-          }
-        }
-
-        .title-wrapper:hover .icon-circle {
-          transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-
-          .title-icon {
-            transform: rotate(5deg);
-          }
-        }
-
-        .title-group {
-          flex: 1;
-          min-width: 0;
-
-          .title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            letter-spacing: -0.3px;
-            line-height: 1.2;
-          }
-
-          .subtitle {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 400;
-            line-height: 1.4;
-          }
-        }
-      }
-
-      .badge {
-        flex-shrink: 0;
-
-        .new-order-badge {
-          background: rgba(255, 255, 255, 0.25);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
-          padding: 8px 14px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-weight: 600;
-          font-size: 13px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s;
-
-          &:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.3);
-          }
-        }
-      }
-    }
-  }
-
-  .location-wrapper {
-    position: relative;
-    z-index: 1;
-    margin-top: 12px;
-
-    .location-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-      }
-
-      &:active {
-        transform: scale(0.98);
-      }
-
-      .location-icon-wrapper {
-        position: relative;
-        flex-shrink: 0;
-
-        .location-icon {
-          color: #00cec9;
-          font-size: 22px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .location-pulse {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 32px;
-          height: 32px;
-          background: rgba(0, 206, 201, 0.2);
-          border-radius: 50%;
-          animation: pulse-ring 2s ease-in-out infinite;
-        }
-      }
-
-      .location-content {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-
-        .location-text {
-          font-weight: 600;
-          color: #323233;
-          font-size: 15px;
-          line-height: 1.4;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-          -webkit-box-orient: vertical;
-        }
-
-        .location-detail {
-          color: #969799;
-          font-size: 12px;
-          line-height: 1.4;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-          -webkit-box-orient: vertical;
-        }
-      }
-
-      .location-status {
-        flex-shrink: 0;
-
-        .success-icon {
-          color: #07c160;
-          font-size: 18px;
-        }
-      }
-    }
-  }
-
-  .location-loading {
-    position: relative;
-    z-index: 1;
-    margin-top: 12px;
-
-    .location-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-
-      .loading-text {
-        font-size: 14px;
-        color: #969799;
-      }
-    }
-  }
-
-  @keyframes pulse-ring {
-    0% {
-      transform: translate(-50%, -50%) scale(0.8);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(-50%, -50%) scale(1.4);
-      opacity: 0;
-    }
-  }
 }
 
-.content {
-  padding: 8px;
-  max-width: 100%;
-}
-
-.empty-state {
-  padding: 60px 20px;
-  animation: fadeInUp 0.5s ease-out both;
+main {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .order-list {
@@ -712,6 +390,7 @@ const onRefresh = async () => {
           height: 200%;
           background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
           animation: shine 3s infinite;
+          z-index: 0;
         }
 
         .van-icon {

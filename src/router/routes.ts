@@ -248,6 +248,12 @@ const routes: Array<RouteRecordRaw> = [
         name: '订单详情',
         meta: { title: '订单详情' },
         component: () => import('@/pages/home/order-detail/index.vue')
+      },
+      {
+        path: '/home/map-picker',
+        name: '选择位置',
+        meta: { title: '选择位置' },
+        component: () => import('@/pages/home/map-picker/index.vue')
       }
     ]
   },
