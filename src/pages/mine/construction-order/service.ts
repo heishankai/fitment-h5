@@ -16,3 +16,19 @@ export const getUserInfoService = (): Promise<BasicResp<any>> => {
     method: 'GET'
   })
 }
+
+// 根据订单ID获取施工进度
+export const getConstructionProgressByOrderId = (orderId: number): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/construction-progress/order/${orderId}`,
+    method: 'GET'
+  })
+}
+
+// 根据订单ID获取辅材列表
+export const getMaterialsByOrderId = (orderId: number): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/materials/order/${orderId}`,
+    method: 'GET'
+  })
+}

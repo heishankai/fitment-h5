@@ -55,7 +55,7 @@ export const getCommodityDetailService = (id: number): Promise<BasicResp<any>> =
  */
 export const addMaterialService = (params: any): Promise<BasicResp<any>> => {
   return Request({
-    url: `/api/order/materials`,
+    url: `/api/materials`,
     method: 'POST',
     data: params
   })

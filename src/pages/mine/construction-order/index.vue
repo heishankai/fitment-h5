@@ -12,7 +12,7 @@
 
         <!-- 辅材清单 -->
         <material-list
-          :materials="order?.materials_list"
+          :materials="materialsData"
           class="fade-in-up"
           :style="{ animationDelay: '0.3s' }"
         />
@@ -27,7 +27,7 @@
 
         <!-- 施工进度-->
         <construction-progress
-          :construction_progress="order?.construction_progress"
+          :construction_progress="constructionProgressData"
           class="fade-in-up"
           :style="{ animationDelay: '0.4s' }"
         />
@@ -84,7 +84,12 @@ import MaterialList from './components/material-list.vue'
 import PriceList from './components/price-list.vue'
 import ConstructionProgress from './components/construction-progress.vue'
 // utils
-import { getOrderDetail, getUserInfoService } from './service'
+import {
+  getOrderDetail,
+  getUserInfoService,
+  getConstructionProgressByOrderId,
+  getMaterialsByOrderId
+} from './service'
 import {
   handleContactUser,
   getButtonTextByWorkKind,
@@ -99,6 +104,8 @@ const order = ref<any>(null)
 const user = ref<any>(null)
 const refreshing = ref(false)
 const windowSize = ref({ width: window.innerWidth, height: window.innerHeight })
+const constructionProgressData = ref<any>(null)
+const materialsData = ref<any>(null)
 
 // 监听窗口大小变化
 const handleResize = () => {
@@ -137,6 +144,19 @@ const loadOrderDetail = async () => {
   user.value = userData
 
   console.log(user.value.skillInfo.workKindName, 'user.value.skillInfo.workKindName ')
+
+  // 加载施工进度
+  const { success: progressSuccess, data: progressData } =
+    await getConstructionProgressByOrderId(orderId)
+  if (progressSuccess) {
+    constructionProgressData.value = progressData || null
+  }
+
+  // 加载辅材列表
+  const { success: materialsSuccess, data: materialsData } = await getMaterialsByOrderId(orderId)
+  if (materialsSuccess) {
+    materialsData.value = materialsData || null
+  }
 }
 
 // 联系用户
