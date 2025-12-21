@@ -417,7 +417,6 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 100%;
 }
 
 .price-card {
@@ -546,7 +545,7 @@ footer {
   }
 
   .price-card-footer {
-    // padding: 12px 0;
+    padding-top: 12px;
     border-top: 1px solid #f0f0f0;
     display: flex;
     justify-content: flex-end;

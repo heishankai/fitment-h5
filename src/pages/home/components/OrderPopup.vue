@@ -164,7 +164,6 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { showConfirmDialog } from 'vant'
 import { encryptPhone } from '@/utils/index'
 
 interface Order {
@@ -228,11 +227,6 @@ const handleGrabOrder = async () => {
   if (!props.order) return
 
   try {
-    await showConfirmDialog({
-      title: '确认抢单',
-      message: `确定要接这个${props.order.work_kind_name}订单吗？`
-    })
-
     loading.value = true
     await props.onGrabOrder(props.order.id)
     loading.value = false
