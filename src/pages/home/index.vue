@@ -80,30 +80,6 @@
               >
                 <span>立即接单</span>
               </van-button>
-              <div v-else class="action-group">
-                <van-button
-                  v-if="order.order_status === 2 && order.craftsman_user_id"
-                  type="success"
-                  size="small"
-                  round
-                  @click.stop="handleUpdateOrderStatus(order.id, 3)"
-                  class="action-btn"
-                >
-                  <van-icon name="checked" />
-                  完成
-                </van-button>
-                <van-button
-                  v-if="order.order_status === 2"
-                  type="warning"
-                  size="small"
-                  round
-                  @click.stop="handleUpdateOrderStatus(order.id, 4)"
-                  class="action-btn"
-                >
-                  <van-icon name="cross" />
-                  取消
-                </van-button>
-              </div>
             </div>
           </div>
         </div>
@@ -138,7 +114,6 @@ const {
   orders,
   newOrderCount,
   handleAcceptOrder: acceptOrder,
-  handleUpdateOrderStatus,
   clearNewOrderCount,
   loadOrders,
   setOnNewOrderPopup,
@@ -525,31 +500,6 @@ main {
 
       &:active .van-icon {
         transform: scale(1.1);
-      }
-    }
-
-    .action-group {
-      display: flex;
-      gap: 6px;
-      justify-content: flex-end;
-    }
-
-    .action-btn {
-      font-weight: 500;
-      padding: 0 10px;
-      height: 26px;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-      .van-icon {
-        font-size: 11px;
-      }
-
-      &:active {
-        transform: scale(0.96);
       }
     }
   }

@@ -1,7 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
 import { getToken } from '@/utils/index'
-import { acceptOrder, updateOrderStatus, getCraftsmanOrders } from './service'
+import { acceptOrder, getCraftsmanOrders } from './service'
 
 interface Order {
   id: number
@@ -334,25 +334,6 @@ export function useOrder() {
     }
   }
 
-  // 更新订单状态
-  const handleUpdateOrderStatus = async (orderId: number, status: number) => {
-    try {
-      const res = await updateOrderStatus(orderId, status)
-      if (res?.success) {
-        // 通过Socket发送状态更新
-        if (socket.value) {
-          socket.value.emit('update-order-status', { orderId, order_status: status })
-        }
-        showToast('状态更新成功')
-      } else {
-        showToast(res?.message || '更新失败')
-      }
-    } catch (error) {
-      console.error('更新订单状态失败:', error)
-      showToast('更新失败')
-    }
-  }
-
   // 断开连接
   const disconnect = () => {
     if (socket.value) {
@@ -413,7 +394,6 @@ export function useOrder() {
     orders,
     newOrderCount,
     handleAcceptOrder,
-    handleUpdateOrderStatus,
     clearNewOrderCount,
     disconnect,
     connectSocket,

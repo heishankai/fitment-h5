@@ -31,6 +31,16 @@
               <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
                 {{ order.order_status_name }}
               </van-tag>
+              <!-- 显示订单类型标签 -->
+              <van-tag
+                v-if="order.is_assigned_order || order.is_assigned"
+                type="warning"
+                plain
+                round
+                class="order-type-tag"
+              >
+                被分配
+              </van-tag>
             </div>
             <div class="card-time" v-if="order.createdAt">
               {{ formatTime(order.createdAt) }}
@@ -238,6 +248,14 @@ const getStatusType = (
       font-size: 11px;
       font-weight: 600;
       padding: 3px 10px;
+    }
+
+    .order-type-tag {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      margin-left: 4px;
     }
   }
 

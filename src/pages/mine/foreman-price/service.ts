@@ -28,7 +28,7 @@ export const getWorkPriceDetailService = (id: number): Promise<BasicResp<any>> =
 // 提交工价清单
 export const submitWorkPriceService = (params: any): Promise<BasicResp<any>> => {
   return Request({
-    url: `/api/order/work-prices`,
+    url: `/api/work-price-item/create`,
     method: 'POST',
     data: params
   })

@@ -32,3 +32,13 @@ export const getMaterialsByOrderId = (orderId: number): Promise<BasicResp<any>> 
     method: 'GET'
   })
 }
+
+/**
+ * 获取所有子工价
+ */
+export const getSubWorkPricesByOrderId = (orderId: number): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/order/${orderId}/sub-groups`,
+    method: 'GET'
+  })
+}

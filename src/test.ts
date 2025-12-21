@@ -16,6 +16,7 @@ const user1 = {
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInBob25lIjoiMTc2ODE1NDA1NzAiLCJjb2RlIjoiODEzNSIsInR5cGUiOiJjcmFmdHNtYW4iLCJpYXQiOjE3NjQ5MzkyMDMsImV4cCI6MTc3MDk4NzIwM30.yfYC_qRXBdvxg6tTdtRsLaQkGpVKeuQvViWKCCtSZnU
 
 帮我清空 17681540570 、17681878550、18667177723中所有的订单、钱包、打卡、提现的数据
+清空微信用户18667177723 中所有的订单数据
 
 // 工匠数据
 const user2 = {

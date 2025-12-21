@@ -1,261 +1,144 @@
 <template>
   <!-- 主工价清单 -->
-  <section class="section" v-if="workPrices?.length">
+  <section class="section" v-if="parentWorkPriceGroups?.length">
     <detail-section-title title="工价清单" icon="bag-o" />
 
-    <div class="price-groups">
-      <div
-        v-for="(group, groupIndex) in workPrices"
-        :key="groupIndex"
-        class="price-group fade-in-up"
-        :style="{ animationDelay: `${groupIndex * 0.1}s` }"
+    <div class="price-list">
+      <van-card
+        v-for="(price, priceIndex) in parentWorkPriceGroups"
+        :key="price.id"
+        :title="price.work_title"
+        :thumb="price?.display_images?.[0]"
+        class="price-card fade-in-up shine-effect"
+        :style="{ animationDelay: `${priceIndex * 0.05}s` }"
+        @click="navigateToDetail(price)"
       >
-        <!-- 工价卡片列表 -->
-        <div class="price-list">
-          <van-card
-            v-for="(price, priceIndex) in group?.prices_list"
-            :key="price.id"
-            :title="price.work_title"
-            :thumb="price?.display_images?.[0]"
-            class="price-card fade-in-up shine-effect"
-            :style="{ animationDelay: `${groupIndex * 0.1 + priceIndex * 0.05}s` }"
-            @click="navigateToDetail(price)"
-          >
-            <template #desc>
-              <van-space>
-                <div class="work-kind-tag">
-                  {{ price.work_kind?.work_kind_name || '' }}
-                </div>
-                <van-tag type="primary" plain class="quantity-tag"> ×{{ price.quantity }} </van-tag>
-              </van-space>
-            </template>
-
-            <template #origin-price>
-              <van-tag
-                v-if="price.is_set_minimum_price === '1' && price.minimum_price"
-                type="warning"
-                plain
-                class="minimum-price-tag"
-              >
-                最低¥{{ price.minimum_price }}
-              </van-tag>
-            </template>
-            <template #price>
-              <div class="price-wrapper">
-                <span class="unit-price">¥{{ price.work_price }}</span>
-                <span class="unit-text" v-if="price.labour_cost"
-                  >/{{ price.labour_cost.labour_cost_name }}</span
-                >
-              </div>
-            </template>
-            <template #footer>
-              <div class="item-total">
-                <span class="total-label">小计：</span>
-                <span class="total-value"> ¥{{ calculateItemTotal(price).toFixed(2) }} </span>
-              </div>
-              <van-tag
-                v-if="
-                  group.craftsman_user_work_kind_name === '工长' &&
-                  price.work_kind?.work_kind_name === '水电'
-                "
-                :type="price.is_accepted ? 'success' : 'warning'"
-                class="status-tag"
-              >
-                <van-icon :name="price.is_accepted ? 'success' : 'clock-o'" />
-                {{ price.is_accepted ? '水电已验收' : '水电待验收' }}
-              </van-tag>
-
-              <van-tag
-                v-if="
-                  group.craftsman_user_work_kind_name === '工长' &&
-                  price.work_kind?.work_kind_name === '泥瓦工'
-                "
-                :type="price.is_accepted ? 'success' : 'warning'"
-                class="status-tag"
-              >
-                <van-icon :name="price.is_accepted ? 'success' : 'clock-o'" />
-                {{ price.is_accepted ? '泥瓦工已验收' : '泥瓦工待验收' }}
-              </van-tag>
-            </template>
-          </van-card>
-        </div>
-
-        <!-- 价格汇总区域 -->
-        <div class="price-summary">
-          <!-- 工价合计 -->
-          <div class="summary-row">
-            <span class="summary-label">工价合计：</span>
-            <span class="summary-value">¥{{ Number(group.total_price).toFixed(2) }}</span>
-          </div>
-
-          <!-- 工长费用 -->
-          <div class="summary-row" v-if="group?.gangmaster_cost">
-            <span class="summary-label">工长费用：</span>
-            <span class="summary-value service-fee"
-              >¥{{ Number(group.gangmaster_cost).toFixed(2) }}</span
-            >
-          </div>
-
-          <!-- 服务费 -->
-          <div class="summary-row" v-if="group.total_service_fee">
-            <span class="summary-label">平台服务费：</span>
-            <span class="summary-value service-fee"
-              >¥{{ Number(calculateGangmasterServiceFee(group)).toFixed(2) }}</span
-            >
-          </div>
-
-          <!-- 最终总价 -->
-          <div class="summary-row final-total">
-            <span class="summary-label">总计：</span>
-            <span class="summary-value final-price"
-              >¥{{ calculateFinalTotal(group).toFixed(2) }}</span
-            >
-          </div>
-
-          <!-- 支付状态和验收状态 -->
-          <div
-            class="acceptance-status"
-            v-if="group.is_paid !== undefined || group.total_is_accepted !== undefined"
-          >
-            <div class="status-tags-wrapper">
-              <!-- 支付状态 -->
-              <van-tag :type="group.is_paid ? 'success' : 'warning'" class="status-tag">
-                <van-icon :name="group.is_paid ? 'checked' : 'clock-o'" />
-                {{ group.is_paid ? '已支付' : '未支付' }}
-              </van-tag>
-              <!-- 验收状态 -->
-              <van-tag :type="group.total_is_accepted ? 'success' : 'warning'" class="status-tag">
-                <van-icon :name="group.total_is_accepted ? 'success' : 'clock-o'" />
-                {{ group.total_is_accepted ? '已验收' : '待验收' }}
-              </van-tag>
+        <template #desc>
+          <van-space>
+            <div class="work-kind-tag">
+              {{ price.work_kind_name || '' }}
             </div>
-          </div>
-        </div>
+            <van-tag type="primary" plain class="quantity-tag"> ×{{ price.quantity }} </van-tag>
+          </van-space>
+        </template>
 
-        <van-divider v-if="groupIndex !== workPrices.length - 1" class="group-divider" />
-      </div>
-    </div>
-  </section>
-
-  <!-- 子工价清单 -->
-  <section class="section" v-if="subWorkPrices?.length">
-    <detail-section-title title="子工价清单" icon="orders-o" />
-
-    <div class="price-groups sub-work-price-groups">
-      <div
-        v-for="(group, groupIndex) in subWorkPrices"
-        :key="groupIndex"
-        class="price-group fade-in-up sub-work-price-group"
-        :style="{ animationDelay: `${groupIndex * 0.1}s` }"
-      >
-        <!-- 子工价组头部信息 -->
-        <div class="sub-group-header">
-          <div class="header-info">
-            <div class="header-title">
-              <van-icon name="user-circle-o" class="header-icon" />
-              <span class="work-kind-name">{{
-                group.craftsman_user_work_kind_name || '未知工种'
-              }}</span>
-            </div>
-            <div class="header-meta">
-              <van-tag :type="group.is_paid ? 'success' : 'warning'" plain class="payment-tag">
-                <van-icon :name="group.is_paid ? 'checked' : 'clock-o'" />
-                {{ group.is_paid ? '已支付' : '未支付' }}
-              </van-tag>
-            </div>
-          </div>
-        </div>
-
-        <!-- 工价卡片列表 -->
-        <div class="price-list">
-          <van-card
-            v-for="(price, priceIndex) in group?.prices_list"
-            :key="price.id"
-            :title="price.work_title"
-            :thumb="price?.display_images?.[0]"
-            class="price-card fade-in-up shine-effect"
-            :style="{ animationDelay: `${groupIndex * 0.1 + priceIndex * 0.05}s` }"
-            @click="navigateToDetail(price)"
+        <template #origin-price>
+          <van-tag
+            v-if="price.is_set_minimum_price === '1' && price.minimum_price"
+            type="warning"
+            plain
+            class="minimum-price-tag"
           >
-            <template #desc>
-              <van-space>
-                <div class="work-kind-tag">
-                  {{ price.work_kind?.work_kind_name || '' }}
-                </div>
-                <van-tag type="primary" plain class="quantity-tag"> ×{{ price.quantity }} </van-tag>
-              </van-space>
-            </template>
-
-            <template #origin-price>
-              <van-tag
-                v-if="price.is_set_minimum_price === '1' && price.minimum_price"
-                type="warning"
-                plain
-                class="minimum-price-tag"
-              >
-                最低¥{{ price.minimum_price }}
-              </van-tag>
-            </template>
-            <template #price>
-              <div class="price-wrapper">
-                <span class="unit-price">¥{{ price.work_price }}</span>
-                <span class="unit-text" v-if="price.labour_cost"
-                  >/{{ price.labour_cost.labour_cost_name }}</span
-                >
-              </div>
-            </template>
-            <template #footer>
-              <div class="item-total">
-                <span class="total-label">小计：</span>
-                <span class="total-value"> ¥{{ calculateItemTotal(price).toFixed(2) }} </span>
-              </div>
-            </template>
-          </van-card>
-        </div>
-
-        <!-- 价格汇总区域 -->
-        <div class="price-summary">
-          <!-- 工价合计 -->
-          <div class="summary-row">
-            <span class="summary-label">工价合计：</span>
-            <span class="summary-value">¥{{ Number(group.total_price).toFixed(2) }}</span>
-          </div>
-
-          <!-- 服务费 -->
-          <div class="summary-row" v-if="group.total_service_fee">
-            <span class="summary-label">服务费：</span>
-            <span class="summary-value service-fee"
-              >¥{{ Number(group.total_service_fee).toFixed(2) }}</span
+            最低¥{{ price.minimum_price }}
+          </van-tag>
+        </template>
+        <template #price>
+          <div class="price-wrapper">
+            <span class="unit-price">¥{{ price.work_price }}</span>
+            <span class="unit-text" v-if="price.labour_cost_name"
+              >/{{ price.labour_cost_name }}</span
             >
           </div>
-
-          <!-- 访问服务次数 -->
-          <div
-            class="summary-row"
-            v-if="group.visiting_service_num !== undefined && group.visiting_service_num > 0"
-          >
-            <span class="summary-label">
-              <van-icon name="service-o" />
-              访问服务次数：
+        </template>
+        <template #footer>
+          <div class="item-total">
+            <span class="total-label">小计：</span>
+            <span class="total-value">
+              ¥{{ Number(price.settlement_amount || 0).toFixed(2) }}
             </span>
-            <span class="summary-value">{{ group.visiting_service_num }}次</span>
           </div>
-
-          <!-- 最终总价 -->
-          <div class="summary-row final-total">
-            <span class="summary-label">总计：</span>
-            <span class="summary-value final-price"
-              >¥{{ calculateFinalTotal(group).toFixed(2) }}</span
+          <!-- 状态标签容器 -->
+          <div class="status-tags-container">
+            <!-- 分配工匠信息 -->
+            <van-tag
+              v-if="price.is_assigned"
+              type="primary"
+              class="status-tag assigned-craftsman-tag"
             >
-          </div>
-
-          <!-- 接受状态 -->
-          <div class="acceptance-status" v-if="group.total_is_accepted !== undefined">
-            <van-tag :type="group.total_is_accepted ? 'success' : 'warning'" class="status-tag">
-              <van-icon :name="group.total_is_accepted ? 'success' : 'clock-o'" />
-              {{ group.total_is_accepted ? '已验收' : '待验收' }}
+              <van-icon name="user-circle-o" />
+              <span v-if="price.assigned_craftsman">
+                已分配：{{ price.assigned_craftsman.nickname }} ({{
+                  price.assigned_craftsman.phone
+                }})
+              </span>
+            </van-tag>
+            <!-- 验收状态 -->
+            <van-tag
+              v-if="price.is_accepted !== undefined"
+              :type="price.is_accepted ? 'success' : 'warning'"
+              class="status-tag"
+            >
+              <van-icon :name="price.is_accepted ? 'success' : 'clock-o'" />
+              {{ price.is_accepted ? '已验收' : '待验收' }}
+            </van-tag>
+            <!-- 支付状态 -->
+            <van-tag
+              v-if="price.is_paid !== undefined"
+              :type="price.is_paid ? 'success' : 'warning'"
+              class="status-tag"
+            >
+              <van-icon :name="price.is_paid ? 'success' : 'clock-o'" />
+              {{ price.is_paid ? '已支付' : '待支付' }}
             </van-tag>
           </div>
+        </template>
+      </van-card>
+    </div>
+
+    <!-- 价格汇总区域 -->
+    <div class="price-summary">
+      <!-- 工价合计 -->
+      <div class="summary-row">
+        <span class="summary-label">工价合计：</span>
+        <span class="summary-value">¥{{ Number(orderInfo?.total_price || 0).toFixed(2) }}</span>
+      </div>
+
+      <!-- 工长费用 -->
+      <div class="summary-row" v-if="orderInfo?.gangmaster_cost">
+        <span class="summary-label">工长工费：</span>
+        <span class="summary-value service-fee"
+          >¥{{ Number(orderInfo.gangmaster_cost).toFixed(2) }}</span
+        >
+      </div>
+
+      <!-- 上门服务数量 -->
+      <div
+        class="summary-row"
+        v-if="orderInfo?.visiting_service_num !== undefined && orderInfo.visiting_service_num > 0"
+      >
+        <span class="summary-label"> 上门服务数量： </span>
+        <span class="summary-value">{{ orderInfo.visiting_service_num }}次</span>
+      </div>
+
+      <!-- 平台服务费 -->
+      <div class="summary-row">
+        <span class="summary-label">平台服务费：</span>
+        <span class="summary-value service-fee"
+          >¥{{ calculatePlatformServiceFee(orderInfo).toFixed(2) }}</span
+        >
+      </div>
+
+      <!-- 最终总价 -->
+      <div class="summary-row final-total">
+        <span class="summary-label">总计：</span>
+        <span class="summary-value final-price"
+          >¥{{ calculateFinalTotal(orderInfo).toFixed(2) }}</span
+        >
+      </div>
+
+      <!-- 支付状态和验收状态 -->
+      <div class="acceptance-status">
+        <div class="status-tags-wrapper">
+          <!-- 支付状态 -->
+          <van-tag :type="orderInfo?.is_paid ? 'success' : 'warning'" class="status-tag">
+            <van-icon :name="orderInfo?.is_paid ? 'checked' : 'clock-o'" />
+            {{ orderInfo?.is_paid ? '已支付' : '未支付' }}
+          </van-tag>
+          <!-- 验收状态 -->
+          <van-tag :type="orderInfo?.total_is_accepted ? 'success' : 'warning'" class="status-tag">
+            <van-icon :name="orderInfo?.total_is_accepted ? 'success' : 'clock-o'" />
+            {{ orderInfo?.total_is_accepted ? '已验收' : '待验收' }}
+          </van-tag>
         </div>
       </div>
     </div>
@@ -267,55 +150,39 @@ import { useRouter, useRoute } from 'vue-router'
 import DetailSectionTitle from '@/components/detail-section-title.vue'
 
 defineProps<{
-  workPrices?: any[]
-  subWorkPrices?: any[]
+  parentWorkPriceGroups?: any[]
+  orderInfo?: any
 }>()
 
 const router = useRouter()
 const route = useRoute()
 
-// 计算单项小计（考虑最低价格）
-const calculateItemTotal = (price: any): number => {
-  const unitPrice = parseFloat(String(price.work_price)) || 0
-  const quantity = price.quantity || 1
-  const itemTotal = unitPrice * quantity
-
-  // 如果设置了最低价格，且合计低于最低价格，则使用最低价格
-  const hasMinimumPrice =
-    String(price.is_set_minimum_price) === '1' || Number(price.is_set_minimum_price) === 1
-  if (hasMinimumPrice && price.minimum_price) {
-    const minimumPrice = parseFloat(String(price.minimum_price)) || 0
-    return itemTotal >= minimumPrice ? itemTotal : minimumPrice
-  }
-
-  return itemTotal
+// 计算平台服务费：(total_price + gangmaster_cost) * 10%
+const calculatePlatformServiceFee = (orderInfo: any): number => {
+  const totalPrice = parseFloat(String(orderInfo?.total_price || 0)) || 0
+  const gangmasterCost = parseFloat(String(orderInfo?.gangmaster_cost || 0)) || 0
+  return (totalPrice + gangmasterCost) * 0.1
 }
 
-// 计算平台服务费
-const calculateGangmasterServiceFee = (group: any): number => {
-  const gangmasterCost = parseFloat(String(group?.gangmaster_cost || 0)) || 0
-  return gangmasterCost * 0.1 + (group?.total_service_fee || 0)
-}
-
-// 计算最终总价（工价合计 + 服务费 + 工长费用 ）
-const calculateFinalTotal = (group: any): number => {
-  // 施工费用
-  const totalPrice = parseFloat(String(group?.total_price)) || 0
+// 计算最终总价（工价合计 + 工长工费 + 平台服务费）
+const calculateFinalTotal = (orderInfo: any): number => {
+  // 工价合计
+  const totalPrice = parseFloat(String(orderInfo?.total_price || 0)) || 0
+  // 工长工费
+  const gangmasterCost = parseFloat(String(orderInfo?.gangmaster_cost || 0)) || 0
   // 平台服务费
-  const serviceFee = parseFloat(String(group?.total_service_fee || 0)) || 0
-  // 工长费用
-  const gangmasterCost = parseFloat(String(group?.gangmaster_cost || 0)) || 0
-  // 工长平台服务费 （10%）
-  const gangmasterServiceFee = gangmasterCost * 0.1
+  const platformServiceFee = calculatePlatformServiceFee(orderInfo)
 
-  return totalPrice + serviceFee + gangmasterCost + gangmasterServiceFee
+  return totalPrice + gangmasterCost + platformServiceFee
 }
 
 // 跳转详情
 const navigateToDetail = (price: any) => {
   const orderId = route.params.id || route.query.orderId
+  // 使用 work_price_id 跳转详情
+  const priceId = price.work_price_id || price.id
   router.push({
-    path: `/mine/foreman-price/detail/${price.id}`,
+    path: `/mine/foreman-price/detail/${priceId}`,
     query: orderId ? { orderId: String(orderId) } : undefined
   })
 }
@@ -341,11 +208,6 @@ const navigateToDetail = (price: any) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  &.sub-work-price-group {
-    gap: 10px;
-    background: transparent;
-  }
 }
 
 .price-list {
@@ -484,6 +346,9 @@ const navigateToDetail = (price: any) => {
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .item-total {
@@ -504,6 +369,38 @@ const navigateToDetail = (price: any) => {
       color: #00cec9;
     }
   }
+
+  .status-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+
+    .status-tag {
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      margin: 0;
+
+      :deep(.van-icon) {
+        font-size: 12px;
+      }
+    }
+
+    .assigned-craftsman-tag {
+      background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+      color: #00cec9;
+      border-color: rgba(0, 206, 201, 0.3);
+      font-weight: 500;
+    }
+  }
 }
 
 .price-summary {
@@ -511,13 +408,6 @@ const navigateToDetail = (price: any) => {
   padding: 16px;
   background: linear-gradient(135deg, rgba(0, 206, 201, 0.03) 0%, rgba(0, 180, 216, 0.03) 100%);
   border-radius: 12px;
-  border: 1px solid rgba(0, 206, 201, 0.1);
-}
-
-.sub-work-price-group .price-summary {
-  margin-top: 8px;
-  padding: 12px;
-  background: #fff;
   border: 1px solid rgba(0, 206, 201, 0.1);
 }
 
@@ -589,123 +479,24 @@ const navigateToDetail = (price: any) => {
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    margin-top: 8px;
 
     :deep(.van-icon) {
       font-size: 14px;
     }
+  }
+
+  .assigned-craftsman-tag {
+    background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+    color: #00cec9;
+    border-color: rgba(0, 206, 201, 0.3);
+    font-weight: 600;
   }
 }
 
 .group-divider {
   margin: 16px 0;
   border-color: #f0f0f0;
-}
-
-/* 子工价清单样式 */
-.sub-work-price-groups {
-  gap: 16px;
-}
-
-.sub-work-price-group {
-  padding: 12px;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-color: rgba(0, 206, 201, 0.2);
-  }
-
-  &:not(:last-child) {
-    margin-bottom: 0;
-  }
-}
-
-.sub-group-header {
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(0, 206, 201, 0.05) 0%, rgba(0, 180, 216, 0.05) 100%);
-  border-radius: 8px;
-
-  .header-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 1;
-      min-width: 0;
-
-      .header-icon {
-        font-size: 16px;
-        color: #00cec9;
-        flex-shrink: 0;
-      }
-
-      .work-kind-name {
-        font-size: 14px;
-        font-weight: 600;
-        color: #323233;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-
-    .header-meta {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-
-      .payment-tag {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        padding: 3px 8px;
-        border-radius: 10px;
-        font-weight: 500;
-
-        :deep(.van-icon) {
-          font-size: 12px;
-        }
-
-        &.van-tag--success {
-          background: rgba(7, 193, 96, 0.1);
-          color: #07c160;
-          border-color: rgba(7, 193, 96, 0.3);
-        }
-
-        &.van-tag--warning {
-          background: rgba(255, 152, 0, 0.1);
-          color: #ff9800;
-          border-color: rgba(255, 152, 0, 0.3);
-        }
-      }
-    }
-  }
-}
-
-.summary-row {
-  .summary-label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    .van-icon {
-      font-size: 14px;
-      color: #969799;
-    }
-  }
 }
 
 /* 动画效果 */

@@ -232,10 +232,8 @@ const onSave = async () => {
 
     const { success } = await saveConstructionProgress({
       orderId,
-      progress: {
-        ...construction_progress.value,
-        photos: construction_progress.value.photos.map((p) => p.url)
-      }
+      ...construction_progress.value,
+      photos: construction_progress.value.photos.map((p) => p.url)
     })
 
     if (!success) return

@@ -1,0 +1,595 @@
+<template>
+  <!-- 子工价清单 -->
+  <section class="section" v-if="subWorkPrices?.length">
+    <detail-section-title title="子工价清单" icon="orders-o" />
+
+    <div class="price-groups sub-work-price-groups">
+      <div
+        v-for="(group, groupIndex) in subWorkPrices"
+        :key="groupIndex"
+        class="price-group fade-in-up sub-work-price-group"
+        :style="{ animationDelay: `${groupIndex * 0.1}s` }"
+      >
+        <!-- 工作组标题 -->
+        <section-title :title="`子工价${groupIndex + 1}`" />
+
+        <!-- 工价卡片列表 -->
+        <div class="price-list">
+          <van-card
+            v-for="(price, priceIndex) in group?.sub_work_price_groups"
+            :key="price.id"
+            :title="price.work_title"
+            :thumb="price?.display_images?.[0]"
+            class="price-card fade-in-up shine-effect"
+            :style="{ animationDelay: `${groupIndex * 0.1 + priceIndex * 0.05}s` }"
+            @click="navigateToDetail(price)"
+          >
+            <template #desc>
+              <van-space>
+                <div class="work-kind-tag">
+                  {{ price.work_kind_name || '' }}
+                </div>
+                <van-tag type="primary" plain class="quantity-tag"> ×{{ price.quantity }} </van-tag>
+              </van-space>
+            </template>
+
+            <template #origin-price>
+              <van-tag
+                v-if="price.is_set_minimum_price === '1' && price.minimum_price"
+                type="warning"
+                plain
+                class="minimum-price-tag"
+              >
+                最低¥{{ price.minimum_price }}
+              </van-tag>
+            </template>
+            <template #price>
+              <div class="price-wrapper">
+                <span class="unit-price">¥{{ price.work_price }}</span>
+                <span class="unit-text" v-if="price.labour_cost_name"
+                  >/{{ price.labour_cost_name }}</span
+                >
+              </div>
+            </template>
+            <template #footer>
+              <div class="item-total">
+                <span class="total-label">小计：</span>
+                <span class="total-value">
+                  ¥{{ Number(price.settlement_amount || 0).toFixed(2) }}
+                </span>
+              </div>
+              <!-- 状态标签容器 -->
+              <div class="status-tags-container">
+                <!-- 分配工匠信息 -->
+                <van-tag
+                  v-if="price.assigned_craftsman_id"
+                  type="primary"
+                  class="status-tag assigned-craftsman-tag"
+                >
+                  <van-icon name="user-circle-o" />
+                  <span v-if="price.assigned_craftsman">
+                    已分配：{{ price.assigned_craftsman.nickname }} ({{
+                      price.assigned_craftsman.phone
+                    }})
+                  </span>
+                  <span v-else> 已分配工匠 (ID: {{ price.assigned_craftsman_id }}) </span>
+                </van-tag>
+                <!-- 验收状态 -->
+                <van-tag
+                  v-if="price.is_accepted !== undefined"
+                  :type="price.is_accepted ? 'success' : 'warning'"
+                  class="status-tag"
+                >
+                  <van-icon :name="price.is_accepted ? 'success' : 'clock-o'" />
+                  {{ price.is_accepted ? '已验收' : '待验收' }}
+                </van-tag>
+                <!-- 支付状态 -->
+                <van-tag
+                  v-if="price.is_paid !== undefined"
+                  :type="price.is_paid ? 'success' : 'warning'"
+                  class="status-tag"
+                >
+                  <van-icon :name="price.is_paid ? 'success' : 'clock-o'" />
+                  {{ price.is_paid ? '已支付' : '待支付' }}
+                </van-tag>
+              </div>
+            </template>
+          </van-card>
+        </div>
+
+        <!-- 价格汇总区域 -->
+        <div class="price-summary" v-if="showSummary !== false">
+          <!-- 工价合计 -->
+          <div class="summary-row">
+            <span class="summary-label">工价合计：</span>
+            <span class="summary-value">¥{{ Number(group.total_price).toFixed(2) }}</span>
+          </div>
+
+          <!-- 服务费 -->
+          <div class="summary-row" v-if="group.total_service_fee">
+            <span class="summary-label">服务费：</span>
+            <span class="summary-value service-fee"
+              >¥{{ Number(group.total_service_fee).toFixed(2) }}</span
+            >
+          </div>
+
+          <!-- 最终总价 -->
+          <div class="summary-row final-total">
+            <span class="summary-label">总计：</span>
+            <span class="summary-value final-price"
+              >¥{{ calculateFinalTotal(group).toFixed(2) }}</span
+            >
+          </div>
+
+          <!-- 支付状态和验收状态 -->
+          <div class="acceptance-status">
+            <div class="status-tags-wrapper">
+              <!-- 支付状态 -->
+              <van-tag
+                v-if="group.is_paid !== undefined"
+                :type="group.is_paid ? 'success' : 'warning'"
+                class="status-tag"
+              >
+                <van-icon :name="group.is_paid ? 'checked' : 'clock-o'" />
+                {{ group.is_paid ? '已支付' : '未支付' }}
+              </van-tag>
+              <!-- 验收状态 -->
+              <van-tag
+                v-if="group.total_is_accepted !== undefined"
+                :type="group.total_is_accepted ? 'success' : 'warning'"
+                class="status-tag"
+              >
+                <van-icon :name="group.total_is_accepted ? 'success' : 'clock-o'" />
+                {{ group.total_is_accepted ? '已验收' : '待验收' }}
+              </van-tag>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { useRouter, useRoute } from 'vue-router'
+import DetailSectionTitle from '@/components/detail-section-title.vue'
+import SectionTitle from '@/components/section-title.vue'
+
+defineProps<{
+  subWorkPrices?: any[]
+  showSummary?: boolean
+}>()
+
+const router = useRouter()
+const route = useRoute()
+
+// 计算最终总价（工价合计 + 服务费）
+const calculateFinalTotal = (group: any): number => {
+  // 施工费用
+  const totalPrice = parseFloat(String(group?.total_price)) || 0
+  // 平台服务费
+  const serviceFee = parseFloat(String(group?.total_service_fee || 0)) || 0
+
+  return totalPrice + serviceFee
+}
+
+// 跳转详情
+const navigateToDetail = (price: any) => {
+  const orderId = route.params.id || route.query.orderId
+  router.push({
+    path: `/mine/foreman-price/detail/${price.id}`,
+    query: orderId ? { orderId: String(orderId) } : undefined
+  })
+}
+</script>
+
+<style lang="less" scoped>
+.section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.price-groups {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.price-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &.sub-work-price-group {
+    gap: 10px;
+    background: transparent;
+  }
+}
+
+.price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.price-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  opacity: 0;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  :deep(.van-card) {
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 16px;
+    background: #fff;
+  }
+
+  :deep(.van-card__thumb) {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-right: 16px;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &:hover :deep(.van-card__thumb img) {
+    transform: scale(1.05);
+  }
+
+  :deep(.van-card__content) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  :deep(.van-card__title) {
+    font-size: 16px;
+    font-weight: 600;
+    color: #323233;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .work-kind-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+    color: #00cec9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .price-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+
+  .unit-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #00cec9;
+  }
+
+  .unit-text {
+    font-size: 12px;
+    color: #969799;
+    font-weight: 400;
+  }
+
+  :deep(.van-card__tags) {
+    margin-top: 0;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .van-tag {
+      margin: 0;
+    }
+
+    .quantity-tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: rgba(0, 206, 201, 0.1);
+      color: #00cec9;
+      border-color: rgba(0, 206, 201, 0.3);
+      font-weight: 600;
+    }
+
+    .minimum-price-tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      background: rgba(255, 152, 0, 0.1);
+      color: #ff9800;
+      border-color: rgba(255, 152, 0, 0.3);
+      font-weight: 500;
+    }
+  }
+
+  :deep(.van-card__footer) {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item-total {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+
+    .total-label {
+      font-size: 13px;
+      color: #646566;
+      font-weight: 500;
+    }
+
+    .total-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #00cec9;
+    }
+  }
+
+  .status-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+
+    .status-tag {
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      margin: 0;
+
+      :deep(.van-icon) {
+        font-size: 12px;
+      }
+    }
+
+    .assigned-craftsman-tag {
+      background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+      color: #00cec9;
+      border-color: rgba(0, 206, 201, 0.3);
+      font-weight: 500;
+    }
+  }
+}
+
+.price-summary {
+  margin-top: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(0, 206, 201, 0.03) 0%, rgba(0, 180, 216, 0.03) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 206, 201, 0.1);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+
+  &:not(:last-child) {
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+  }
+
+  .summary-label {
+    color: #646566;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .van-icon {
+      font-size: 14px;
+      color: #969799;
+    }
+  }
+
+  .summary-value {
+    color: #323233;
+    font-weight: 600;
+    font-size: 15px;
+
+    &.service-fee {
+      color: #969799;
+      font-size: 14px;
+    }
+
+    &.final-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #00cec9;
+    }
+  }
+
+  &.final-total {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 2px solid rgba(0, 206, 201, 0.2);
+    border-bottom: none;
+
+    .summary-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #323233;
+    }
+  }
+}
+
+.acceptance-status {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+
+  .status-tags-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .status-tag {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+
+    :deep(.van-icon) {
+      font-size: 14px;
+    }
+  }
+}
+
+/* 子工价清单样式 */
+.sub-work-price-groups {
+  gap: 16px;
+}
+
+.sub-work-price-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sub-group-header {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(0, 206, 201, 0.05) 0%, rgba(0, 180, 216, 0.05) 100%);
+  border-radius: 8px;
+
+  .header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+
+      .header-icon {
+        font-size: 16px;
+        color: #00cec9;
+        flex-shrink: 0;
+      }
+
+      .work-group-id {
+        font-size: 14px;
+        font-weight: 600;
+        color: #323233;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .payment-tag {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-weight: 500;
+
+        :deep(.van-icon) {
+          font-size: 12px;
+        }
+
+        &.van-tag--success {
+          background: rgba(7, 193, 96, 0.1);
+          color: #07c160;
+          border-color: rgba(7, 193, 96, 0.3);
+        }
+
+        &.van-tag--warning {
+          background: rgba(255, 152, 0, 0.1);
+          color: #ff9800;
+          border-color: rgba(255, 152, 0, 0.3);
+        }
+      }
+    }
+  }
+}
+
+/* 动画效果 */
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

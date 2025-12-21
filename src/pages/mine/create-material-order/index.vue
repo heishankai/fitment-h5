@@ -127,17 +127,16 @@ const handleSubmit = async () => {
       message: `共 ${cartTotalCount.value} 件商品，总计 ¥${totalPrice.value.toFixed(2)}，确认提交吗？`
     })
 
-    console.log('提交清单:', cartList.value)
-
     const { success } = await addMaterialService({
       orderId: Number(route.params.id),
-      materials: [
-        {
-          total_price: totalPrice.value,
-          commodity_list: cartList.value
+      commodity_list: (cartList.value || []).map((item) => {
+        return {
+          commodity_id: item?.id,
+          ...item
         }
-      ]
+      })
     })
+
     if (success) {
       showToast('提交成功')
       clearCart()

@@ -109,6 +109,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useRouter, useRoute } from 'vue-router'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import PriceCartPopup from './components/price-cart-popup.vue'
 import {
@@ -134,9 +135,8 @@ const currentUserWorkKindName = ref<string | undefined>(undefined)
 // 使用工价清单功能（传入订单ID）
 const orderId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
 // 从查询参数中获取 area
-const { area, craftsman_user_work_kind_name } = route.query ?? {}
+const { area } = route.query ?? {}
 
-console.log('area', area)
 const {
   cartList,
   cartTotalCount,
@@ -150,6 +150,15 @@ const {
 // 加入清单
 const handleAddToCart = (price: any) => {
   addToCart(price)
+}
+
+// 跳转工价详情
+const navigateToDetail = (price: any) => {
+  const orderId = route.params.id || route.query.orderId
+  router.push({
+    path: `/mine/foreman-price/detail/${price.id}`,
+    query: orderId ? { orderId: String(orderId) } : undefined
+  })
 }
 
 // 提交工价清单
@@ -166,38 +175,32 @@ const handleSubmit = async () => {
     })
 
     const { success } = await submitWorkPriceService({
-      orderId: Number(route.params.id),
-      work_prices: [
-        {
-          area, // 平米数
-          total_price: totalPrice.value, // 施工总费用
-          craftsman_user_work_kind_name, // 当前用户的工种名称
-          prices_list: (cartList.value || [])?.map((item) => {
-            const {
-              quantity,
-              id,
-              work_kind,
-              work_price,
-              work_title,
-              labour_cost,
-              work_kind_id,
-              minimum_price,
-              is_set_minimum_price
-            } = item ?? {}
-            return {
-              id,
-              quantity, // 数量
-              work_kind, // 工种
-              work_price, // 工价
-              work_title, // 工价标题
-              labour_cost, // 单位
-              work_kind_id, // 工种id
-              minimum_price, // 最低价格
-              is_set_minimum_price // 是否设置最低价格
-            }
-          })
+      order_id: Number(route.params.id), // 订单id
+      area, // 平米数
+      total_price: totalPrice.value, // 施工总费用
+      work_price_list: (cartList.value || [])?.map((item) => {
+        const {
+          quantity,
+          id,
+          work_kind,
+          work_price,
+          work_title,
+          labour_cost,
+          minimum_price,
+          is_set_minimum_price
+        } = item ?? {}
+        return {
+          work_price_id: id, // 工价id
+          work_price, // 工价
+          work_title, // 工价标题
+          quantity, // 数量
+          work_kind_name: work_kind?.work_kind_name, // 工种名称
+          work_kind_id: work_kind?.id, // 工种id
+          labour_cost_name: labour_cost?.labour_cost_name, // 单位名称
+          minimum_price, // 最低价格,
+          is_set_minimum_price // 是否设置最低价格
         }
-      ]
+      })
     })
 
     if (success) {
@@ -276,13 +279,6 @@ const getWorkKindPrice = async (workKindId: number) => {
       (item: any) => item?.work_kind?.work_kind_name === currentUserWorkKindName.value
     )
   }
-}
-
-// 跳转工价详情
-const navigateToDetail = (price: any) => {
-  router.push({
-    path: `/mine/foreman-price/detail/${price.id}`
-  })
 }
 
 onMounted(() => {
@@ -550,10 +546,11 @@ footer {
   }
 
   .price-card-footer {
-    padding-top: 12px;
+    // padding: 12px 0;
     border-top: 1px solid #f0f0f0;
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
 
     .add-btn {
       background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);

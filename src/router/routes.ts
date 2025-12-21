@@ -190,6 +190,24 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/pages/mine/construction-order/index.vue')
       },
       {
+        path: '/mine/construction-order/:id/material-list',
+        name: '辅材清单',
+        meta: { title: '辅材清单' },
+        component: () => import('@/pages/mine/construction-order/material-list.vue')
+      },
+      {
+        path: '/mine/construction-order/:id/price-list',
+        name: '工价清单',
+        meta: { title: '工价清单' },
+        component: () => import('@/pages/mine/construction-order/price-list.vue')
+      },
+      {
+        path: '/mine/construction-order/:id/construction-progress',
+        name: '施工进度查看',
+        meta: { title: '施工进度' },
+        component: () => import('@/pages/mine/construction-order/construction-progress-view.vue')
+      },
+      {
         path: '/mine/construction-progress/:id',
         name: '施工进度',
         meta: { title: '施工进度' },

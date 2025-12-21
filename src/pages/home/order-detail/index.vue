@@ -122,30 +122,6 @@
           <van-icon name="shopping-cart-o" />
           <span>立即接单</span>
         </van-button>
-        <div v-else class="action-group">
-          <van-button
-            v-if="order.order_status === 2 && order.craftsman_user_id"
-            type="success"
-            size="normal"
-            round
-            @click="handleUpdateOrderStatus(3)"
-            class="action-btn"
-          >
-            <van-icon name="checked" />
-            标记完成
-          </van-button>
-          <van-button
-            v-if="order.order_status === 2"
-            type="warning"
-            size="normal"
-            round
-            @click="handleUpdateOrderStatus(4)"
-            class="action-btn"
-          >
-            <van-icon name="cross" />
-            取消订单
-          </van-button>
-        </div>
       </div>
     </div>
 
@@ -159,7 +135,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { formatTime, encryptPhone } from '@/utils/index'
-import { getOrderDetail, acceptOrder, updateOrderStatus } from '../service'
+import { getOrderDetail, acceptOrder } from '../service'
 
 const route = useRoute()
 const router = useRouter()
@@ -246,34 +222,6 @@ const handleAcceptOrder = async () => {
     if (error !== 'cancel') {
       console.error('接单失败:', error)
       showToast('接单失败')
-    }
-  }
-}
-
-// 更新订单状态
-const handleUpdateOrderStatus = async (status: number) => {
-  if (!order.value) return
-
-  const statusText = status === 3 ? '完成' : '取消'
-  try {
-    await showConfirmDialog({
-      title: `确认${statusText}`,
-      message: `确定要${statusText}这个订单吗？`
-    })
-
-    const res = await updateOrderStatus(order.value.id, status)
-    if (res?.success) {
-      showToast(`${statusText}成功`)
-      // 更新订单状态
-      order.value.order_status = status
-      order.value.order_status_name = status === 3 ? '已完成' : '已取消'
-    } else {
-      showToast(res?.message || `${statusText}失败`)
-    }
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      console.error(`${statusText}失败:`, error)
-      showToast(`${statusText}失败`)
     }
   }
 }
@@ -510,25 +458,6 @@ onMounted(() => {
 
     .van-icon {
       font-size: 18px;
-    }
-  }
-
-  .action-group {
-    display: flex;
-    gap: 10px;
-  }
-
-  .action-btn {
-    flex: 1;
-    height: 44px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-
-    .van-icon {
-      font-size: 16px;
     }
   }
 }

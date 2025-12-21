@@ -41,10 +41,10 @@ export function usePriceCart(orderId?: string | number) {
       const saved = localStorage.getItem(key)
       if (saved) {
         const parsed = JSON.parse(saved)
-        // 确保每个项都有 quantity 字段，如果没有则设置为 1
+        // 确保每个项都有 quantity 字段，如果没有则设置为 1，并确保是整数
         cartList.value = parsed.map((item: PriceCartItem) => ({
           ...item,
-          quantity: item.quantity || 1
+          quantity: Math.floor(Number(item.quantity) || 1)
         }))
       }
     } catch (error) {
@@ -127,16 +127,13 @@ export function usePriceCart(orderId?: string | number) {
       minimum_price: price.minimum_price
     })
 
-    // 检查是否已存在相同工种的工价
-    const existingIndex = cartList.value.findIndex(
-      (item) =>
-        item.work_kind_id === price.work_kind?.id || item.work_kind_id === price.work_kind_id
-    )
+    // 检查是否已存在相同工价id的项（使用工价项的唯一id，而不是work_kind_id）
+    const existingIndex = cartList.value.findIndex((item) => item.id === price.id)
 
     if (existingIndex !== -1) {
-      // 如果已存在，增加数量
+      // 如果已存在，增加数量（确保是整数）
       const existingItem = cartList.value[existingIndex]
-      existingItem.quantity = (existingItem.quantity || 1) + 1
+      existingItem.quantity = Math.floor((existingItem.quantity || 1) + 1)
       showToast('已添加到清单')
     } else {
       // 如果不存在，添加新工价
@@ -166,16 +163,25 @@ export function usePriceCart(orderId?: string | number) {
 
   // 更新清单项
   const updateCartItem = (item: PriceCartItem) => {
-    const index = cartList.value.findIndex((i) => i.work_kind_id === item.work_kind_id)
+    const index = cartList.value.findIndex((i) => i.id === item.id)
     if (index !== -1) {
-      cartList.value[index] = { ...cartList.value[index], ...item }
+      // 确保 quantity 是整数
+      const updatedItem = {
+        ...cartList.value[index],
+        ...item,
+        quantity:
+          item.quantity !== undefined
+            ? Math.floor(Number(item.quantity))
+            : cartList.value[index].quantity
+      }
+      cartList.value[index] = updatedItem
       saveCartToStorage()
     }
   }
 
   // 删除清单项
-  const removeCartItem = (workKindId: number) => {
-    const index = cartList.value.findIndex((item) => item.work_kind_id === workKindId)
+  const removeCartItem = (id: number) => {
+    const index = cartList.value.findIndex((item) => item.id === id)
     if (index > -1) {
       cartList.value.splice(index, 1)
       saveCartToStorage()

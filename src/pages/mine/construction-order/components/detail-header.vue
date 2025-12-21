@@ -7,9 +7,22 @@
         </div>
         <div class="work-kind-info">
           <h1 class="work-kind-name">{{ order.work_kind_name }}</h1>
-          <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
-            {{ order.order_status_name }}
-          </van-tag>
+          <div class="tags-container">
+            <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
+              {{ order.order_status_name }}
+            </van-tag>
+            <!-- 分配标识 -->
+            <van-tag
+              v-if="order.is_assigned || order.is_assigned_order"
+              type="warning"
+              plain
+              round
+              class="assigned-tag"
+            >
+              <van-icon name="user-circle-o" />
+              被分配
+            </van-tag>
+          </div>
         </div>
       </div>
 
@@ -49,6 +62,8 @@ defineProps<{
     order_status: number
     order_status_name: string
     createdAt?: string
+    is_assigned?: boolean
+    is_assigned_order?: boolean
   }
   user?: {
     avatar?: string
@@ -117,8 +132,26 @@ const getStatusType = (status: number) => {
           line-height: 1.3;
         }
 
+        .tags-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
         .status-tag {
           font-weight: 600;
+        }
+
+        .assigned-tag {
+          font-weight: 500;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+
+          .van-icon {
+            font-size: 12px;
+          }
         }
       }
     }

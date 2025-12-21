@@ -16,7 +16,7 @@
       <div class="cart-content">
         <van-empty v-if="cartList.length === 0" description="清单为空" />
         <div v-else class="cart-item-list">
-          <div v-for="item in cartList" :key="item.work_kind_id" class="cart-item">
+          <div v-for="item in cartList" :key="item.id" class="cart-item">
             <div class="cart-item-info">
               <div class="cart-item-name">{{ item.work_title }}</div>
               <div class="cart-item-work-kind">{{ item.work_kind?.work_kind_name || '' }}</div>
@@ -41,7 +41,7 @@
                 type="danger"
                 plain
                 class="delete-btn"
-                @click="handleRemoveItem(item.work_kind_id)"
+                @click="handleRemoveItem(item.id!)"
               >
                 删除
               </van-button>
@@ -79,7 +79,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'update-item': [item: PriceCartItem]
-  'remove-item': [workKindId: number]
+  'remove-item': [id: number]
   submit: []
 }>()
 
@@ -101,12 +101,16 @@ const cartTotalCount = computed(() => {
 
 // 更新工价数量
 const handleUpdateItem = (item: PriceCartItem) => {
+  // 确保 quantity 是整数
+  if (item.quantity !== undefined) {
+    item.quantity = Math.floor(Number(item.quantity))
+  }
   emit('update-item', item)
 }
 
 // 删除工价
-const handleRemoveItem = (workKindId: number) => {
-  emit('remove-item', workKindId)
+const handleRemoveItem = (id: number) => {
+  emit('remove-item', id)
 }
 
 // 提交清单
