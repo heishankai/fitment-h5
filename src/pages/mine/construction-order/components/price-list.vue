@@ -51,7 +51,7 @@
           <div class="status-tags-container">
             <!-- 分配工匠信息 -->
             <van-tag
-              v-if="price.is_assigned"
+              v-if="price.assigned_craftsman_id"
               type="primary"
               class="status-tag assigned-craftsman-tag"
             >
@@ -61,6 +61,7 @@
                   price.assigned_craftsman.phone
                 }})
               </span>
+              <span v-else> 已分配工匠 (ID: {{ price.assigned_craftsman_id }}) </span>
             </van-tag>
             <!-- 验收状态 -->
             <van-tag
