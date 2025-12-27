@@ -168,8 +168,8 @@ const getisSkillVerified = async () => {
   if (!success) return
   console.log(route?.query, 'route?.query')
 
-  selectedWorkKind.value.workKindId = route?.query?.workKindId
-  selectedWorkKind.value.workKindName = route?.query?.workKindName
+  selectedWorkKind.value.workKindId = data?.workKindId || route?.query?.workKindId
+  selectedWorkKind.value.workKindName = data?.workKindName || route?.query?.workKindName
 
   skillInfo.value.promise_image = data?.promise_image
   skillInfo.value.operation_video = data?.operation_video

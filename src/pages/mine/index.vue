@@ -66,6 +66,7 @@ import EditProfileButton from './components/EditProfileButton.vue'
 import MenuItem from './components/MenuItem.vue'
 import { useRouter } from 'vue-router'
 import { getUserInfoService } from './service'
+import { getIsSkillVerifiedService } from './skill-auth/service'
 
 const router = useRouter()
 
@@ -87,7 +88,24 @@ const goEdit = () => router.push('/mine/edit-info')
 
 const goRealNameAuth = () => router.push('/mine/real-name-auth')
 
-const goSkillAuth = () => router.push('/mine/work-kind-list')
+// 技能认证：如果已通过认证，直接跳转到技能认证页面；否则跳转到工种选择页面
+const goSkillAuth = async () => {
+  const { success, data } = await getIsSkillVerifiedService()
+
+  if (success && data?.isSkillVerified) {
+    // 已通过技能认证，直接跳转到技能认证页面
+    router.push({
+      path: '/mine/skill-auth',
+      query: {
+        workKindId: data.workKindId,
+        workKindName: data.workKindName
+      }
+    })
+  } else {
+    // 未通过认证，跳转到工种选择页面
+    router.push('/mine/work-kind-list')
+  }
+}
 
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
 
