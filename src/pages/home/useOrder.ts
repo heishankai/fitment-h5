@@ -290,10 +290,10 @@ export function useOrder() {
   }
 
   // 接单
-  const handleAcceptOrder = async (order: Order) => {
+  const handleAcceptOrder = async (order: Order): Promise<void> => {
     if (order.order_status !== 1) {
       showToast('订单状态不正确，无法接单')
-      return
+      throw new Error('订单状态不正确')
     }
 
     try {
@@ -304,8 +304,75 @@ export function useOrder() {
 
       // 通过Socket发送接单请求（Socket会自动更新状态并通知）
       if (socket.value) {
-        socket.value.emit('accept-order', { orderId: order.id })
-        // Socket 接单成功会在 order-accepted 事件中处理刷新
+        return new Promise<void>((resolve, reject) => {
+          let resolved = false
+
+          // 设置超时，避免无限等待
+          const timeout = setTimeout(() => {
+            if (!resolved) {
+              resolved = true
+              socket.value?.off('order-accepted', onSuccess)
+              socket.value?.off('order-taken', onTaken)
+              socket.value?.off('error', onError)
+              reject(new Error('接单超时，请重试'))
+            }
+          }, 10000) // 10秒超时
+
+          // 接单成功回调
+          const onSuccess = async (data: { order: Order }) => {
+            if (!resolved && data.order.id === order.id) {
+              resolved = true
+              clearTimeout(timeout)
+              socket.value?.off('order-accepted', onSuccess)
+              socket.value?.off('order-taken', onTaken)
+              socket.value?.off('error', onError)
+              resolve()
+            }
+          }
+
+          // 订单已被接单回调（可能是自己接的，也可能是别人接的）
+          const onTaken = (data: { orderId: number; message: string }) => {
+            if (!resolved && data.orderId === order.id) {
+              resolved = true
+              clearTimeout(timeout)
+              socket.value?.off('order-accepted', onSuccess)
+              socket.value?.off('order-taken', onTaken)
+              socket.value?.off('error', onError)
+              // 检查是否是自己的订单被接单（通过检查订单状态）
+              const index = orders.value.findIndex((o) => o.id === order.id)
+              if (index !== -1 && orders.value[index].craftsman_user_id) {
+                // 如果是自己接的单，resolve
+                resolve()
+              } else {
+                // 如果是别人接的单，reject
+                reject(new Error(data.message || '该订单已被其他工匠接单'))
+              }
+            }
+          }
+
+          // 接单失败回调（全局错误事件，需要判断是否与当前订单相关）
+          const onError = (data: { message: string; orderId?: number }) => {
+            // 只有当错误与当前订单相关时才处理
+            if (!resolved && (!data.orderId || data.orderId === order.id)) {
+              resolved = true
+              clearTimeout(timeout)
+              socket.value?.off('order-accepted', onSuccess)
+              socket.value?.off('order-taken', onTaken)
+              socket.value?.off('error', onError)
+              reject(new Error(data.message || '接单失败'))
+            }
+          }
+
+          // 监听接单成功事件（使用 once 确保只监听一次）
+          socket.value.once('order-accepted', onSuccess)
+          // 监听订单已被接单事件
+          socket.value.once('order-taken', onTaken)
+          // 监听错误事件（注意：这个事件可能被全局监听器处理，所以需要判断）
+          socket.value.once('error', onError)
+
+          // 发送接单请求
+          socket.value.emit('accept-order', { orderId: order.id })
+        })
       } else {
         // 如果Socket未连接，使用HTTP接口
         const res = await acceptOrder(order.id)
@@ -322,15 +389,17 @@ export function useOrder() {
           // 刷新订单列表
           await loadOrders()
         } else {
-          showToast(res?.message || '接单失败')
+          throw new Error(res?.message || '接单失败')
         }
       }
     } catch (error: any) {
       if (error === 'cancel') {
-        return // 用户取消
+        throw error // 用户取消，重新抛出
       }
       console.error('接单失败:', error)
-      showToast('接单失败')
+      const errorMessage = error?.message || '接单失败'
+      showToast(errorMessage)
+      throw error
     }
   }
 

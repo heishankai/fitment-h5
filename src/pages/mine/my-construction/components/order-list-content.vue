@@ -166,7 +166,7 @@ const getStatusType = (
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   background: #fff;
-  opacity: 0;
+  flex-shrink: 0;
 
   &:hover {
     transform: translateY(-4px);
@@ -181,6 +181,7 @@ const getStatusType = (
   :deep(.van-card) {
     border-radius: 16px;
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .work-kind-icon {

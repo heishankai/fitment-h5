@@ -186,10 +186,10 @@ onMounted(async () => {
 
 main {
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding-bottom: 20px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .action-bar {
@@ -235,6 +235,7 @@ main {
   flex-direction: column;
   gap: 16px;
   padding: 16px;
+  padding-bottom: 20px;
 }
 
 .notification-item {
@@ -391,6 +392,10 @@ main {
 }
 
 .pull-refresh {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 </style>

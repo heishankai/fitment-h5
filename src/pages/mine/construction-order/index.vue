@@ -71,17 +71,6 @@
       >
         创建工价
       </van-button>
-      <van-button
-        v-if="order?.is_paid"
-        type="warning"
-        size="normal"
-        round
-        class="action-btn"
-        @click="handleCreateMaterialOrder"
-        icon="plus"
-      >
-        {{ buttonText }}
-      </van-button>
     </footer>
     <van-floating-bubble
       v-if="order?.order_status === 2"
@@ -104,7 +93,7 @@ import PriceList from './components/price-list.vue'
 import SubPriceList from './components/sub-price-list.vue'
 // utils
 import { getOrderDetail, getUserInfoService, getSubWorkPricesByOrderId } from './service'
-import { handleContactUser, getButtonTextByWorkKind, calculateChatBubbleOffset } from './utils'
+import { handleContactUser, calculateChatBubbleOffset } from './utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -127,12 +116,6 @@ const handleResize = () => {
 // chat 气泡位置（下方）
 const chatBubbleOffset = computed(() => {
   return calculateChatBubbleOffset(windowSize.value, order.value?.order_status)
-})
-
-// 根据工种计算按钮文本
-const buttonText = computed(() => {
-  const workKindName = user.value?.skillInfo?.workKindName
-  return getButtonTextByWorkKind(workKindName)
 })
 
 // 判断是否是分配的订单
@@ -224,12 +207,6 @@ const goToConstructionProgressView = () => {
   router.push({
     path: `/mine/construction-order/${order.value?.id}/construction-progress`
   })
-}
-
-// 创建辅料单
-const handleCreateMaterialOrder = () => {
-  const orderId = order.value?.id
-  router.push(`/mine/create-material-order/${orderId}`)
 }
 
 // 创建工价

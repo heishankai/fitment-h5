@@ -87,13 +87,7 @@ const goEdit = () => router.push('/mine/edit-info')
 
 const goRealNameAuth = () => router.push('/mine/real-name-auth')
 
-const goSkillAuth = () => {
-  if (userInfo.value?.isSkillVerified) {
-    router.push('/mine/skill-auth')
-    return
-  }
-  router.push('/mine/work-kind-list')
-}
+const goSkillAuth = () => router.push('/mine/work-kind-list')
 
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
 

@@ -80,21 +80,6 @@ export const handleContactUser = async (
 }
 
 /**
- * 根据工种获取按钮文本
- * @param workKindName 工种名称
- * @returns 按钮文本
- */
-export const getButtonTextByWorkKind = (workKindName?: string): string => {
-  if (workKindName === WorkKind.DESIGNER) {
-    return '创建工价'
-  } else if (workKindName === WorkKind.FOREMAN) {
-    return '创建工价'
-  } else {
-    return '创建辅料单'
-  }
-}
-
-/**
  * 计算浮动气泡位置（右下角）
  * @param windowSize 窗口尺寸 { width, height }
  * @param orderStatus 订单状态

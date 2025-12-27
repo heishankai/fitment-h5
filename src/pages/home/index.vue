@@ -136,11 +136,17 @@ const handleAcceptOrder = async (orderId: number) => {
   acceptingOrderId.value = orderId
   try {
     await acceptOrder(order)
+    // 只有接单成功后才关闭弹窗并跳转
     showOrderPopup.value = false
     currentOrder.value = null
     router.push('/mine/my-construction')
-  } catch (error) {
+  } catch (error: any) {
+    // 如果是用户取消，不显示错误提示
+    if (error === 'cancel') {
+      return
+    }
     console.error('接单失败:', error)
+    // 接单失败时不跳转，保持当前页面
   } finally {
     acceptingOrderId.value = null
   }
@@ -280,6 +286,7 @@ const onRefresh = async () => {
 
 .refresh {
   height: 100%;
+  overflow-y: scroll;
 }
 
 header {

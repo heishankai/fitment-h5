@@ -43,7 +43,7 @@
         </div>
       </section>
     </main>
-    <footer v-show="!personalInfo?.isHomePageVerified" class="fade-in-up">
+    <footer class="fade-in-up">
       <van-button type="primary" size="large" round block @click="handleSubmit" class="save-btn">
         <van-icon name="success" />
         提交审核
@@ -95,7 +95,6 @@ const handleSubmit = async () => {
   })
 
   if (!success) return
-  showToast('提交成功，审核中......')
   router.back()
 }
 

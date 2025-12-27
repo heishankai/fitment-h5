@@ -26,8 +26,9 @@
     <!-- 当前位置信息 -->
     <div
       v-if="location?.address"
-      class="location-wrapper fade-in-up"
-      :style="{ animationDelay: '0.2s' }"
+      class="location-wrapper"
+      :class="{ 'fade-in-up': shouldAnimate }"
+      :style="{ animationDelay: shouldAnimate ? '0.2s' : '0s' }"
       @click.stop="$emit('open-map-picker')"
     >
       <div class="location-card shine-effect">
@@ -48,8 +49,9 @@
     </div>
     <div
       v-else-if="currentLocation"
-      class="location-loading fade-in-up"
-      :style="{ animationDelay: '0.2s' }"
+      class="location-loading"
+      :class="{ 'fade-in-up': shouldAnimate }"
+      :style="{ animationDelay: shouldAnimate ? '0.2s' : '0s' }"
     >
       <div class="location-card">
         <van-loading size="16px" color="#00cec9" />
@@ -58,8 +60,9 @@
     </div>
     <div
       v-else
-      class="location-empty fade-in-up"
-      :style="{ animationDelay: '0.2s' }"
+      class="location-empty"
+      :class="{ 'fade-in-up': shouldAnimate }"
+      :style="{ animationDelay: shouldAnimate ? '0.2s' : '0s' }"
       @click.stop="$emit('open-map-picker')"
     >
       <div class="location-card">
@@ -71,7 +74,9 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{
+import { ref, watch, onMounted } from 'vue'
+
+const props = defineProps<{
   newOrderCount: number
   location?: any
   currentLocation?: any
@@ -82,6 +87,34 @@ defineEmits<{
   'load-current-location': []
   'open-map-picker': []
 }>()
+
+// 只在首次显示时播放动画，避免从地图返回时重新播放动画
+const shouldAnimate = ref(false)
+const hasInitialLocation = ref(false)
+
+onMounted(() => {
+  // 如果组件挂载时已经有位置信息，说明可能是从地图返回，不播放动画
+  hasInitialLocation.value = !!props.location?.address
+})
+
+// 监听 location 变化
+watch(
+  () => props.location?.address,
+  (hasAddress) => {
+    if (hasAddress) {
+      // 如果之前没有位置信息，现在有了，说明是首次获取位置，播放动画
+      if (!hasInitialLocation.value) {
+        shouldAnimate.value = true
+        // 动画完成后关闭动画标志
+        setTimeout(() => {
+          shouldAnimate.value = false
+        }, 600)
+        hasInitialLocation.value = true
+      }
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style lang="less" scoped>

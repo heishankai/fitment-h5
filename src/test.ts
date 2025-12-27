@@ -3,7 +3,7 @@
 /*
 import { setUserInfo, setToken } from '@/utils/index'
 
-工长数据
+
 const user1 = {
   phone: '18667177723',
   nickname: '叮当优+师傅',
@@ -17,6 +17,8 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInBob25lIjoiMTc2ODE1NDA1NzA
 
 帮我清空 17681540570 、17681878550、18667177723中所有的订单、钱包、打卡、提现的数据
 清空微信用户18667177723 中所有的订单数据
+
+请帮我清空 nickname： "叮当优+工长 "phone: "17681540570"，的银行卡认证信息、系统通知、技能认证、
 
 // 工匠数据
 const user2 = {

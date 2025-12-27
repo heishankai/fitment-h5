@@ -93,6 +93,7 @@ const geocoder = ref<any>(null)
 const autoComplete = ref<any>(null)
 const selectedLocation = ref<Location | null>(null)
 const confirming = ref(false)
+const isMapInitialized = ref(false) // 标志位：地图是否已初始化完成
 
 // 点击外部关闭搜索结果的处理函数
 const handleDocumentClick = (e: MouseEvent) => {
@@ -200,6 +201,12 @@ const initMap = async () => {
 
     if (initialLocation) {
       mapOptions.center = [initialLocation.longitude, initialLocation.latitude]
+      // 初始化时设置选中位置，避免闪烁
+      selectedLocation.value = {
+        latitude: initialLocation.latitude,
+        longitude: initialLocation.longitude,
+        address: '正在获取地址...'
+      }
     }
 
     map.value = new AMap.Map(mapContainerRef.value, mapOptions)
@@ -255,12 +262,30 @@ const initMap = async () => {
     })
     map.value.addControl(toolbar)
 
-    map.value.on('moveend', updateLocation)
-    map.value.on('dragend', updateLocation)
-
-    if (initialLocation) {
-      setTimeout(() => updateLocation(), 500)
+    // 如果已有初始位置，直接更新地址信息，不改变地图中心点
+    if (initialLocation && selectedLocation.value) {
+      if (geocoder.value?.getAddress) {
+        geocoder.value.getAddress(
+          [initialLocation.longitude, initialLocation.latitude],
+          (status: string, result: any) => {
+            if (status === 'complete' && result?.regeocode && selectedLocation.value) {
+              selectedLocation.value.address =
+                result.regeocode.formattedAddress ||
+                `${initialLocation.latitude},${initialLocation.longitude}`
+            } else if (selectedLocation.value) {
+              selectedLocation.value.address = `${initialLocation.latitude},${initialLocation.longitude}`
+            }
+          }
+        )
+      }
     }
+
+    // 延迟绑定移动事件，确保地图完全加载，避免初始化时的 moveend 事件触发导致闪烁
+    setTimeout(() => {
+      isMapInitialized.value = true
+      map.value.on('moveend', updateLocation)
+      map.value.on('dragend', updateLocation)
+    }, 800) // 延迟足够长的时间，确保地图完全渲染完成
   } catch (error: any) {
     showToast(error.message || '地图加载失败')
   }
@@ -269,7 +294,7 @@ const initMap = async () => {
 // 更新位置信息（防抖）
 let updateTimer: number | null = null
 const updateLocation = () => {
-  if (!map.value) return
+  if (!map.value || !isMapInitialized.value) return // 只有在地图初始化完成后才更新位置
 
   if (updateTimer) clearTimeout(updateTimer)
 
@@ -432,6 +457,7 @@ const destroyMap = () => {
   }
   map.value = null
   geocoder.value = null
+  isMapInitialized.value = false // 重置标志位
 }
 
 onMounted(() => {

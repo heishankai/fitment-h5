@@ -86,9 +86,10 @@ onMounted(() => {
 
 main {
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .notice-list {
@@ -97,6 +98,7 @@ main {
   gap: 12px;
   background: #f5f5f5;
   padding: 12px;
+  padding-bottom: 20px;
 
   .notice-card {
     background: #fff;
@@ -147,6 +149,10 @@ main {
 }
 
 .pull-refresh {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 </style>

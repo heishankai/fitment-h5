@@ -54,7 +54,7 @@
         :loading="submitting"
         @click="handleButtonClick"
       >
-        {{ bankCardInfo?.card_number ? '更新银行卡' : '绑定银行卡' }}
+        {{ bankCardInfo?.id ? '更新银行卡' : '绑定银行卡' }}
       </van-button>
     </div>
   </div>
@@ -103,20 +103,13 @@ const handleButtonClick = async () => {
 const handleSubmit = async () => {
   try {
     submitting.value = true
-    console.log(bankCardInfo.value.card_number, 'bankCardInfo.value')
 
-    console.log(bankCardInfo.value.card_number, ' bankCardInfo.value.card_number')
-
-    const bindBankPromise = bankCardInfo.value.card_number
-      ? updateBankCardService
-      : bindBankCardService
+    const bindBankPromise = bankCardInfo.value.id ? updateBankCardService : bindBankCardService
 
     const { success } = await bindBankPromise(bankCardInfo.value)
-    if (success) {
-      showToast('操作成功')
-
-      router.back()
-    }
+    if (!success) return
+    showToast('操作成功')
+    router.back()
   } catch (error: any) {
     console.error(error)
   } finally {
@@ -126,7 +119,7 @@ const handleSubmit = async () => {
 
 const loadData = async () => {
   const { success, data } = await getBankCardService()
-  console.log(data, 'data')
+
   if (success && data) {
     bankCardInfo.value = data
   }

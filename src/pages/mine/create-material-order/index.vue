@@ -217,7 +217,7 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: scroll;
 }
 
 footer {
@@ -311,6 +311,8 @@ footer {
   flex-direction: column;
   padding: 0;
   background: #f5f5f5;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .product-list {
@@ -319,7 +321,9 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 100%;
+  min-height: 0; // 确保 flex 子元素可以正确收缩
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .product-card {
@@ -330,6 +334,9 @@ footer {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   background: #fff;
   opacity: 0;
+  flex-shrink: 0; // 防止卡片被压缩
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover {
     transform: translateY(-4px);
