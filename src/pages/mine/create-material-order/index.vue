@@ -4,7 +4,7 @@
     <!-- 搜索栏 -->
     <SearchBar class="fade-in-up" />
     <main>
-      <van-pull-refresh v-model="refreshing" @refresh="onRefresh" class="pull-refresh-wrapper">
+      <div class="tree-select-wrapper">
         <van-tree-select
           v-model:main-active-index="activeIndex"
           height="100%"
@@ -47,7 +47,7 @@
             <van-empty v-else description="暂无商品" />
           </template>
         </van-tree-select>
-      </van-pull-refresh>
+      </div>
     </main>
 
     <footer>
@@ -91,7 +91,6 @@ import { useCart } from './composables/useCart'
 const router = useRouter()
 const route = useRoute()
 
-const refreshing = ref(false)
 const activeIndex = ref(0)
 const showCartList = ref(false)
 
@@ -146,13 +145,6 @@ const handleSubmit = async () => {
   } catch {
     console.log('用户取消')
   }
-}
-
-// 下拉刷新
-const onRefresh = async () => {
-  refreshing.value = true
-  await getCategoryList()
-  refreshing.value = false
 }
 
 // 点击导航
@@ -212,12 +204,12 @@ main {
   min-height: 0;
 }
 
-.pull-refresh-wrapper {
+.tree-select-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 footer {

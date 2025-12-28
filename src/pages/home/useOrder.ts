@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
-import { getToken } from '@/utils/index'
+import { getToken, showOrderNotification } from '@/utils/index'
 import { acceptOrder, getCraftsmanOrders } from './service'
 
 interface Order {
@@ -216,6 +216,9 @@ export function useOrder() {
           orders.value.unshift(order)
           newOrderCount.value++
 
+          // 显示通知和震动
+          showOrderNotification()
+
           // 触发弹窗显示事件（通过回调函数）
           if (onNewOrderPopup.value) {
             onNewOrderPopup.value(order, data.distance)
@@ -236,6 +239,9 @@ export function useOrder() {
         if (order.order_status === 1) {
           orders.value.unshift(order)
           newOrderCount.value++
+
+          // 显示通知和震动
+          showOrderNotification()
         }
       }
     })

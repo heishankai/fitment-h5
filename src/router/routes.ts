@@ -221,8 +221,8 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: '/mine/foreman-price/:id',
-        name: '工价',
-        meta: { title: '工价' },
+        name: '创建工价',
+        meta: { title: '创建工价' },
         component: () => import('@/pages/mine/foreman-price/index.vue')
       },
       {

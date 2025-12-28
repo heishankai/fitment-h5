@@ -486,3 +486,93 @@ export const updateMiniProgramTitle = (title: string): void => {
     title: title
   })
 }
+
+/**
+ * 检测是否在 Flutter WebView 环境中
+ */
+export const isFlutterWebView = (): boolean => {
+  if (typeof window === 'undefined') return false
+  return (
+    !!(window as any).flutter_inappwebview?.callHandler || !!(window as any).FlutterShowNotification
+  )
+}
+
+/**
+ * 显示 Flutter 通知
+ * @param title 通知标题
+ * @param body 通知内容
+ * @param payload 可选的数据
+ */
+export const showFlutterNotification = (title: string, body: string, payload?: string): void => {
+  if (!isFlutterWebView()) {
+    console.warn('不在 Flutter WebView 环境中，无法显示通知')
+    return
+  }
+
+  try {
+    const flutter = (window as any).flutter_inappwebview
+    if (flutter?.callHandler) {
+      // 使用 callHandler 方式
+      flutter
+        .callHandler('FlutterShowNotification', {
+          title,
+          body,
+          payload
+        })
+        .catch((error: any) => {
+          console.error('调用 FlutterShowNotification 失败:', error)
+        })
+    } else if ((window as any).FlutterShowNotification) {
+      // 使用注入的全局方法
+      ;(window as any).FlutterShowNotification({
+        title,
+        body,
+        payload
+      })
+    } else {
+      console.warn('FlutterShowNotification 方法不可用')
+    }
+  } catch (error) {
+    console.error('显示 Flutter 通知失败:', error)
+  }
+}
+
+/**
+ * 触发 Flutter 震动
+ * @param duration 震动时长（毫秒），默认 500ms
+ */
+export const flutterVibrate = (duration: number = 500): void => {
+  if (!isFlutterWebView()) {
+    console.warn('不在 Flutter WebView 环境中，无法触发震动')
+    return
+  }
+
+  try {
+    const flutter = (window as any).flutter_inappwebview
+    if (flutter?.callHandler) {
+      // 使用 callHandler 方式
+      flutter.callHandler('FlutterVibrate', duration).catch((error: any) => {
+        console.error('调用 FlutterVibrate 失败:', error)
+      })
+    } else if ((window as any).FlutterVibrate) {
+      // 使用注入的全局方法
+      ;(window as any).FlutterVibrate(duration)
+    } else {
+      console.warn('FlutterVibrate 方法不可用')
+    }
+  } catch (error) {
+    console.error('触发 Flutter 震动失败:', error)
+  }
+}
+
+/**
+ * 显示订单通知（带震动）
+ * 标题：叮当师傅
+ * 内容：您有新的订单。
+ */
+export const showOrderNotification = (): void => {
+  // 显示通知
+  showFlutterNotification('叮当师傅', '您有新的订单。')
+  // 触发震动
+  flutterVibrate(500)
+}

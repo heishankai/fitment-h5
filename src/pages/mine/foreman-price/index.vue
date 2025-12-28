@@ -2,7 +2,7 @@
   <div class="page-container">
     <custom-van-navbar />
     <main>
-      <van-pull-refresh v-model="refreshing" @refresh="onRefresh" class="pull-refresh-wrapper">
+      <div class="tree-select-wrapper">
         <van-tree-select
           v-model:main-active-index="activeIndex"
           height="100%"
@@ -79,7 +79,7 @@
             <van-empty v-else description="暂无工价信息，点击右上角添加" />
           </template>
         </van-tree-select>
-      </van-pull-refresh>
+      </div>
     </main>
 
     <footer>
@@ -124,7 +124,6 @@ import { usePriceCart } from './composables/usePriceCart'
 const router = useRouter()
 const route = useRoute()
 
-const refreshing = ref(false)
 const activeIndex = ref(0)
 const showCartList = ref(false)
 
@@ -212,13 +211,6 @@ const handleSubmit = async () => {
   } catch {
     console.log('用户取消')
   }
-}
-
-// 下拉刷新
-const onRefresh = async () => {
-  refreshing.value = true
-  await getWorkKindList()
-  refreshing.value = false
 }
 
 // 点击导航
@@ -310,7 +302,7 @@ main {
   min-height: 0;
 }
 
-.pull-refresh-wrapper {
+.tree-select-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -409,14 +401,17 @@ footer {
   flex-direction: column;
   padding: 0;
   background: #f5f5f5;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .price-list {
-  flex: 1;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .price-card {
@@ -428,6 +423,9 @@ footer {
   background: #fff;
   opacity: 1;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 
   &:hover {
     transform: translateY(-4px);
@@ -497,11 +495,6 @@ footer {
     gap: 8px;
     margin-bottom: 12px;
 
-    // 如果没有最低价格，移除底部间距
-    &:not(.has-minimum-price) {
-      margin-bottom: 0;
-    }
-
     .price-info-row {
       display: flex;
       align-items: center;
@@ -550,6 +543,7 @@ footer {
     display: flex;
     justify-content: flex-end;
     flex-shrink: 0;
+    margin-top: auto;
 
     .add-btn {
       background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
