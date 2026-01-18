@@ -446,10 +446,11 @@ footer {
   }
 
   .add-btn {
+    width: 100%;
     background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
     border: none;
     border-radius: 20px;
-    padding: 6px 16px;
+    padding: 16px 16px;
     font-size: 12px;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);

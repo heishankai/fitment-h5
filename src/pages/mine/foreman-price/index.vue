@@ -546,6 +546,7 @@ footer {
     margin-top: auto;
 
     .add-btn {
+      width: 100%;
       background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
       border: none;
       border-radius: 20px;
