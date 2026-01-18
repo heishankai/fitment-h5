@@ -147,7 +147,7 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 .avatar-wrapper {
   width: 80px;
   height: 80px;
-  background: linear-gradient(to bottom right, #00cec9, #00b4d8);
+  background: #00cec9;
   border-radius: 50%;
   padding: 3px;
   box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
