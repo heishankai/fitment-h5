@@ -32,13 +32,7 @@
                 {{ order.order_status_name }}
               </van-tag>
               <!-- 显示订单类型标签 -->
-              <van-tag
-                v-if="order.is_assigned_order || order.is_assigned"
-                type="warning"
-                plain
-                round
-                class="order-type-tag"
-              >
+              <van-tag v-if="order.is_assigned" type="warning" plain round class="order-type-tag">
                 被分配
               </van-tag>
             </div>
@@ -338,6 +332,7 @@ const getStatusType = (
   0% {
     transform: translate(-50%, -50%) rotate(0deg);
   }
+
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }

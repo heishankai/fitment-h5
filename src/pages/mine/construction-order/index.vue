@@ -60,7 +60,7 @@
       </van-pull-refresh>
     </main>
 
-    <footer v-if="order?.order_status === 2">
+    <footer v-if="order?.order_status === 2 && !order?.is_assigned">
       <van-button
         type="primary"
         size="normal"
@@ -120,7 +120,7 @@ const chatBubbleOffset = computed(() => {
 
 // 判断是否是分配的订单
 const isAssignedOrder = computed(() => {
-  return order.value?.is_assigned_order === true
+  return order.value?.is_assigned === true
 })
 
 // 获取当前用户手机号
@@ -312,6 +312,7 @@ footer {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
