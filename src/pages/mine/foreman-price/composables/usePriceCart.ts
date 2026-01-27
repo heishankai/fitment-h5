@@ -46,6 +46,8 @@ export function usePriceCart(orderId?: string | number) {
           ...item,
           quantity: Math.floor(Number(item.quantity) || 1)
         }))
+
+        console.log('从 localStorage 加载工价清单:', cartList.value)
       }
     } catch (error) {
       console.error('加载工价清单失败:', error)
@@ -76,7 +78,10 @@ export function usePriceCart(orderId?: string | number) {
 
   // 计算总价格（考虑数量和最低价格）
   const totalPrice = computed(() => {
-    return cartList.value.reduce((total, item) => {
+    console.log('=== 开始计算总价 ===')
+    console.log('清单项数:', cartList.value.length)
+
+    const result = cartList.value.reduce((total, item) => {
       const price = parseFloat(String(item.work_price)) || 0
       const quantity = item.quantity || 1
       const itemTotal = price * quantity
@@ -84,39 +89,38 @@ export function usePriceCart(orderId?: string | number) {
       // 检查是否设置了最低价格（兼容字符串 '1' 和数字 1）
       const hasMinimumPrice =
         String(item.is_set_minimum_price) === '1' || Number(item.is_set_minimum_price) === 1
+      const hasValidMinimumPrice = hasMinimumPrice && item.minimum_price
 
-      if (hasMinimumPrice && item.minimum_price) {
+      console.log(`计算项目: ${item.work_title}`)
+      console.log(`  - 工价: ${price}, 数量: ${quantity}, 小计: ${itemTotal}`)
+      console.log(
+        `  - is_set_minimum_price: ${item.is_set_minimum_price} (hasMinimumPrice: ${hasMinimumPrice})`
+      )
+      console.log(
+        `  - minimum_price: ${item.minimum_price} (hasValidMinimumPrice: ${hasValidMinimumPrice})`
+      )
+
+      if (hasValidMinimumPrice) {
         const minimumPrice = parseFloat(String(item.minimum_price)) || 0
 
         // 如果总价超过了最低价格，使用正常价格；否则使用最低价格
         const finalPrice = itemTotal >= minimumPrice ? itemTotal : minimumPrice
 
-        console.log('工价项计算（应用最低价格规则）:', {
-          work_title: item.work_title,
-          price,
-          quantity,
-          itemTotal,
-          minimumPrice,
-          finalPrice,
-          rule: itemTotal >= minimumPrice ? '使用正常价格' : '使用最低价格',
-          is_set_minimum_price: item.is_set_minimum_price,
-          minimum_price: item.minimum_price
-        })
+        console.log(
+          `  - 应用最低价格规则: 使用${itemTotal >= minimumPrice ? '正常价格' : '最低价格'} = ${finalPrice}`
+        )
 
         return total + finalPrice
       }
 
-      console.log('工价项计算（正常价格）:', {
-        work_title: item.work_title,
-        price,
-        quantity,
-        itemTotal,
-        is_set_minimum_price: item.is_set_minimum_price,
-        minimum_price: item.minimum_price
-      })
+      // 没有最低价格或最低价格数据不完整，使用正常价格
+      console.log(`  - 不应用最低价格规则，使用正常价格 = ${itemTotal}`)
 
       return total + itemTotal
     }, 0)
+
+    console.log('=== 总价计算结果:', result, '===')
+    return result
   })
 
   // 加入清单

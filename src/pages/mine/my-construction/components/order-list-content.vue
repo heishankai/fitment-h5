@@ -1,98 +1,81 @@
 <template>
-  <van-pull-refresh
-    :model-value="refreshing"
-    @update:model-value="$emit('update:refreshing', $event)"
-    @refresh="$emit('refresh')"
-    class="refresh"
-  >
-    <div class="content-wrapper">
-      <van-empty
-        v-if="!loading && orders.length === 0"
-        description="暂无订单"
-        class="empty-state fade-in-up"
-      />
+  <div class="content-wrapper">
+    <van-empty v-if="!orders?.length" description="暂无订单" class="empty-state fade-in-up" />
 
-      <div v-else class="order-list">
-        <van-card
-          v-for="(order, index) in orders"
-          :key="order.id"
-          class="order-card fade-in-up shine-effect"
-          :style="{ animationDelay: `${index * 0.1}s` }"
-          @click="$emit('go-to-detail', order.id)"
-        >
-          <template #thumb>
-            <div class="work-kind-icon">
-              <van-icon name="bag-o" />
-            </div>
-          </template>
-          <template #title>
-            <div class="card-title">
-              <span class="title-text">{{ order.work_kind_name }}</span>
-              <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
-                {{ order.order_status_name }}
-              </van-tag>
-              <!-- 显示订单类型标签 -->
-              <van-tag v-if="order.is_assigned" type="warning" plain round class="order-type-tag">
-                被分配
-              </van-tag>
-            </div>
-            <div class="card-time" v-if="order.createdAt">
-              {{ formatTime(order.createdAt) }}
-            </div>
-          </template>
-          <template #desc>
-            <div class="card-desc">
-              <div class="desc-row">
-                <div class="desc-item">
-                  <div class="icon-wrapper">
-                    <van-icon name="location-o" />
-                  </div>
-                  <span class="desc-text">{{
-                    order.location ||
-                    `${order.province || ''}${order.city || ''}${order.district || ''}`
-                  }}</span>
+    <div v-else class="order-list">
+      <van-card
+        v-for="(order, index) in orders"
+        :key="order.id"
+        class="order-card fade-in-up shine-effect"
+        :style="{ animationDelay: `${index * 0.1}s` }"
+        @click="goToDetail(order.id)"
+      >
+        <template #thumb>
+          <div class="work-kind-icon">
+            <van-icon name="bag-o" />
+          </div>
+        </template>
+        <template #title>
+          <div class="card-title">
+            <span class="title-text">{{ order.work_kind_name }}</span>
+            <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
+              {{ order.order_status_name }}
+            </van-tag>
+            <!-- 显示订单类型标签 -->
+            <van-tag v-if="order.is_assigned" type="warning" plain round class="order-type-tag">
+              被分配
+            </van-tag>
+          </div>
+          <div class="card-time" v-if="order.createdAt">
+            {{ formatTime(order.createdAt) }}
+          </div>
+        </template>
+        <template #desc>
+          <div class="card-desc">
+            <div class="desc-row">
+              <div class="desc-item">
+                <div class="icon-wrapper">
+                  <van-icon name="location-o" />
                 </div>
-              </div>
-              <div class="desc-row">
-                <div class="desc-item">
-                  <div class="icon-wrapper">
-                    <van-icon name="home-o" />
-                  </div>
-                  <span class="desc-text"
-                    >{{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
-                    {{ order.area }}m²</span
-                  >
-                </div>
-              </div>
-              <div class="desc-row" v-if="order.wechat_user">
-                <div class="desc-item">
-                  <div class="icon-wrapper">
-                    <van-icon name="user-o" />
-                  </div>
-                  <span class="desc-text">{{ order.wechat_user.nickname || '用户' }}</span>
-                </div>
+                <span class="desc-text">{{
+                  order.location ||
+                  `${order.province || ''}${order.city || ''}${order.district || ''}`
+                }}</span>
               </div>
             </div>
-          </template>
-        </van-card>
-      </div>
+            <div class="desc-row">
+              <div class="desc-item">
+                <div class="icon-wrapper">
+                  <van-icon name="home-o" />
+                </div>
+                <span class="desc-text"
+                  >{{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
+                  {{ order.area }}m²</span
+                >
+              </div>
+            </div>
+            <div class="desc-row" v-if="order.wechat_user">
+              <div class="desc-item">
+                <div class="icon-wrapper">
+                  <van-icon name="user-o" />
+                </div>
+                <span class="desc-text">{{ order.wechat_user.nickname || '用户' }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </van-card>
     </div>
-  </van-pull-refresh>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { formatTime } from '@/utils/index'
 
+const router = useRouter()
 defineProps<{
   orders: any[]
-  loading: boolean
-  refreshing: boolean
-}>()
-
-defineEmits<{
-  refresh: []
-  'update:refreshing': [value: boolean]
-  'go-to-detail': [orderId: number]
 }>()
 
 // 获取订单状态类型
@@ -112,22 +95,14 @@ const getStatusType = (
       return 'default'
   }
 }
+
+// 跳转到订单详情
+const goToDetail = (orderId: number) => {
+  router.push(`/mine/construction-order/${orderId}`)
+}
 </script>
 
 <style lang="less" scoped>
-.refresh {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  :deep(.van-pull-refresh__track) {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-}
-
 .content-wrapper {
   flex: 1;
   display: flex;
@@ -149,8 +124,7 @@ const getStatusType = (
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  min-height: 0;
 }
 
 .order-card {

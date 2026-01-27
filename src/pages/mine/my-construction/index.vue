@@ -1,61 +1,38 @@
 <template>
-  <div class="page">
+  <div class="page-container">
     <custom-van-navbar />
-    <van-tabs
-      v-model:active="activeTab"
-      @change="onTabChange"
-      sticky
-      class="tabs-container fade-in-up"
-      swipeable
-    >
-      <van-tab title="已接单" name="accepted">
-        <order-list-content
-          :orders="orders"
-          :loading="loading"
-          :refreshing="refreshing"
-          @update:refreshing="refreshing = $event"
-          @refresh="onRefresh"
-          @go-to-detail="goToDetail"
-        />
-      </van-tab>
-
-      <van-tab title="已完成" name="completed">
-        <order-list-content
-          :orders="orders"
-          :loading="loading"
-          :refreshing="refreshing"
-          @update:refreshing="refreshing = $event"
-          @refresh="onRefresh"
-          @go-to-detail="goToDetail"
-        />
-      </van-tab>
-
-      <van-tab title="已取消" name="cancelled">
-        <order-list-content
-          :orders="orders"
-          :loading="loading"
-          :refreshing="refreshing"
-          @update:refreshing="refreshing = $event"
-          @refresh="onRefresh"
-          @go-to-detail="goToDetail"
-        />
-      </van-tab>
-    </van-tabs>
+    <main>
+      <custom-tabs
+        :tabs="tabsList"
+        :active-tab="activeTab"
+        :refreshing="refreshing"
+        @update:active-tab="activeTab = $event"
+        @update:refreshing="refreshing = $event"
+        @refresh="onRefresh"
+      >
+        <order-list-content :orders="orders" />
+      </custom-tabs>
+    </main>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+<script lang="ts" setup>
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { getCraftsmanAcceptedOrdersService } from './service'
 import OrderListContent from './components/order-list-content.vue'
+import CustomTabs from './components/custom-tabs.vue'
 
-const router = useRouter()
 const orders = ref<any[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
 const loading = ref(true)
 const refreshing = ref(false)
 const activeTab = ref('accepted')
+
+// Tabs 列表
+const tabsList = [
+  { name: 'accepted', title: '已接单' },
+  { name: 'completed', title: '已完成' },
+  { name: 'cancelled', title: '已取消' }
+]
 
 // Tab 配置
 const tabConfig = {
@@ -83,19 +60,14 @@ const loadOrders = async () => {
 }
 
 // Tab 切换
-const onTabChange = () => {
+watch(activeTab, () => {
   loadOrders()
-}
+})
 
 // 下拉刷新
 const onRefresh = async () => {
   await loadOrders()
   refreshing.value = false
-}
-
-// 跳转到订单详情
-const goToDetail = (orderId: number) => {
-  router.push(`/mine/construction-order/${orderId}`)
 }
 
 onMounted(() => {
@@ -104,7 +76,7 @@ onMounted(() => {
 </script>
 
 <style lang="less" scoped>
-.page {
+.page-container {
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -117,33 +89,10 @@ onMounted(() => {
   overscroll-behavior: none;
 }
 
-.tabs-container {
+main {
   flex: 1;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  :deep(.van-tabs__wrap) {
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  }
-
-  :deep(.van-tabs__nav) {
-    background: transparent;
-  }
-
-  :deep(.van-tab) {
-    transition: color 0.3s ease;
-  }
-
-  :deep(.van-tabs__content) {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  :deep(.van-tab__panel) {
-    height: 100%;
-    overflow: hidden;
-  }
 }
 </style>
