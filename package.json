@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "20.19.5",
-    "pnpm": "8.15.1"
+    "node": "22.21.1",
+    "pnpm": "10.24.0"
   },
   "scripts": {
     "start:dev": "vite",
