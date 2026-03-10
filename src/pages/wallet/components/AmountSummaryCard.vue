@@ -97,9 +97,9 @@ const totalBalance = computed(() =>
 .amount-summary-card {
   margin: 12px;
   padding: 14px;
-  background: linear-gradient(135deg, #00cec9, #00b4d8);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 206, 201, 0.2);
+  box-shadow: 0 2px 12px rgba(var(--color-primary-rgb), 0.2);
   color: #fff;
 }
 

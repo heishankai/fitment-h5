@@ -1,7 +1,6 @@
 <template>
   <div class="map-picker-page">
-    <custom-van-navbar />
-
+    <!-- <custom-van-navbar /> -->
     <!-- 搜索栏 -->
     <div class="search-wrapper" ref="searchWrapperRef">
       <van-search
@@ -45,22 +44,30 @@
       <van-icon name="location" />
     </div>
 
-    <!-- 底部操作栏 -->
-    <div class="footer">
-      <div v-if="selectedLocation" class="address-bar">
-        <van-icon name="location-o" />
-        <span class="address-text">{{ selectedLocation.address }}</span>
+    <!-- 底部区域：定位按钮 + 操作栏 -->
+    <div class="footer-wrapper">
+      <!-- 获取当前位置按钮，固定在 footer 上方 -->
+      <div class="locate-btn" @click="handleLocateCurrentPosition">
+        <van-icon :name="locating ? 'loading' : 'aim'" :class="{ 'is-loading': locating }" />
       </div>
-      <van-button
-        type="primary"
-        block
-        round
-        :loading="confirming"
-        @click="handleConfirm"
-        class="confirm-btn"
-      >
-        确认选择
-      </van-button>
+
+      <!-- 底部操作栏 -->
+      <div class="footer">
+        <div v-if="selectedLocation" class="address-bar">
+          <van-icon name="location-o" />
+          <span class="address-text">{{ selectedLocation.address }}</span>
+        </div>
+        <van-button
+          type="primary"
+          block
+          round
+          :loading="confirming"
+          @click="handleConfirm"
+          class="confirm-btn"
+        >
+          确认选择
+        </van-button>
+      </div>
     </div>
   </div>
 </template>
@@ -69,10 +76,10 @@
 import { ref, onUnmounted, nextTick, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { showToast } from 'vant'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
-import { getReverseGeocode, updateCraftsmanUser } from '../service'
-import { loadLocationFromLocal, saveLocationToLocal } from '../utils'
+import { getReverseGeocode, updateCraftsmanUser, getCraftsmanUser } from '../service'
+import { saveLocationToLocal } from '../utils'
 import { getCurrentPosition } from '@/utils/index'
+// import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 
 interface Location {
   latitude: number
@@ -93,6 +100,7 @@ const geocoder = ref<any>(null)
 const autoComplete = ref<any>(null)
 const selectedLocation = ref<Location | null>(null)
 const confirming = ref(false)
+const locating = ref(false)
 const isMapInitialized = ref(false) // 标志位：地图是否已初始化完成
 
 // 点击外部关闭搜索结果的处理函数
@@ -154,20 +162,27 @@ const loadPlugins = (AMap: any): Promise<void> => {
 
 // 获取初始位置
 const getInitialLocation = async (): Promise<{ latitude: number; longitude: number } | null> => {
-  const savedLocation = loadLocationFromLocal()
-  if (savedLocation?.currentLocation?.latitude && savedLocation?.currentLocation?.longitude) {
-    return {
-      latitude: savedLocation.currentLocation.latitude,
-      longitude: savedLocation.currentLocation.longitude
-    }
-  }
-
+  // 优先从路由参数获取
   const lat = route.query.latitude ? parseFloat(route.query.latitude as string) : null
   const lng = route.query.longitude ? parseFloat(route.query.longitude as string) : null
   if (lat && lng) {
     return { latitude: lat, longitude: lng }
   }
 
+  // 调用接口获取用户经纬度信息
+  try {
+    const { success, data } = await getCraftsmanUser()
+    if (success && data?.latitude && data?.longitude) {
+      return {
+        latitude: data.latitude,
+        longitude: data.longitude
+      }
+    }
+  } catch (error) {
+    console.error('获取用户位置信息失败:', error)
+  }
+
+  // 如果接口获取失败，尝试使用浏览器定位
   try {
     const position = await getCurrentPosition({
       enableHighAccuracy: false,
@@ -369,7 +384,7 @@ const handleConfirm = async () => {
 
 // 处理搜索输入
 const handleSearchInput = (val: any) => {
-  const inputValue = typeof val === 'string' ? val : val?.target?.value ?? searchKey.value
+  const inputValue = typeof val === 'string' ? val : (val?.target?.value ?? searchKey.value)
   searchKey.value = inputValue
 
   // 如果输入为空，清空搜索结果
@@ -398,6 +413,49 @@ const handleClear = () => {
 const handleClickOutside = () => {
   if (searchResults.value.length > 0) {
     searchResults.value = []
+  }
+}
+
+// 获取当前位置并定位
+const handleLocateCurrentPosition = async () => {
+  if (!map.value || locating.value) return
+
+  locating.value = true
+  try {
+    const position = await getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    })
+
+    const { latitude, longitude } = position
+    map.value.setCenter([longitude, latitude])
+    map.value.setZoom(16)
+
+    selectedLocation.value = {
+      latitude,
+      longitude,
+      address: '正在获取地址...'
+    }
+
+    setTimeout(() => {
+      updateLocation()
+    }, 100)
+
+    if (geocoder.value?.getAddress) {
+      geocoder.value.getAddress([longitude, latitude], (status: string, result: any) => {
+        if (status === 'complete' && result?.regeocode && selectedLocation.value) {
+          selectedLocation.value.address =
+            result.regeocode.formattedAddress || `${latitude},${longitude}`
+        }
+      })
+    }
+
+    showToast('已定位到当前位置')
+  } catch {
+    showToast('获取位置失败，请检查定位权限')
+  } finally {
+    locating.value = false
   }
 }
 
@@ -484,11 +542,10 @@ onUnmounted(() => {
 }
 
 .search-wrapper {
-  position: absolute;
-  top: 56px;
-  left: 12px;
-  right: 12px;
+  flex-shrink: 0;
+  padding: 12px;
   z-index: 1000;
+  background: #fff;
 
   .hidden-input {
     position: absolute;
@@ -525,7 +582,7 @@ onUnmounted(() => {
       }
 
       .item-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 14px;
         margin-right: 8px;
         flex-shrink: 0;
@@ -537,7 +594,7 @@ onUnmounted(() => {
 
         .item-name {
           font-size: 14px;
-          color: #323233;
+          color: var(--color-text);
           font-weight: 500;
           margin-bottom: 2px;
           overflow: hidden;
@@ -547,7 +604,7 @@ onUnmounted(() => {
 
         .item-address {
           font-size: 12px;
-          color: #969799;
+          color: var(--color-text-secondary);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -574,8 +631,49 @@ onUnmounted(() => {
 
   .van-icon {
     font-size: 24px;
-    color: #00cec9;
+    color: var(--color-primary);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+}
+
+.footer-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.locate-btn {
+  position: absolute;
+  bottom: 100%;
+  right: 16px;
+  margin-bottom: 12px;
+  z-index: 600;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  .van-icon {
+    font-size: 22px;
+    color: var(--color-primary);
+  }
+
+  .is-loading {
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -595,10 +693,10 @@ onUnmounted(() => {
     background: #f7f8fa;
     border-radius: 8px;
     font-size: 14px;
-    color: #323233;
+    color: var(--color-text);
 
     .van-icon {
-      color: #00cec9;
+      color: var(--color-primary);
       font-size: 16px;
       flex-shrink: 0;
     }
@@ -615,9 +713,9 @@ onUnmounted(() => {
     height: 44px;
     font-size: 16px;
     font-weight: 600;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
-    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.25);
+    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.25);
   }
 }
 

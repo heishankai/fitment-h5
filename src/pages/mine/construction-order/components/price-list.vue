@@ -271,7 +271,7 @@ const navigateToDetail = (price: any) => {
   :deep(.van-card__title) {
     font-size: 16px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     line-height: 1.4;
     margin-bottom: 8px;
     display: -webkit-box;
@@ -284,8 +284,12 @@ const navigateToDetail = (price: any) => {
 
   .work-kind-tag {
     display: inline-block;
-    background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
-    color: #00cec9;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-primary-rgb), 0.1) 0%,
+      rgba(0, 180, 216, 0.1) 100%
+    );
+    color: var(--color-primary);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
@@ -304,12 +308,12 @@ const navigateToDetail = (price: any) => {
   .unit-price {
     font-size: 18px;
     font-weight: 700;
-    color: #00cec9;
+    color: var(--color-primary);
   }
 
   .unit-text {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     font-weight: 400;
   }
 
@@ -327,18 +331,18 @@ const navigateToDetail = (price: any) => {
     .quantity-tag {
       font-size: 12px;
       padding: 4px 10px;
-      background: rgba(0, 206, 201, 0.1);
-      color: #00cec9;
-      border-color: rgba(0, 206, 201, 0.3);
+      background: rgba(var(--color-primary-rgb), 0.1);
+      color: var(--color-primary);
+      border-color: rgba(var(--color-primary-rgb), 0.3);
       font-weight: 600;
     }
 
     .minimum-price-tag {
       font-size: 11px;
       padding: 4px 8px;
-      background: rgba(255, 152, 0, 0.1);
-      color: #ff9800;
-      border-color: rgba(255, 152, 0, 0.3);
+      background: rgba(var(--color-warning-rgb), 0.1);
+      color: var(--color-warning);
+      border-color: rgba(var(--color-warning-rgb), 0.3);
       font-weight: 500;
     }
   }
@@ -360,14 +364,14 @@ const navigateToDetail = (price: any) => {
 
     .total-label {
       font-size: 13px;
-      color: #646566;
+      color: var(--color-text-placeholder);
       font-weight: 500;
     }
 
     .total-value {
       font-size: 16px;
       font-weight: 700;
-      color: #00cec9;
+      color: var(--color-primary);
     }
   }
 
@@ -396,9 +400,13 @@ const navigateToDetail = (price: any) => {
     }
 
     .assigned-craftsman-tag {
-      background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
-      color: #00cec9;
-      border-color: rgba(0, 206, 201, 0.3);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-primary-rgb), 0.1) 0%,
+        rgba(0, 180, 216, 0.1) 100%
+      );
+      color: var(--color-primary);
+      border-color: rgba(var(--color-primary-rgb), 0.3);
       font-weight: 500;
     }
   }
@@ -407,9 +415,13 @@ const navigateToDetail = (price: any) => {
 .price-summary {
   margin-top: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, rgba(0, 206, 201, 0.03) 0%, rgba(0, 180, 216, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-primary-rgb), 0.03) 0%,
+    rgba(0, 180, 216, 0.03) 100%
+  );
   border-radius: 12px;
-  border: 1px solid rgba(0, 206, 201, 0.1);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.1);
 }
 
 .summary-row {
@@ -424,37 +436,37 @@ const navigateToDetail = (price: any) => {
   }
 
   .summary-label {
-    color: #646566;
+    color: var(--color-text-placeholder);
     font-weight: 500;
   }
 
   .summary-value {
-    color: #323233;
+    color: var(--color-text);
     font-weight: 600;
     font-size: 15px;
 
     &.service-fee {
-      color: #969799;
+      color: var(--color-text-secondary);
       font-size: 14px;
     }
 
     &.final-price {
       font-size: 20px;
       font-weight: 700;
-      color: #00cec9;
+      color: var(--color-primary);
     }
   }
 
   &.final-total {
     margin-top: 4px;
     padding-top: 12px;
-    border-top: 2px solid rgba(0, 206, 201, 0.2);
+    border-top: 2px solid rgba(var(--color-primary-rgb), 0.2);
     border-bottom: none;
 
     .summary-label {
       font-size: 16px;
       font-weight: 600;
-      color: #323233;
+      color: var(--color-text);
     }
   }
 }
@@ -488,9 +500,13 @@ const navigateToDetail = (price: any) => {
   }
 
   .assigned-craftsman-tag {
-    background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
-    color: #00cec9;
-    border-color: rgba(0, 206, 201, 0.3);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--color-primary-rgb), 0.1) 0%,
+      rgba(0, 180, 216, 0.1) 100%
+    );
+    color: var(--color-primary);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
     font-weight: 600;
   }
 }

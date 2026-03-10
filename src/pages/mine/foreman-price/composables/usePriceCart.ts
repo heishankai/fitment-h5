@@ -165,22 +165,9 @@ export function usePriceCart(orderId?: string | number) {
     saveCartToStorage()
   }
 
-  // 更新清单项
-  const updateCartItem = (item: PriceCartItem) => {
-    const index = cartList.value.findIndex((i) => i.id === item.id)
-    if (index !== -1) {
-      // 确保 quantity 是整数
-      const updatedItem = {
-        ...cartList.value[index],
-        ...item,
-        quantity:
-          item.quantity !== undefined
-            ? Math.floor(Number(item.quantity))
-            : cartList.value[index].quantity
-      }
-      cartList.value[index] = updatedItem
-      saveCartToStorage()
-    }
+  // 更新清单项（v-model 已直接修改 item，此处仅持久化）
+  const updateCartItem = () => {
+    saveCartToStorage()
   }
 
   // 删除清单项

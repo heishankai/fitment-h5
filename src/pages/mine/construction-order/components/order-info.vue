@@ -96,7 +96,7 @@ defineProps<{
       margin: 0;
 
       .van-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 16px;
       }
     }
@@ -111,13 +111,13 @@ defineProps<{
 
       .label {
         font-size: 11px;
-        color: #969799;
+        color: var(--color-text-secondary);
         font-weight: 500;
       }
 
       .value {
         font-size: 13px;
-        color: #323233;
+        color: var(--color-text);
         font-weight: 600;
         line-height: 1.4;
         word-break: break-all;

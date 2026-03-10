@@ -279,13 +279,13 @@ onUnmounted(() => {
   .map-title {
     font-size: 18px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     margin: 0 0 4px;
   }
 
   .map-subtitle {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     margin: 0;
   }
 }
@@ -309,7 +309,7 @@ onUnmounted(() => {
       line-height: 44px !important;
       font-size: 20px !important;
       background-color: rgba(255, 255, 255, 0.95) !important;
-      color: #323233 !important;
+      color: var(--color-text) !important;
       border: 1px solid #e8e8e8 !important;
       transition: all 0.2s ease;
       cursor: pointer;
@@ -337,7 +337,7 @@ onUnmounted(() => {
   .marker-icon {
     width: 40px;
     height: 40px;
-    background: #00cec9;
+    background: var(--color-primary);
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     display: flex;
@@ -361,7 +361,7 @@ onUnmounted(() => {
     transform: translate(-50%, -50%);
     width: 40px;
     height: 40px;
-    background: rgba(0, 206, 201, 0.3);
+    background: rgba(var(--color-primary-rgb), 0.3);
     border-radius: 50%;
     animation: pulse 2s ease-in-out infinite;
   }
@@ -376,9 +376,9 @@ onUnmounted(() => {
     height: 44px;
     font-size: 16px;
     font-weight: 600;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
-    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.25);
+    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.25);
   }
 }
 

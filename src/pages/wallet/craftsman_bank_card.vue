@@ -217,9 +217,9 @@ onMounted(() => {
 
 .submit-btn {
   height: 48px;
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   border: none;
-  box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
   font-weight: 600;
   font-size: 16px;
 }

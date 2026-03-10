@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <div v-if="order" class="order-detail">
       <!-- 订单头部 -->
       <div class="detail-header">
@@ -133,8 +131,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
-import { formatTime, encryptPhone } from '@/utils/index'
+import { formatTime, encryptPhone, isFlutterWebView } from '@/utils/index'
 import { getOrderDetail, acceptOrder } from '../service'
 
 const route = useRoute()
@@ -210,10 +207,15 @@ const handleAcceptOrder = async () => {
       order.value.order_status = 2
       order.value.order_status_name = '已接单'
       order.value.craftsman_user_id = res.data?.craftsman_user_id
-      // 跳转到我的工地订单页面
-      setTimeout(() => {
-        router.push('/mine/my-construction')
-      }, 1000)
+      // 跳转到我的工地订单页面（WebView 内路由，顶部返回按钮保持）
+      if (isFlutterWebView() && (window as any).fitment_flutter?.openWebView) {
+        ;(window as any).fitment_flutter.openWebView(
+          `/fitment-h5/mine/my-construction?flutter_back=1`,
+          '我的工地订单'
+        )
+        return
+      }
+      router.push('/mine/my-construction')
     } else {
       showToast(res?.message || '接单失败')
     }
@@ -243,7 +245,7 @@ onMounted(() => {
 }
 
 .detail-header {
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
@@ -307,7 +309,7 @@ onMounted(() => {
       gap: 10px;
       font-size: 16px;
       font-weight: 700;
-      color: #323233;
+      color: var(--color-text);
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 2px solid #f0f0f0;
@@ -315,12 +317,16 @@ onMounted(() => {
       .title-icon-wrapper {
         width: 32px;
         height: 32px;
-        background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          var(--color-primary-light) 100%
+        );
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 8px rgba(0, 206, 201, 0.2);
+        box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.2);
 
         .van-icon {
           color: #fff;
@@ -350,7 +356,7 @@ onMounted(() => {
           flex-shrink: 0;
 
           .van-icon {
-            color: #00cec9;
+            color: var(--color-primary);
             font-size: 16px;
           }
         }
@@ -364,13 +370,13 @@ onMounted(() => {
 
           .label {
             font-size: 11px;
-            color: #969799;
+            color: var(--color-text-secondary);
             font-weight: 500;
           }
 
           .value {
             font-size: 13px;
-            color: #323233;
+            color: var(--color-text);
             font-weight: 600;
             line-height: 1.4;
             word-break: break-all;
@@ -388,7 +394,7 @@ onMounted(() => {
         flex-shrink: 0;
 
         .user-avatar {
-          border: 2px solid #00cec9;
+          border: 2px solid var(--color-primary);
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
       }
@@ -400,14 +406,14 @@ onMounted(() => {
         .user-name {
           font-size: 16px;
           font-weight: 700;
-          color: #323233;
+          color: var(--color-text);
           margin-bottom: 8px;
           display: flex;
           align-items: center;
           gap: 8px;
 
           .van-icon {
-            color: #00cec9;
+            color: var(--color-primary);
             font-size: 18px;
           }
         }
@@ -417,14 +423,14 @@ onMounted(() => {
           align-items: center;
           gap: 6px;
           font-size: 14px;
-          color: #646566;
+          color: var(--color-text-placeholder);
           padding: 6px 12px;
-          background: rgba(0, 206, 201, 0.08);
+          background: rgba(var(--color-primary-rgb), 0.08);
           border-radius: 8px;
           width: fit-content;
 
           .van-icon {
-            color: #00cec9;
+            color: var(--color-primary);
             font-size: 16px;
           }
         }
@@ -448,9 +454,9 @@ onMounted(() => {
     height: 48px;
     font-size: 16px;
     font-weight: 700;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
     display: flex;
     align-items: center;
     justify-content: center;

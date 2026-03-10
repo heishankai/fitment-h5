@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main>
       <van-pull-refresh class="pull-refresh" v-model="refreshing" @refresh="onRefresh">
         <!-- 施工进度 -->
@@ -33,7 +31,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import ConstructionProgress from './components/construction-progress.vue'
 import { getConstructionProgressByOrderId } from './service'
 
@@ -144,6 +141,7 @@ footer {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -159,6 +157,7 @@ footer {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

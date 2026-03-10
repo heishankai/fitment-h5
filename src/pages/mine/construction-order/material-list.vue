@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main>
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 辅材清单 -->
@@ -33,7 +31,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import MaterialList from './components/material-list.vue'
 import { getMaterialsByOrderId, getOrderDetail, getUserInfoService } from './service'
 
@@ -159,6 +156,7 @@ footer {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -174,6 +172,7 @@ footer {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

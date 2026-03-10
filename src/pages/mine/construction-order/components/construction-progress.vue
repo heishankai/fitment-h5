@@ -100,7 +100,7 @@ const previewPhoto = (photos: string[], index: number) => {
     .day-date {
       font-size: 14px;
       font-weight: 600;
-      color: #323233;
+      color: var(--color-text);
     }
   }
 
@@ -118,17 +118,17 @@ const previewPhoto = (photos: string[], index: number) => {
         align-items: center;
         gap: 6px;
         font-size: 14px;
-        color: #646566;
+        color: var(--color-text-placeholder);
 
         .van-icon {
           font-size: 14px;
-          color: #00cec9;
+          color: var(--color-primary);
         }
       }
 
       .check-in-time {
         font-size: 14px;
-        color: #323233;
+        color: var(--color-text);
         font-weight: 500;
       }
     }
@@ -138,13 +138,13 @@ const previewPhoto = (photos: string[], index: number) => {
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: #969799;
+      color: var(--color-text-secondary);
       font-style: normal;
       margin-top: 8px;
 
       .van-icon {
         font-size: 12px;
-        color: #00cec9;
+        color: var(--color-primary);
       }
     }
   }

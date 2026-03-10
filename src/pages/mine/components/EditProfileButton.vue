@@ -11,8 +11,8 @@
 .edit-btn {
   margin-top: 20px;
   height: 48px;
-  background: #00cec9;
-  box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+  background: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
   font-weight: 600;
   font-size: 16px;
   border: none;

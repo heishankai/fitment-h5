@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <custom-van-navbar />
+    <custom-van-navbar v-if="shouldShowNavbar" />
     <main>
       <van-pull-refresh class="pull-refresh" v-model="refreshing" @refresh="onRefresh">
         <van-empty v-if="!noticeList?.length && !refreshing" description="暂无公告" />
@@ -45,6 +45,12 @@ const route = useRoute()
 const noticeList = ref<any[]>([])
 const refreshing = ref(false)
 
+// 判断是否显示导航栏：notice_type=2 时不显示
+const shouldShowNavbar = computed(() => {
+  const { notice_type } = route.query ?? {}
+  return notice_type !== '2'
+})
+
 const getPlatformNoticeList = async () => {
   const { notice_type } = route.query ?? {}
   const { success, data } = await getPlatformNoticeListService({ notice_type: notice_type })
@@ -64,7 +70,15 @@ const onRefresh = async () => {
 }
 
 const handleClick = (id: number) => {
-  router.push(`/notice/notice-detail?id=${id}`)
+  const { notice_type } = route.query ?? {}
+  const query: any = { id }
+  if (notice_type) {
+    query.notice_type = notice_type
+  }
+  router.push({
+    path: '/notice/notice-detail',
+    query
+  })
 }
 
 onMounted(() => {
@@ -118,19 +132,19 @@ main {
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
   }
 
   .card-title {
     font-size: 16px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     margin-bottom: 8px;
     line-height: 1.4;
     overflow: hidden;
@@ -143,7 +157,7 @@ main {
 
   .card-time {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     display: flex;
     align-items: center;
     gap: 4px;

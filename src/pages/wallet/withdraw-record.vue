@@ -156,15 +156,15 @@ onMounted(() => {
   margin-right: 12px;
 
   &.pending {
-    background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-light) 100%);
   }
 
   &.completed {
-    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
   }
 
   &.rejected {
-    background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+    background: linear-gradient(135deg, var(--color-error) 0%, var(--color-error-light) 100%);
   }
 }
 

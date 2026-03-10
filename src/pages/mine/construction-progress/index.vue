@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main>
       <!-- 位置信息 -->
       <section class="section location-section fade-in-up">
@@ -16,14 +14,28 @@
         <h2 class="section-title">施工照片</h2>
         <div class="photos-content">
           <div class="photos-count">{{ construction_progress.photos?.length || 0 }}/5</div>
-          <van-uploader
-            v-model="construction_progress.photos"
-            :max-count="5"
-            :after-read="handleUploadPhoto"
-            accept="image/*"
-            :preview-full-image="true"
-            class="photo-uploader"
-          />
+          <div class="photos-grid">
+            <!-- 已上传的照片 -->
+            <div
+              v-for="(photo, index) in construction_progress.photos"
+              :key="index"
+              class="photo-item"
+            >
+              <img :src="photo.url" alt="施工照片" @click="previewImage(photo.url)" />
+              <div class="delete-btn" @click.stop="removePhoto(index)">
+                <van-icon name="cross" />
+              </div>
+            </div>
+            <!-- 上传按钮 -->
+            <div
+              v-if="(construction_progress.photos?.length || 0) < 5"
+              class="photo-item upload-btn"
+              @click="handleChoosePhotos"
+            >
+              <van-icon name="plus" size="24" />
+              <span>添加照片</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -111,13 +123,11 @@
 <script lang="ts" setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { showToast } from 'vant'
+import { showToast, showImagePreview } from 'vant'
 import dayjs from 'dayjs'
-// components
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 // utils
+import { getToken, waitForFitmentFlutter } from '@/utils'
 import { saveConstructionProgress } from './service'
-import { uploadImage } from '@/service'
 import { getUserLocation, formatTime, validateProgress } from './utils'
 
 const router = useRouter()
@@ -212,11 +222,86 @@ const handleCheckIn = (type: 'start' | 'end') => {
   }
 }
 
-// 上传照片
-const handleUploadPhoto = async (file: any) => {
-  const res: any = await uploadImage(file.file)
-  if (!res?.success || !res?.data?.url) return
-  file.url = res.data.url
+/**
+ * 选择并上传照片（使用 Flutter 原生方法，支持多选）
+ */
+const handleChoosePhotos = async () => {
+  const bridge = await waitForFitmentFlutter()
+  if (!bridge) {
+    showToast('请在 App 中使用此功能')
+    return
+  }
+
+  const remainingCount = 5 - (construction_progress.value.photos?.length || 0)
+  if (remainingCount <= 0) {
+    showToast('最多只能上传5张照片')
+    return
+  }
+
+  try {
+    // 使用 Flutter 原生方法选择图片并自动上传
+    const res = await bridge.chooseImage({
+      count: remainingCount, // 最多选择剩余数量
+      upload: {
+        url: '/upload',
+        name: 'file',
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        formData: {
+          biz: 'construction_photo'
+        }
+      }
+    })
+
+    if (!res || !res.tempFiles || res.tempFiles.length === 0) {
+      return
+    }
+
+    // 处理上传结果
+    const uploadedPhotos: Array<{ url: string }> = []
+    for (const fileInfo of res.tempFiles) {
+      if (fileInfo.error) {
+        showToast(fileInfo.error || '上传失败，请重试')
+        continue
+      }
+
+      if (fileInfo.url) {
+        uploadedPhotos.push({ url: fileInfo.url })
+      }
+    }
+
+    // 添加到照片列表
+    if (uploadedPhotos.length > 0) {
+      construction_progress.value.photos = [
+        ...(construction_progress.value.photos || []),
+        ...uploadedPhotos
+      ]
+      showToast(`成功上传${uploadedPhotos.length}张照片`)
+    }
+  } catch (error) {
+    console.error('选择或上传照片失败:', error)
+    showToast('操作失败，请重试')
+  }
+}
+
+/**
+ * 删除照片
+ */
+const removePhoto = (index: number) => {
+  construction_progress.value.photos.splice(index, 1)
+}
+
+/**
+ * 预览图片
+ */
+const previewImage = (url: string) => {
+  const images = construction_progress.value.photos.map((p) => p.url)
+  const startPosition = images.indexOf(url)
+  showImagePreview({
+    images,
+    startPosition: startPosition >= 0 ? startPosition : 0
+  })
 }
 
 const onSave = async () => {
@@ -299,7 +384,7 @@ main {
 .section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #323233;
+  color: var(--color-text);
   margin: 0 0 10px 0;
   padding-bottom: 8px;
   border-bottom: 2px solid #f0f0f0;
@@ -315,7 +400,7 @@ main {
 
     .location-icon {
       font-size: 16px;
-      color: #00cec9;
+      color: var(--color-primary);
       flex-shrink: 0;
       transition: transform 0.3s ease;
       animation: pulse 2s infinite;
@@ -323,7 +408,7 @@ main {
 
     .location-text {
       font-size: 14px;
-      color: #323233;
+      color: var(--color-text);
       flex: 1;
       line-height: 1.5;
       word-break: break-all;
@@ -341,6 +426,7 @@ main {
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.6;
   }
@@ -369,7 +455,7 @@ main {
     &:hover {
       transform: translateY(-4px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-color: #00cec9;
+      border-color: var(--color-primary);
 
       .check-in-icon {
         transform: rotate(15deg) scale(1.1);
@@ -384,14 +470,14 @@ main {
 
       .check-in-icon {
         font-size: 18px;
-        color: #00cec9;
+        color: var(--color-primary);
         transition: transform 0.3s ease;
       }
 
       .check-in-label {
         font-size: 14px;
         font-weight: 600;
-        color: #323233;
+        color: var(--color-text);
       }
     }
 
@@ -404,13 +490,13 @@ main {
       .check-in-time {
         font-size: 13px;
         font-weight: 600;
-        color: #323233;
+        color: var(--color-text);
         text-align: center;
       }
 
       .check-in-placeholder {
         font-size: 12px;
-        color: #969799;
+        color: var(--color-text-secondary);
         text-align: center;
       }
     }
@@ -438,50 +524,80 @@ main {
 
     .photos-count {
       font-size: 12px;
-      color: #969799;
+      color: var(--color-text-secondary);
       margin-bottom: 8px;
       text-align: right;
     }
 
-    .photo-uploader {
-      flex: 1;
-      min-height: 0;
+    .photos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
 
-      :deep(.van-uploader__upload) {
-        background: #f7f8fa;
-        border: 1px dashed #dcdee0;
-        border-radius: 6px;
-        width: 60px;
-        height: 60px;
-        transition: all 0.3s ease;
+    .photo-item {
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.3s ease;
+      animation: fadeInUp 0.4s ease-out both;
 
-        &:active {
-          transform: scale(0.95);
-          border-color: #00cec9;
-          background: rgba(0, 206, 201, 0.05);
-        }
+      &:hover {
+        transform: scale(1.05);
       }
 
-      :deep(.van-uploader__preview-image) {
-        border-radius: 6px;
-        width: 60px;
-        height: 60px;
-        transition: transform 0.3s ease;
+      &:active {
+        transform: scale(0.95);
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+      }
+
+      .delete-btn {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 20px;
+        height: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
         cursor: pointer;
 
-        &:hover {
-          transform: scale(1.05);
-        }
-
-        &:active {
-          transform: scale(0.95);
+        .van-icon {
+          color: #fff;
+          font-size: 12px;
         }
       }
 
-      :deep(.van-uploader__preview) {
-        margin-right: 8px;
-        margin-bottom: 8px;
-        animation: fadeInUp 0.4s ease-out both;
+      &.upload-btn {
+        background: #f7f8fa;
+        border: 1px dashed #dcdee0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-text-secondary);
+
+        &:active {
+          border-color: var(--color-primary);
+          background: rgba(var(--color-primary-rgb), 0.05);
+        }
+
+        span {
+          font-size: 10px;
+          margin-top: 2px;
+        }
       }
     }
   }
@@ -532,6 +648,7 @@ footer {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -543,6 +660,7 @@ footer {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

@@ -57,7 +57,7 @@ defineProps<{
     flex-shrink: 0;
 
     .user-avatar {
-      border: 2px solid #00cec9;
+      border: 2px solid var(--color-primary);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
   }
@@ -69,14 +69,14 @@ defineProps<{
     .user-name {
       font-size: 16px;
       font-weight: 700;
-      color: #323233;
+      color: var(--color-text);
       margin: 0 0 8px 0;
       display: flex;
       align-items: center;
       gap: 8px;
 
       .van-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 18px;
       }
     }
@@ -86,23 +86,23 @@ defineProps<{
       align-items: center;
       gap: 6px;
       font-size: 14px;
-      color: #646566;
+      color: var(--color-text-placeholder);
       padding: 6px 12px;
-      background: rgba(0, 206, 201, 0.08);
+      background: rgba(var(--color-primary-rgb), 0.08);
       border-radius: 8px;
       text-decoration: none;
       transition: background 0.2s;
 
       &:hover {
-        background: rgba(0, 206, 201, 0.12);
+        background: rgba(var(--color-primary-rgb), 0.12);
       }
 
       &:active {
-        background: rgba(0, 206, 201, 0.16);
+        background: rgba(var(--color-primary-rgb), 0.16);
       }
 
       .van-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 16px;
       }
     }

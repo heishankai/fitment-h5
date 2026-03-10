@@ -31,8 +31,8 @@ const router = createRouter({
  * 前置路由守卫获取 URL 中的 token
  */
 router.beforeEach(async (to: any, from: any, next: any) => {
-  const title = to.meta?.title || '装修助手'
-  window.document.title = title
+  const title = to.meta?.title
+  window.document.title = title || ''
 
   // 更新小程序导航栏标题
   updateMiniProgramTitle(title)

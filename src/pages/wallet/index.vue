@@ -8,16 +8,16 @@
       <main class="fade-in-up" :style="{ animationDelay: '0.1s' }">
         <van-cell class="menu-item" is-link @click="goToWithdrawRecord" center title="提现记录">
           <template #icon>
-            <div class="icon-box" style="background: #ff980022">
-              <van-icon name="records" color="#ff9800" size="18px" />
+            <div class="icon-box" style="background: var(--color-warning) 22">
+              <van-icon name="records" color="var(--color-warning)" size="18px" />
             </div>
           </template>
         </van-cell>
 
         <van-cell class="menu-item" is-link @click="goToBankCard" center title="银行卡">
           <template #icon>
-            <div class="icon-box" style="background: #4caf5022">
-              <van-icon name="credit-pay" color="#4caf50" size="18px" />
+            <div class="icon-box" style="background: rgba(var(--color-success-rgb), 0.13)">
+              <van-icon name="credit-pay" color="#4f7a67" size="18px" />
             </div>
           </template>
         </van-cell>

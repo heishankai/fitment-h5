@@ -91,7 +91,7 @@ const getStatusType = (status: number) => {
 
 <style lang="less" scoped>
 .detail-header {
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   border-radius: 16px;
   padding: 16px 20px;
   margin-bottom: 12px;

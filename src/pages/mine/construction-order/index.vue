@@ -1,7 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main v-if="order">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 订单头部（包含用户信息） -->
@@ -86,7 +84,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 // components
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import DetailHeader from './components/detail-header.vue'
 import OrderInfo from './components/order-info.vue'
 import PriceList from './components/price-list.vue'
@@ -369,11 +366,11 @@ footer {
     }
 
     &.material-icon {
-      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+      background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
     }
 
     &.progress-icon {
-      background: linear-gradient(135deg, #ff9800 0%, #ff6b35 100%);
+      background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-light) 100%);
     }
   }
 

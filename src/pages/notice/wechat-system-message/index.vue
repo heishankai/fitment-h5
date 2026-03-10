@@ -217,7 +217,7 @@ main {
 
     .unread-text {
       font-size: 14px;
-      color: #323233;
+      color: var(--color-text);
       font-weight: 500;
     }
   }

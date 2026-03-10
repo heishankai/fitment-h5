@@ -208,13 +208,13 @@ main {
 
       .van-icon {
         font-size: 16px;
-        color: #00cec9;
+        color: var(--color-primary);
       }
 
       .date-text {
         font-size: 16px;
         font-weight: 600;
-        color: #323233;
+        color: var(--color-text);
       }
     }
   }
@@ -234,13 +234,13 @@ main {
 
     .info-icon {
       font-size: 16px;
-      color: #00cec9;
+      color: var(--color-primary);
       flex-shrink: 0;
     }
 
     .info-text {
       font-size: 14px;
-      color: #323233;
+      color: var(--color-text);
       flex: 1;
       word-break: break-all;
     }
@@ -269,24 +269,24 @@ main {
           font-size: 16px;
 
           &.start-icon {
-            color: #1989fa;
+            color: var(--color-primary);
           }
 
           &.end-icon {
-            color: #07c160;
+            color: var(--color-success);
           }
         }
 
         .time-label {
           font-size: 12px;
-          color: #969799;
+          color: var(--color-text-secondary);
         }
       }
 
       .time-value {
         font-size: 16px;
         font-weight: 600;
-        color: #323233;
+        color: var(--color-text);
       }
 
       .time-placeholder {
@@ -307,12 +307,12 @@ main {
       gap: 6px;
       font-size: 14px;
       font-weight: 600;
-      color: #323233;
+      color: var(--color-text);
       margin-bottom: 12px;
 
       .van-icon {
         font-size: 16px;
-        color: #00cec9;
+        color: var(--color-primary);
       }
     }
 

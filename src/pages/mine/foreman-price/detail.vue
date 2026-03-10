@@ -1,12 +1,14 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main v-if="priceDetail">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 工价轮播图 -->
         <div class="price-carousel fade-in-up" v-if="priceDetail?.display_images?.length">
-          <van-swipe :autoplay="3000" :show-indicators="true" indicator-color="#00cec9">
+          <van-swipe
+            :autoplay="3000"
+            :show-indicators="true"
+            indicator-color="var(--color-primary)"
+          >
             <van-swipe-item v-for="(image, index) in priceDetail.display_images" :key="index">
               <img class="carousel-image" :src="image" @click="handlePreviewCarouselImage(index)" />
             </van-swipe-item>
@@ -58,7 +60,7 @@
             :style="{ animationDelay: '0.4s' }"
           >
             <div class="card-header">
-              <van-icon name="description" color="#00cec9" size="20" />
+              <van-icon name="description" color="var(--color-primary)" size="20" />
               <div class="card-title">定价说明</div>
             </div>
             <div class="card-content">
@@ -75,7 +77,7 @@
             :style="{ animationDelay: '0.5s' }"
           >
             <div class="card-header">
-              <van-icon name="service-o" color="#00cec9" size="20" />
+              <van-icon name="service-o" color="var(--color-primary)" size="20" />
               <div class="card-title">服务范围</div>
             </div>
             <div class="card-content">
@@ -92,7 +94,7 @@
             :style="{ animationDelay: '0.6s' }"
           >
             <div class="card-header">
-              <van-icon name="orders-o" color="#00cec9" size="20" />
+              <van-icon name="orders-o" color="var(--color-primary)" size="20" />
               <div class="card-title">服务详情</div>
             </div>
             <div class="service-details">
@@ -100,7 +102,7 @@
                 class="detail-item fade-in-up"
                 v-for="(item, index) in priceDetail.service_details"
                 :key="index"
-                :style="{ animationDelay: `${0.7 + index * 0.1}s` }"
+                :style="{ animationDelay: `${0.7 + Number(index) * 0.1}s` }"
               >
                 <SectionTitle v-if="item.service_title" :title="item.service_title" />
                 <div class="service-desc" v-if="item.service_desc">
@@ -129,7 +131,6 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { showImagePreview } from 'vant'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import SectionTitle from '@/components/section-title.vue'
 import { getWorkPriceDetailService } from './service'
 
@@ -155,7 +156,7 @@ const onRefresh = async () => {
 }
 
 // 查看轮播图图片
-const handlePreviewCarouselImage = (index: number): void => {
+const handlePreviewCarouselImage = (index: any): void => {
   const images = priceDetail.value?.display_images || []
   showImagePreview({
     images,
@@ -234,7 +235,7 @@ main {
 
 .work-kind-tag {
   width: fit-content;
-  background: linear-gradient(135deg, #00cec9, #00b4d8);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: #fff;
   padding: 6px 24px;
   border-radius: 20px;
@@ -243,11 +244,11 @@ main {
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
   }
 }
 
@@ -268,7 +269,7 @@ main {
   .price-value {
     font-size: 28px;
     font-weight: 700;
-    color: #00cec9;
+    color: var(--color-primary);
     transition: transform 0.3s ease;
   }
 

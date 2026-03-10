@@ -1,6 +1,5 @@
 <template>
   <div class="chat-page">
-    <custom-van-navbar />
     <main ref="messagesRef">
       <template v-if="messages.length">
         <ChatMessage
@@ -48,7 +47,6 @@
 <script lang="ts" setup>
 import { useChat } from './useChat'
 import ChatMessage from './components/chat-message.vue'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 const {
   messages,
   inputText,

@@ -45,7 +45,7 @@
 
     <!-- 空数据状态 -->
     <div class="empty-state" v-if="!loading && products.length === 0">
-      <van-icon name="shop-o" size="60" color="#00cec9" />
+      <van-icon name="shop-o" size="60" color="var(--color-primary)" />
       <div>暂无商品</div>
     </div>
   </div>
@@ -313,7 +313,7 @@ defineExpose({
   :deep(.van-card__title) {
     font-size: 16px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     line-height: 1.4;
     margin-bottom: 8px;
     display: -webkit-box;
@@ -326,7 +326,7 @@ defineExpose({
 
   :deep(.van-card__desc) {
     font-size: 13px;
-    color: #646566;
+    color: var(--color-text-placeholder);
     line-height: 1.5;
     margin-bottom: 12px;
     display: -webkit-box;
@@ -349,12 +349,12 @@ defineExpose({
   .product-price {
     font-size: 20px;
     font-weight: 700;
-    color: #00cec9;
+    color: var(--color-primary);
   }
 
   .product-unit {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     font-weight: 400;
   }
 
@@ -368,18 +368,18 @@ defineExpose({
 
   .add-btn {
     width: 100%;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
     border-radius: 20px;
     padding: 6px 16px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
     transition: all 0.3s ease;
 
     &:active {
       transform: scale(0.95);
-      box-shadow: 0 1px 4px rgba(0, 206, 201, 0.4);
+      box-shadow: 0 1px 4px rgba(var(--color-primary-rgb), 0.4);
     }
   }
 }

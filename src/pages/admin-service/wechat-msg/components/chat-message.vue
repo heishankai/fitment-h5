@@ -77,7 +77,7 @@ const previewImage = (url: string) => {
     }
 
     .chat-message__text {
-      background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
       color: #fff;
       border-radius: 16px 16px 4px 16px;
       padding: 10px 16px;

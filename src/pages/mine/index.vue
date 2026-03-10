@@ -53,10 +53,10 @@
 
     <!-- 菜单列表 -->
     <div class="menu-list">
-      <MenuItem icon="shield-o" color="#007bff" title="实名认证" @click="goRealNameAuth" />
-      <MenuItem icon="medal-o" color="#ff9800" title="技能认证" @click="goSkillAuth" />
-      <MenuItem icon="contact-o" color="#4caf50" title="个人主页" @click="goPersonalHomepage" />
-      <MenuItem icon="location-o" color="#f44336" title="我的工地订单" @click="goMyConstruction" />
+      <MenuItem icon="shield-o" color="#2d635e" title="实名认证" @click="goRealNameAuth" />
+      <MenuItem icon="medal-o" color="#c89a57" title="技能认证" @click="goSkillAuth" />
+      <MenuItem icon="contact-o" color="#4f7a67" title="个人主页" @click="goPersonalHomepage" />
+      <MenuItem icon="location-o" color="#c46b6b" title="我的工地订单" @click="goMyConstruction" />
     </div>
   </div>
 </template>
@@ -66,7 +66,6 @@ import EditProfileButton from './components/EditProfileButton.vue'
 import MenuItem from './components/MenuItem.vue'
 import { useRouter } from 'vue-router'
 import { getUserInfoService } from './service'
-import { getIsSkillVerifiedService } from './skill-auth/service'
 
 const router = useRouter()
 
@@ -90,21 +89,7 @@ const goRealNameAuth = () => router.push('/mine/real-name-auth')
 
 // 技能认证：如果已通过认证，直接跳转到技能认证页面；否则跳转到工种选择页面
 const goSkillAuth = async () => {
-  const { success, data } = await getIsSkillVerifiedService()
-
-  if (success && data?.isSkillVerified) {
-    // 已通过技能认证，直接跳转到技能认证页面
-    router.push({
-      path: '/mine/skill-auth',
-      query: {
-        workKindId: data.workKindId,
-        workKindName: data.workKindName
-      }
-    })
-  } else {
-    // 未通过认证，跳转到工种选择页面
-    router.push('/mine/work-kind-list')
-  }
+  router.push({ path: '/mine/skill-auth' })
 }
 
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
@@ -114,7 +99,7 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 
 <style lang="less" scoped>
 .mine-page {
-  background: #f5f5f5;
+  background: var(--color-background);
   min-height: 100vh;
 }
 
@@ -125,7 +110,7 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 
 .header-bg {
   height: 120px;
-  background: #00cec9;
+  background: var(--color-primary);
 }
 
 /* 用户卡片浮动 */
@@ -147,10 +132,10 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 .avatar-wrapper {
   width: 80px;
   height: 80px;
-  background: #00cec9;
+  background: var(--color-primary);
   border-radius: 50%;
   padding: 3px;
-  box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .avatar-border {
@@ -186,7 +171,7 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 .nickname {
   font-size: 20px;
   font-weight: bold;
-  color: #333;
+  color: var(--color-text);
 }
 
 .badges {
@@ -210,15 +195,15 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 }
 
 .badge.blue {
-  color: #2196f3;
-  background: rgba(33, 150, 243, 0.12);
-  border-color: rgba(33, 150, 243, 0.3);
+  color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.12);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
 }
 
 .badge.orange {
-  color: #ff9800;
-  background: rgba(255, 152, 0, 0.12);
-  border-color: rgba(255, 152, 0, 0.3);
+  color: var(--color-warning);
+  background: rgba(var(--color-warning-rgb), 0.12);
+  border-color: rgba(var(--color-warning-rgb), 0.3);
 }
 
 /* 统计数据 */
@@ -236,12 +221,12 @@ const goMyConstruction = () => router.push('/mine/my-construction')
 .value {
   font-size: 28px;
   font-weight: bold;
-  color: #333;
+  color: var(--color-text);
 }
 
 .label {
   font-size: 13px;
-  color: #777;
+  color: var(--color-text-secondary);
 }
 
 .divider {

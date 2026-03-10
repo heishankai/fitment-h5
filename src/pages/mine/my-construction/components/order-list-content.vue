@@ -155,12 +155,12 @@ const goToDetail = (orderId: number) => {
   .work-kind-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.25);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.25);
     position: relative;
     overflow: hidden;
     transition:
@@ -189,7 +189,7 @@ const goToDetail = (orderId: number) => {
 
   &:hover .work-kind-icon {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 206, 201, 0.35);
+    box-shadow: 0 6px 16px rgba(var(--color-primary-rgb), 0.35);
 
     .van-icon {
       transform: rotate(5deg);
@@ -206,7 +206,7 @@ const goToDetail = (orderId: number) => {
     .title-text {
       font-size: 16px;
       font-weight: 700;
-      color: #323233;
+      color: var(--color-text);
       letter-spacing: -0.2px;
       flex: 1;
       min-width: 0;
@@ -230,7 +230,7 @@ const goToDetail = (orderId: number) => {
 
   .card-time {
     font-size: 11px;
-    color: #969799;
+    color: var(--color-text-secondary);
     margin-top: 2px;
   }
 
@@ -258,7 +258,11 @@ const goToDetail = (orderId: number) => {
       .icon-wrapper {
         width: 32px;
         height: 32px;
-        background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--color-primary-rgb), 0.1) 0%,
+          rgba(0, 180, 216, 0.1) 100%
+        );
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -270,7 +274,7 @@ const goToDetail = (orderId: number) => {
           background 0.3s ease;
 
         .van-icon {
-          color: #00cec9;
+          color: var(--color-primary);
           font-size: 16px;
           transition: transform 0.3s ease;
         }
@@ -280,7 +284,7 @@ const goToDetail = (orderId: number) => {
         transform: scale(1.1);
         background: linear-gradient(
           135deg,
-          rgba(0, 206, 201, 0.15) 0%,
+          rgba(var(--color-primary-rgb), 0.15) 0%,
           rgba(0, 180, 216, 0.15) 100%
         );
 
@@ -293,7 +297,7 @@ const goToDetail = (orderId: number) => {
         flex: 1;
         min-width: 0;
         font-size: 13px;
-        color: #646566;
+        color: var(--color-text-placeholder);
         line-height: 1.6;
         word-break: break-all;
         padding-top: 6px;

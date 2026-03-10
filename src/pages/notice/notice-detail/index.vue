@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <custom-van-navbar />
+    <custom-van-navbar v-if="shouldShowNavbar" />
     <main>
       <div class="detail-card fade-in-up">
         <div class="header">
@@ -20,7 +20,7 @@
             v-for="(img, index) in noticeDetail?.notice_image"
             :key="index"
             class="image-item"
-            @click="previewImage(index)"
+            @click="previewImage(Number(index))"
           >
             <img :src="img" alt="公告图片" />
           </div>
@@ -39,6 +39,12 @@ import { showImagePreview } from 'vant'
 
 const route = useRoute()
 const noticeDetail = ref<any>({})
+
+// 判断是否显示导航栏：notice_type=2 时不显示
+const shouldShowNavbar = computed(() => {
+  const { notice_type } = route.query ?? {}
+  return notice_type !== '2'
+})
 
 const getPlatformNoticeDetail = async () => {
   const { id } = route.query ?? {}
@@ -108,26 +114,26 @@ main {
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #323233;
+  color: var(--color-text);
   line-height: 1.5;
   margin-bottom: 12px;
 }
 
 .time {
   font-size: 13px;
-  color: #969799;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -135,7 +141,7 @@ main {
 
 .content {
   font-size: 15px;
-  color: #646566;
+  color: var(--color-text-placeholder);
   line-height: 1.8;
   word-break: break-word;
   white-space: pre-line;
@@ -159,7 +165,7 @@ main {
   :deep(h3) {
     font-weight: 600;
     margin: 16px 0 8px;
-    color: #323233;
+    color: var(--color-text);
   }
 
   :deep(ul),
@@ -173,7 +179,7 @@ main {
   }
 
   :deep(a) {
-    color: #00cec9;
+    color: var(--color-primary);
     text-decoration: none;
   }
 }

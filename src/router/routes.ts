@@ -125,7 +125,6 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/mine',
-    name: '我的',
     children: [
       {
         path: '/mine',
@@ -157,14 +156,6 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/pages/mine/skill-auth/index.vue'),
         meta: {
           title: '技能认证'
-        }
-      },
-      {
-        path: '/mine/work-kind-list',
-        name: '工种选择',
-        component: () => import('@/pages/mine/work-kind-list/index.vue'),
-        meta: {
-          title: '工种选择'
         }
       },
       {
@@ -214,12 +205,6 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/pages/mine/construction-progress/index.vue')
       },
       {
-        path: '/mine/designer-price/:id',
-        name: '设计师工价',
-        meta: { title: '设计师工价' },
-        component: () => import('@/pages/mine/designer-price/index.vue')
-      },
-      {
         path: '/mine/foreman-price/:id',
         name: '创建工价',
         meta: { title: '创建工价' },
@@ -253,7 +238,6 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/home',
-    name: '首页',
     children: [
       {
         path: '/home',

@@ -1,11 +1,9 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar title="搜索商品" />
-
     <!-- 搜索框 -->
     <div class="search-header">
       <div class="search-box">
-        <van-icon name="search" size="18" color="#999" />
+        <van-icon name="search" size="18" color="#a8adad" />
         <van-field
           v-model="searchKeyword"
           placeholder="搜索商品名称"
@@ -31,7 +29,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { debounce } from 'lodash-es'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import SearchProductList from './components/search-product-list.vue'
 
 // 搜索相关状态
@@ -122,7 +119,7 @@ const onRefresh = async (): Promise<void> => {
     .search-input {
       flex: 1;
       font-size: 14px;
-      color: #323233;
+      color: var(--color-text);
       background: transparent;
       border: none;
       outline: none;
@@ -130,11 +127,11 @@ const onRefresh = async (): Promise<void> => {
 
       :deep(.van-field__control) {
         font-size: 14px;
-        color: #323233;
+        color: var(--color-text);
       }
 
       :deep(.van-field__placeholder) {
-        color: #969799;
+        color: var(--color-text-secondary);
       }
     }
   }

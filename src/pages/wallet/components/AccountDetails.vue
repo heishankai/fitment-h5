@@ -100,10 +100,10 @@ const getTypeIcon = (type: number) => {
   margin-right: 10px;
 }
 .detail-icon.income {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: linear-gradient(135deg, var(--color-success), var(--color-success-light));
 }
 .detail-icon.expense {
-  background: linear-gradient(135deg, #ff9800, #ffb74d);
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning-light));
 }
 
 .detail-title {
@@ -123,9 +123,9 @@ const getTypeIcon = (type: number) => {
   font-weight: 600;
 }
 .detail-amount.income {
-  color: #4caf50;
+  color: var(--color-success);
 }
 .detail-amount.expense {
-  color: #ff9800;
+  color: var(--color-warning);
 }
 </style>

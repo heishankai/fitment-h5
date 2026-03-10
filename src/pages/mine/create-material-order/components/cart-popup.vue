@@ -28,7 +28,6 @@
               <van-stepper
                 v-model="item.quantity"
                 :min="1"
-                :max="999"
                 integer
                 @change="handleUpdateItem(item)"
               />
@@ -146,12 +145,12 @@ const handleSubmit = () => {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: #323233;
+      color: var(--color-text);
     }
 
     .cart-count {
       font-size: 14px;
-      color: #969799;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -193,7 +192,7 @@ const handleSubmit = () => {
         .cart-item-name {
           font-size: 14px;
           font-weight: 500;
-          color: #323233;
+          color: var(--color-text);
           display: -webkit-box;
           -webkit-line-clamp: 2;
           line-clamp: 2;
@@ -203,7 +202,7 @@ const handleSubmit = () => {
 
         .cart-item-price {
           font-size: 14px;
-          color: #00cec9;
+          color: var(--color-primary);
           font-weight: 600;
         }
       }
@@ -235,13 +234,13 @@ const handleSubmit = () => {
 
       .total-label {
         font-size: 16px;
-        color: #323233;
+        color: var(--color-text);
         font-weight: 500;
       }
 
       .total-price {
         font-size: 24px;
-        color: #00cec9;
+        color: var(--color-primary);
         font-weight: 700;
       }
     }

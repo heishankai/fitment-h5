@@ -186,7 +186,7 @@ main {
       right: 4px;
       width: 24px;
       height: 24px;
-      background: #00cec9;
+      background: var(--color-primary);
       border-radius: 50%;
       display: flex;
       align-items: center;

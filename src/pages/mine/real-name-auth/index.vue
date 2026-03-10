@@ -1,29 +1,42 @@
 <template>
   <van-form class="page" @submit="onSubmit" :readonly="cardInfo?.isVerified">
-    <custom-van-navbar />
     <main class="work-kind-info fade-in-up">
       <div class="form-section">
         <h3 class="section-title">上传证件照片</h3>
         <div class="upload-group">
-          <div class="upload-item">
+          <div class="upload-item" @click="handleChooseFrontImage">
             <div class="upload-label">身份证正面</div>
-            <van-uploader
-              v-model="cardInfo.card_front_image"
-              :max-count="1"
-              :after-read="handleFrontImageSelect"
-              accept="image/*"
-              :deletable="!cardInfo?.isVerified"
-            />
+            <div v-if="cardInfo.card_front_image?.[0]?.url" class="image-preview">
+              <img :src="cardInfo.card_front_image[0].url" alt="身份证正面" />
+              <div
+                v-if="!cardInfo?.isVerified"
+                class="delete-btn"
+                @click.stop="handleDeleteFrontImage"
+              >
+                <van-icon name="cross" />
+              </div>
+            </div>
+            <div v-else class="upload-placeholder">
+              <van-icon name="photograph" size="24" />
+              <span>点击上传</span>
+            </div>
           </div>
-          <div class="upload-item">
+          <div class="upload-item" @click="handleChooseReverseImage">
             <div class="upload-label">身份证反面</div>
-            <van-uploader
-              v-model="cardInfo.card_reverse_image"
-              :max-count="1"
-              :after-read="handleReverseImageSelect"
-              accept="image/*"
-              :deletable="!cardInfo?.isVerified"
-            />
+            <div v-if="cardInfo.card_reverse_image?.[0]?.url" class="image-preview">
+              <img :src="cardInfo.card_reverse_image[0].url" alt="身份证反面" />
+              <div
+                v-if="!cardInfo?.isVerified"
+                class="delete-btn"
+                @click.stop="handleDeleteReverseImage"
+              >
+                <van-icon name="cross" />
+              </div>
+            </div>
+            <div v-else class="upload-placeholder">
+              <van-icon name="photograph" size="24" />
+              <span>点击上传</span>
+            </div>
           </div>
         </div>
       </div>
@@ -33,45 +46,37 @@
         <van-field
           v-model="cardInfo.card_name"
           name="card_name"
-          label="证件名称"
+          label="名称"
           placeholder="请填写证件名称"
-          :rules="[{ required: true, message: '请填写证件名称' }]"
+          :rules="[{ required: true, message: '请填写名称' }]"
         />
         <van-field
           v-model="cardInfo.card_number"
           name="card_number"
-          label="证件号码"
+          label="号码"
           placeholder="请填写证件号码"
-          :rules="[{ required: true, message: '请填写证件号码' }]"
+          maxlength="18"
+          :rules="[
+            { required: true, message: '请填写号码' },
+            {
+              validator: (v) => (v?.length ?? 0) >= 15 && (v?.length ?? 0) <= 18,
+              message: '证件号码长度为15-18位'
+            }
+          ]"
         />
         <van-field
           v-model="cardInfo.card_address"
           name="card_address"
-          label="证件住址"
+          label="住址"
           placeholder="请填写证件住址"
-          :rules="[{ required: true, message: '请填写证件住址' }]"
-        />
-      </div>
-
-      <div class="form-section">
-        <h3 class="section-title">有效期</h3>
-        <van-field
-          v-model="cardInfo.card_start_date"
-          :is-link="!cardInfo?.isVerified"
-          readonly
-          name="card_start_date"
-          label="开始日期"
-          placeholder="点击选择时间"
-          @click="!cardInfo?.isVerified && (showStartPicker = true)"
+          :rules="[{ required: true, message: '请填写住址' }]"
         />
         <van-field
-          v-model="cardInfo.card_end_date"
-          :is-link="!cardInfo?.isVerified"
-          readonly
-          name="card_end_date"
-          label="结束日期"
-          placeholder="点击选择时间"
-          @click="!cardInfo?.isVerified && (showEndDatePicker = true)"
+          v-model="cardInfo.period_of_validity"
+          name="period_of_validity"
+          label="有效期"
+          placeholder="请填写有效期"
+          :rules="[{ required: true, message: '请填写有效期' }]"
         />
       </div>
     </main>
@@ -80,19 +85,11 @@
         提交认证
       </van-button>
     </footer>
-    <van-popup v-model:show="showStartPicker" destroy-on-close position="bottom">
-      <van-date-picker @confirm="onConfirmStartPicker" @cancel="showStartPicker = false" />
-    </van-popup>
-    <van-popup v-model:show="showEndDatePicker" destroy-on-close position="bottom">
-      <van-date-picker @confirm="onConfirmEndPicker" @cancel="showEndDatePicker = false" />
-    </van-popup>
   </van-form>
 </template>
 
 <script setup>
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
-
-import { uploadImage } from '@/service'
+import { getToken, waitForFitmentFlutter } from '@/utils'
 import { showToast } from 'vant'
 import { isVerifiedService, getIsVerifiedService } from './service'
 
@@ -107,35 +104,126 @@ const cardInfo = ref({
   card_number: '',
   // 证件住址
   card_address: '',
-  // 证件有效期开始日期
-  card_start_date: '',
-  // 证件有效期结束日期
-  card_end_date: ''
+  // 有效期
+  period_of_validity: ''
 })
 
-const showStartPicker = ref(false)
-const showEndDatePicker = ref(false)
+/**
+ * 选择并上传身份证正面（使用 Flutter 原生方法）
+ */
+const handleChooseFrontImage = async () => {
+  if (cardInfo.value?.isVerified) return
 
-const onConfirmStartPicker = ({ selectedValues }) => {
-  cardInfo.value.card_start_date = selectedValues.join('-')
-  showStartPicker.value = false
+  const bridge = await waitForFitmentFlutter()
+  if (!bridge) {
+    showToast('请在 App 中使用此功能')
+    return
+  }
+
+  try {
+    // 使用 Flutter 原生方法选择图片并自动上传
+    const res = await bridge.chooseImage({
+      count: 1,
+      upload: {
+        url: '/upload',
+        name: 'file',
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        formData: {
+          biz: 'id_card_front'
+        }
+      }
+    })
+
+    if (!res || !res.tempFiles || res.tempFiles.length === 0) {
+      return
+    }
+
+    const fileInfo = res.tempFiles[0]
+
+    if (fileInfo.error) {
+      showToast(fileInfo.error || '上传失败，请重试')
+      return
+    }
+
+    if (fileInfo.url) {
+      cardInfo.value.card_front_image = [{ url: fileInfo.url }]
+      showToast('上传成功')
+    } else {
+      showToast('上传失败：未返回图片URL')
+    }
+  } catch (error) {
+    console.error('选择或上传图片失败:', error)
+    showToast('操作失败，请重试')
+  }
 }
 
-const onConfirmEndPicker = ({ selectedValues }) => {
-  cardInfo.value.card_end_date = selectedValues.join('-')
-  showEndDatePicker.value = false
+/**
+ * 选择并上传身份证反面（使用 Flutter 原生方法）
+ */
+const handleChooseReverseImage = async () => {
+  if (cardInfo.value?.isVerified) return
+
+  const bridge = await waitForFitmentFlutter()
+  if (!bridge) {
+    showToast('请在 App 中使用此功能')
+    return
+  }
+
+  try {
+    // 使用 Flutter 原生方法选择图片并自动上传
+    const res = await bridge.chooseImage({
+      count: 1,
+      upload: {
+        url: '/upload',
+        name: 'file',
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        formData: {
+          biz: 'id_card_reverse'
+        }
+      }
+    })
+
+    if (!res || !res.tempFiles || res.tempFiles.length === 0) {
+      return
+    }
+
+    const fileInfo = res.tempFiles[0]
+
+    if (fileInfo.error) {
+      showToast(fileInfo.error || '上传失败，请重试')
+      return
+    }
+
+    if (fileInfo.url) {
+      cardInfo.value.card_reverse_image = [{ url: fileInfo.url }]
+      showToast('上传成功')
+    } else {
+      showToast('上传失败：未返回图片URL')
+    }
+  } catch (error) {
+    console.error('选择或上传图片失败:', error)
+    showToast('操作失败，请重试')
+  }
 }
 
-const handleFrontImageSelect = async (file) => {
-  const { success, data } = await uploadImage(file.file)
-  if (!success) return
-  cardInfo.value.card_front_image = [{ url: data.url }]
+/**
+ * 删除身份证正面
+ */
+const handleDeleteFrontImage = () => {
+  if (cardInfo.value?.isVerified) return
+  cardInfo.value.card_front_image = []
 }
 
-const handleReverseImageSelect = async (file) => {
-  const { success, data } = await uploadImage(file.file)
-  if (!success) return
-  cardInfo.value.card_reverse_image = [{ url: data.url }]
+/**
+ * 删除身份证反面
+ */
+const handleDeleteReverseImage = () => {
+  if (cardInfo.value?.isVerified) return
+  cardInfo.value.card_reverse_image = []
 }
 
 // 提交认证
@@ -229,51 +317,70 @@ main {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: pointer;
+  min-height: 120px;
 
-  :deep(.van-uploader) {
-    width: 100%;
-  }
-
-  :deep(.van-uploader__upload) {
+  .image-preview {
     width: 100%;
     height: 120px;
-    margin: 0;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 30px;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+
+      .van-icon {
+        color: #fff;
+        font-size: 18px;
+      }
+    }
+  }
+
+  .upload-placeholder {
+    width: 100%;
+    height: 120px;
     background: #f7f8fa;
     border: 1px dashed #dcdee0;
     border-radius: 8px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     transition: all 0.3s;
+    color: var(--color-text-secondary);
 
     &:active {
       background: #f2f3f5;
       border-color: var(--van-primary-color);
     }
-  }
 
-  :deep(.van-uploader__preview) {
-    width: 100%;
-    height: 120px;
-    margin: 0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  :deep(.van-uploader__preview-image) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  :deep(.van-uploader__preview-delete) {
-    background: rgba(0, 0, 0, 0.5);
+    span {
+      font-size: 14px;
+    }
   }
 }
 
 .upload-label {
   font-size: 13px;
-  color: #646566;
+  color: var(--color-text-placeholder);
   font-weight: 500;
 }
 

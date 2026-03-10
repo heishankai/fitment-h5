@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <custom-van-navbar :title="wechatUserName || '微信用户'" />
+    <!-- <custom-van-navbar :title="wechatUserName || '微信用户'" /> -->
     <main ref="messagesRef">
       <template v-if="messages.length">
         <ChatMessage
@@ -49,13 +49,13 @@
 <script lang="ts" setup>
 import { useChat } from './useChat'
 import ChatMessage from '../../admin-service/craftsman-msg/components/chat-message.vue'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
+// import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const roomId = Number(route.params.id)
 const wechatUserId = Number(route.query.wechatUserId)
-const wechatUserName = (route.query.wechatUserName as string) || '微信用户'
+// const wechatUserName = (route.query.wechatUserName as string) || '微信用户'
 
 const {
   messages,

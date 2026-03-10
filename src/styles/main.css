@@ -1,8 +1,45 @@
-/* 修改vant主题色 */
+/**
+ * 智惠装 · 空间美学版主题变量
+ * 参考 fitment-mini-program uni.scss
+ * 主色：#2D635E | 风格：克制 / 空间感 / 高级 / 设计品牌
+ */
+
+/* 修改vant主题色 + 智惠装设计系统 */
 :root:root {
-  --van-primary-color: #00cec9;
-  --color-background: #ededed;
-  --van-back-top-background: rgba(49, 48, 48, 0.5);
+  /* 行为相关颜色 */
+  --color-primary: #2d635e;
+  --color-primary-light: #3d7a6e;
+  --color-success: #4f7a67;
+  --color-warning: #c89a57;
+  --color-error: #c46b6b;
+
+  /* 文字颜色 */
+  --color-text: #1e2222;
+  --color-text-secondary: #6e7373;
+  --color-text-placeholder: #a8adad;
+  --color-text-disabled: #c5c9c9;
+  --color-text-inverse: #ffffff;
+
+  /* 背景颜色 */
+  --color-background: #f3f6f5;
+  --color-bg: #ffffff;
+  --color-bg-hover: #e7efec;
+  --color-mask: rgba(0, 0, 0, 0.35);
+
+  /* 边框 */
+  --color-border: #e6eaea;
+
+  /* 渐变/透明度辅助 */
+  --color-primary-rgb: 45, 99, 94;
+  --color-warning-rgb: 200, 154, 87;
+  --color-success-rgb: 79, 122, 103;
+  --color-warning-light: #d4a96a;
+  --color-success-light: #6b8f7a;
+  --color-error-light: #d48686;
+
+  /* Vant 覆盖 */
+  --van-primary-color: #2d635e;
+  --van-back-top-background: rgba(45, 99, 94, 0.5);
 }
 
 *,

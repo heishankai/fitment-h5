@@ -25,7 +25,7 @@ const goBack = () => router.back()
 
 <style scoped lang="less">
 .go-back {
-  background: #00cec9;
+  background: var(--color-primary);
 }
 
 .back-icon {

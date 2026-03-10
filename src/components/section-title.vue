@@ -19,7 +19,7 @@ defineProps<{
   .section-bar {
     width: 4px;
     height: 20px;
-    background: #00cec9;
+    background: var(--color-primary);
     border-radius: 2px;
     margin-right: 8px;
   }
@@ -27,7 +27,7 @@ defineProps<{
   span {
     font-size: 18px;
     font-weight: 600;
-    color: #00cec9;
+    color: var(--color-primary);
   }
 }
 </style>

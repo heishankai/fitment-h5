@@ -67,14 +67,14 @@
             </div>
 
             <!-- 操作按钮 -->
-            <div class="order-actions">
+            <div class="order-actions" @click.stop>
               <van-button
                 v-if="order.order_status === 1"
                 type="primary"
                 size="normal"
                 round
                 block
-                @click.stop="handleAcceptOrder(order.id)"
+                @click="handleAcceptOrder(order.id)"
                 :loading="acceptingOrderId === order.id"
                 class="action-btn primary-btn"
               >
@@ -104,7 +104,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useOrder } from './useOrder'
 import OrderPopup from './components/OrderPopup.vue'
 import HeaderContent from './components/HeaderContent.vue'
-import { getCurrentPosition, isWebView, formatTime } from '@/utils/index'
+import { getCurrentPosition, isWebView, formatTime, isFlutterWebView } from '@/utils/index'
 import { getStatusType, loadLocationFromLocal } from './utils'
 
 const router = useRouter()
@@ -139,6 +139,15 @@ const handleAcceptOrder = async (orderId: number) => {
     // 只有接单成功后才关闭弹窗并跳转
     showOrderPopup.value = false
     currentOrder.value = null
+
+    // Flutter WebView 中：用 openWebView 打开新页面
+    if (isFlutterWebView() && (window as any).fitment_flutter?.openWebView) {
+      ;(window as any).fitment_flutter.openWebView(
+        `/fitment-h5/mine/my-construction?flutter_back=1`,
+        '我的工地订单'
+      )
+      return
+    }
     router.push('/mine/my-construction')
   } catch (error: any) {
     // 如果是用户取消，不显示错误提示
@@ -199,7 +208,17 @@ const handleOpenMapPicker = async () => {
     }
   }
 
-  // 跳转到地图选择页面，传递初始位置
+  // Flutter WebView 中：用 openWebView 打开新页面
+  if (isFlutterWebView() && (window as any).fitment_flutter?.openWebView) {
+    let path = '/fitment-h5/home/map-picker'
+    if (initialLocation) {
+      path += `?latitude=${initialLocation.latitude}&longitude=${initialLocation.longitude}`
+    }
+    ;(window as any).fitment_flutter.openWebView(path, '选择位置')
+    return
+  }
+
+  // H5 内路由跳转
   const query: any = {}
   if (initialLocation) {
     query.latitude = initialLocation.latitude.toString()
@@ -211,10 +230,14 @@ const handleOpenMapPicker = async () => {
   })
 }
 
+// 每次进入页面都加载位置信息
+const loadLocationOnEnter = () => {
+  loadLocationFromStorage()
+}
+
 // 设置新订单弹窗回调
 onMounted(() => {
-  // 进入页面时从本地存储加载位置信息，不自动获取位置
-  loadLocationFromStorage()
+  loadLocationOnEnter()
 
   setOnNewOrderPopup((order: any, distance: number) => {
     currentOrder.value = order
@@ -230,9 +253,9 @@ onMounted(() => {
   })
 })
 
-// 页面激活时重新加载位置信息（如果使用了 keep-alive）
+// 每次进入页面都加载位置信息（onMounted 或 onActivated 时）
 onActivated(() => {
-  loadLocationFromStorage()
+  loadLocationOnEnter()
 })
 
 // 监听路由变化，当从详情页返回时刷新列表
@@ -246,21 +269,12 @@ watch(
   }
 )
 
-// 监听路由变化，当从地图选择页返回时重新加载位置信息
-let previousPath = route.path
-watch(
-  () => route.path,
-  (newPath) => {
-    // 如果从地图选择页返回首页，重新加载位置信息
-    if (previousPath === '/home/map-picker' && newPath === '/home') {
-      loadLocationFromStorage()
-    }
-    previousPath = newPath
-  },
-  { immediate: true }
-)
-
 const goToOrderDetail = (orderId: number) => {
+  // Flutter WebView 中：用 openWebView 打开新页面
+  if (isFlutterWebView() && (window as any).fitment_flutter?.openWebView) {
+    ;(window as any).fitment_flutter.openWebView(`/fitment-h5/home/order/${orderId}`, '订单详情')
+    return
+  }
   router.push(`/home/order/${orderId}`)
 }
 
@@ -290,7 +304,7 @@ const onRefresh = async () => {
 }
 
 header {
-  background: #00cec9;
+  background: var(--color-primary);
   padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px;
   color: #fff;
 }
@@ -323,7 +337,7 @@ main {
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: #00cec9;
+    border-color: var(--color-primary);
   }
 
   &:active {
@@ -332,8 +346,8 @@ main {
   }
 
   &.new-order {
-    border-color: #ff9800;
-    box-shadow: 0 2px 12px rgba(255, 152, 0, 0.2);
+    border-color: var(--color-warning);
+    box-shadow: 0 2px 12px rgba(var(--color-warning-rgb), 0.2);
     animation: pulse 2s infinite;
   }
 
@@ -350,7 +364,11 @@ main {
       .work-kind-icon {
         width: 28px;
         height: 28px;
-        background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          var(--color-primary-light) 100%
+        );
         border-radius: 6px;
         display: flex;
         align-items: center;
@@ -359,7 +377,7 @@ main {
         transition:
           transform 0.3s ease,
           box-shadow 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 206, 201, 0.25);
+        box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.25);
         position: relative;
         overflow: hidden;
 
@@ -397,7 +415,7 @@ main {
           .order-title {
             font-size: 14px;
             font-weight: 600;
-            color: #323233;
+            color: var(--color-text);
             line-height: 1.3;
             flex: 1;
             min-width: 0;
@@ -413,14 +431,14 @@ main {
 
         .order-time {
           font-size: 10px;
-          color: #969799;
+          color: var(--color-text-secondary);
         }
       }
     }
 
     &:hover .work-kind-icon {
       transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0, 206, 201, 0.35);
+      box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.35);
 
       .van-icon {
         transform: rotate(5deg);
@@ -439,7 +457,7 @@ main {
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: #646566;
+      color: var(--color-text-placeholder);
       line-height: 1.4;
       transition:
         transform 0.2s ease,
@@ -447,11 +465,11 @@ main {
 
       &:hover {
         transform: translateX(2px);
-        color: #323233;
+        color: var(--color-text);
       }
 
       .info-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 14px;
         flex-shrink: 0;
         transition:
@@ -461,7 +479,7 @@ main {
 
       &:hover .info-icon {
         transform: scale(1.2) rotate(5deg);
-        color: #00b4d8;
+        color: var(--color-primary-light);
       }
 
       .info-text {
@@ -476,37 +494,24 @@ main {
   .order-actions {
     padding-top: 8px;
     border-top: 1px solid #f5f5f5;
+    position: relative;
+    z-index: 2;
 
     .primary-btn {
       height: 32px;
       font-size: 13px;
       font-weight: 600;
-      background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
       border: none;
-      box-shadow: 0 2px 6px rgba(0, 206, 201, 0.25);
+      box-shadow: 0 2px 6px rgba(var(--color-primary-rgb), 0.25);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
       .van-icon {
         font-size: 13px;
         transition: transform 0.3s ease;
-      }
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 206, 201, 0.35);
-      }
-
-      &:active {
-        transform: scale(0.96);
-        box-shadow: 0 1px 4px rgba(0, 206, 201, 0.3);
-      }
-
-      &:active .van-icon {
-        transform: scale(1.1);
       }
     }
   }
@@ -515,10 +520,11 @@ main {
 @keyframes pulse {
   0%,
   100% {
-    box-shadow: 0 4px 20px rgba(0, 206, 201, 0.25);
+    box-shadow: 0 4px 20px rgba(var(--color-primary-rgb), 0.25);
   }
+
   50% {
-    box-shadow: 0 6px 28px rgba(0, 206, 201, 0.4);
+    box-shadow: 0 6px 28px rgba(var(--color-primary-rgb), 0.4);
   }
 }
 
@@ -527,6 +533,7 @@ main {
   100% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-4px) scale(1.1);
   }
@@ -537,6 +544,7 @@ main {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -547,6 +555,7 @@ main {
   0% {
     transform: translate(-50%, -50%) rotate(0deg);
   }
+
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }

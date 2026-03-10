@@ -1,7 +1,7 @@
 <template>
   <div class="search-header">
     <div class="search-bar" @click="handleClick">
-      <van-icon name="search" color="#00cec9" size="18" />
+      <van-icon name="search" color="#2d635e" size="18" />
       <div class="search-placeholder">{{ placeholder }}</div>
     </div>
   </div>
@@ -59,18 +59,18 @@ const handleClick = () => {
     padding: 12px 16px;
     gap: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 206, 201, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     transition: all 0.3s ease;
     cursor: pointer;
 
     &:active {
       transform: scale(0.98);
-      box-shadow: 0 4px 16px rgba(0, 206, 201, 0.15);
-      border-color: rgba(0, 206, 201, 0.4);
+      box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.15);
+      border-color: rgba(var(--color-primary-rgb), 0.4);
     }
 
     .search-placeholder {
-      color: #999;
+      color: var(--color-text-placeholder);
       font-size: 15px;
       font-weight: 400;
     }

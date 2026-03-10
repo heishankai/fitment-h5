@@ -213,7 +213,7 @@ main {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #07c160;
+  background: var(--color-success);
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -221,14 +221,14 @@ main {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #323233;
+  color: var(--color-text);
   margin-bottom: 6px;
   line-height: 1.4;
 }
 
 .card-phone {
   font-size: 13px;
-  color: #969799;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
   gap: 4px;

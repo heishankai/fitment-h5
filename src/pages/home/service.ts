@@ -50,6 +50,14 @@ export const getOrderDetail = (orderId: number): Promise<BasicResp<any>> => {
   })
 }
 
+// 获取用户信息
+export const getCraftsmanUser = (): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/craftsman-user`,
+    method: 'GET'
+  })
+}
+
 // 更新用户信息
 export const updateCraftsmanUser = (params: any): Promise<BasicResp<any>> => {
   return Request({

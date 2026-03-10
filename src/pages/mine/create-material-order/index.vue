@@ -1,6 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
     <!-- 搜索栏 -->
     <SearchBar class="fade-in-up" />
     <main>
@@ -76,7 +75,6 @@
 </template>
 
 <script lang="ts" setup>
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import SearchBar from './components/search-bar.vue'
 import CartPopup from './components/cart-popup.vue'
 import {
@@ -286,11 +284,11 @@ footer {
     transition: all 0.3s ease;
 
     &:hover {
-      background: rgba(0, 206, 201, 0.05);
+      background: rgba(var(--color-primary-rgb), 0.05);
     }
 
     &--active {
-      background: rgba(0, 206, 201, 0.1);
+      background: rgba(var(--color-primary-rgb), 0.1);
     }
   }
 }
@@ -375,7 +373,7 @@ footer {
   :deep(.van-card__title) {
     font-size: 16px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     line-height: 1.4;
     margin-bottom: 8px;
     display: -webkit-box;
@@ -388,7 +386,7 @@ footer {
 
   :deep(.van-card__desc) {
     font-size: 13px;
-    color: #646566;
+    color: var(--color-text-placeholder);
     line-height: 1.5;
     margin-bottom: 12px;
     display: -webkit-box;
@@ -409,9 +407,13 @@ footer {
       font-size: 11px;
       padding: 2px 8px;
       border-radius: 4px;
-      background: linear-gradient(135deg, rgba(0, 206, 201, 0.1) 0%, rgba(0, 180, 216, 0.1) 100%);
-      border-color: rgba(0, 206, 201, 0.3);
-      color: #00cec9;
+      background: linear-gradient(
+        135deg,
+        rgba(var(--color-primary-rgb), 0.1) 0%,
+        rgba(0, 180, 216, 0.1) 100%
+      );
+      border-color: rgba(var(--color-primary-rgb), 0.3);
+      color: var(--color-primary);
     }
   }
 
@@ -428,12 +430,12 @@ footer {
   .product-price {
     font-size: 20px;
     font-weight: 700;
-    color: #00cec9;
+    color: var(--color-primary);
   }
 
   .product-unit {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     font-weight: 400;
   }
 
@@ -447,18 +449,18 @@ footer {
 
   .add-btn {
     width: 100%;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
     border-radius: 20px;
     padding: 16px 16px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
     transition: all 0.3s ease;
 
     &:active {
       transform: scale(0.95);
-      box-shadow: 0 1px 4px rgba(0, 206, 201, 0.4);
+      box-shadow: 0 1px 4px rgba(var(--color-primary-rgb), 0.4);
     }
   }
 }

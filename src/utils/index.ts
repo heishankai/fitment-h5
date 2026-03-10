@@ -488,6 +488,33 @@ export const updateMiniProgramTitle = (title: string): void => {
 }
 
 /**
+ * 等待 fitment_flutter 可用（处理真机注入延迟）
+ * @param maxWait 最大等待时间（毫秒）
+ * @returns 可用时返回 fitment_flutter，否则返回 null
+ */
+export const waitForFitmentFlutter = (maxWait = 500): Promise<any> => {
+  return new Promise((resolve) => {
+    if ((window as any).fitment_flutter) {
+      resolve((window as any).fitment_flutter)
+      return
+    }
+    const start = Date.now()
+    const check = () => {
+      if ((window as any).fitment_flutter) {
+        resolve((window as any).fitment_flutter)
+        return
+      }
+      if (Date.now() - start >= maxWait) {
+        resolve(null)
+        return
+      }
+      setTimeout(check, 50)
+    }
+    setTimeout(check, 100)
+  })
+}
+
+/**
  * 检测是否在 Flutter WebView 环境中
  */
 export const isFlutterWebView = (): boolean => {

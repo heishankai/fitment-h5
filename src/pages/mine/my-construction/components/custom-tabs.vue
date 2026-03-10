@@ -117,7 +117,7 @@ const onRefresh = () => {
 
       .tab-title {
         font-size: 15px;
-        color: #969799;
+        color: var(--color-text-secondary);
         font-weight: 500;
         transition: color 0.3s ease;
       }
@@ -129,14 +129,18 @@ const onRefresh = () => {
         transform: translateX(-50%);
         width: 24px;
         height: 3px;
-        background: linear-gradient(90deg, #00cec9 0%, #00b4d8 100%);
+        background: linear-gradient(
+          90deg,
+          var(--color-primary) 0%,
+          var(--color-primary-light) 100%
+        );
         border-radius: 1.5px;
         animation: slideIn 0.3s ease;
       }
 
       &.active {
         .tab-title {
-          color: #323233;
+          color: var(--color-text);
           font-weight: 600;
         }
       }

@@ -171,7 +171,7 @@ main {
     justify-content: center;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
     object-fit: cover;
   }
 
@@ -190,7 +190,7 @@ main {
 
   .card-content {
     font-size: 14px;
-    color: #646566;
+    color: var(--color-text-placeholder);
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -203,14 +203,14 @@ main {
   .card-title {
     font-size: 16px;
     font-weight: 600;
-    color: #323233;
+    color: var(--color-text);
     margin-bottom: 4px;
     line-height: 1.4;
   }
 
   .card-time {
     font-size: 12px;
-    color: #969799;
+    color: var(--color-text-secondary);
     display: flex;
     align-items: center;
     gap: 4px;

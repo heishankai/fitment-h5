@@ -144,7 +144,7 @@ header {
 
   &.system-icon {
     background: #f0f4ff;
-    color: #1989fa;
+    color: var(--color-primary);
   }
 
   &.service-icon {
@@ -154,7 +154,7 @@ header {
 
   &.announcement-icon {
     background: #f0f9ff;
-    color: #00b4d8;
+    color: var(--color-primary-light);
   }
 }
 
@@ -165,7 +165,7 @@ header {
 .quick-title {
   font-size: 12px;
   font-weight: 500;
-  color: #323233;
+  color: var(--color-text);
   text-align: center;
   line-height: 1.4;
 }

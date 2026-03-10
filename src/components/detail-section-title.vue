@@ -21,7 +21,7 @@ defineProps<{
   gap: 10px;
   font-size: 16px;
   font-weight: 700;
-  color: #323233;
+  color: var(--color-text);
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 2px solid #f0f0f0;
@@ -29,7 +29,7 @@ defineProps<{
   .title-icon-wrapper {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;

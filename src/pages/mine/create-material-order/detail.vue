@@ -1,12 +1,14 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
-
     <main v-if="productDetail">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 商品轮播图 -->
         <div class="product-carousel fade-in-up">
-          <van-swipe :autoplay="3000" :show-indicators="true" indicator-color="#00cec9">
+          <van-swipe
+            :autoplay="3000"
+            :show-indicators="true"
+            indicator-color="var(--color-primary)"
+          >
             <van-swipe-item
               v-for="(image, index) in productDetail?.commodity_images || []"
               :key="index"
@@ -41,7 +43,7 @@
           <!-- 服务保障 -->
           <div class="card fade-in-up shine-effect" :style="{ animationDelay: '0.4s' }">
             <div class="card-header">
-              <van-icon name="shield-o" color="#00cec9" size="20" />
+              <van-icon name="shield-o" color="var(--color-primary)" size="20" />
               <div class="card-title">服务保障</div>
             </div>
             <div class="card-content">
@@ -54,7 +56,7 @@
           <!-- 商品描述 -->
           <div class="card fade-in-up shine-effect" :style="{ animationDelay: '0.5s' }">
             <div class="card-header">
-              <van-icon name="description" color="#00cec9" size="20" />
+              <van-icon name="description" color="var(--color-primary)" size="20" />
               <div class="card-title">商品描述</div>
             </div>
             <div class="card-content">
@@ -70,7 +72,7 @@
               class="detail-item fade-in-up"
               v-for="(item, index) in productDetail?.commodity_details || []"
               :key="index"
-              :style="{ animationDelay: `${0.7 + index * 0.1}s` }"
+              :style="{ animationDelay: `${0.7 + Number(index) * 0.1}s` }"
             >
               <SectionTitle v-if="item.title" :title="item.title" />
               <img
@@ -96,7 +98,6 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { showImagePreview } from 'vant'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import SectionTitle from '@/components/section-title.vue'
 import { getCommodityDetailService } from './service'
 
@@ -122,7 +123,7 @@ const onRefresh = async () => {
 }
 
 // 查看轮播图图片
-const handlePreviewCarouselImage = (index: number): void => {
+const handlePreviewCarouselImage = (index: any): void => {
   const images = productDetail.value?.commodity_images || []
   showImagePreview({
     images,
@@ -201,7 +202,7 @@ main {
 
 .category-tag {
   width: fit-content;
-  background: linear-gradient(135deg, #00cec9, #00b4d8);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
   color: #fff;
   padding: 6px 24px;
   border-radius: 20px;
@@ -210,11 +211,11 @@ main {
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 206, 201, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
   }
 }
 
@@ -235,7 +236,7 @@ main {
   .product-price-value {
     font-size: 24px;
     font-weight: 600;
-    color: #00cec9;
+    color: var(--color-primary);
     transition: transform 0.3s ease;
   }
 

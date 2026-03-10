@@ -1,6 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
     <main>
       <div class="tree-select-wrapper">
         <van-tree-select
@@ -63,7 +62,7 @@
                   </div>
                 </div>
 
-                <div class="price-card-footer">
+                <div class="price-card-footer" @click.stop>
                   <van-button
                     size="small"
                     type="primary"
@@ -89,7 +88,7 @@
         size="normal"
         round
         class="action-btn"
-        @click="showCartList = true"
+        @click="openCartPopup"
       >
         查看清单
         <van-badge v-if="cartTotalCount > 0" :content="cartTotalCount" />
@@ -110,7 +109,6 @@
 
 <script lang="ts" setup>
 import { useRouter, useRoute } from 'vue-router'
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import PriceCartPopup from './components/price-cart-popup.vue'
 import {
   getWorkKindListService,
@@ -145,6 +143,11 @@ const {
   removeCartItem,
   clearCart
 } = usePriceCart(orderId)
+
+// 打开清单弹窗
+const openCartPopup = () => {
+  showCartList.value = true
+}
 
 // 加入清单
 const handleAddToCart = (price: any) => {
@@ -247,7 +250,7 @@ const getWorkKindList = async () => {
 
   workKinds.value = filteredData.map((item: any) => ({
     text: item.work_kind_name,
-    value: item.id
+    value: item.work_kind_code
   }))
 
   // 默认选中第一个
@@ -312,13 +315,13 @@ main {
 
 footer {
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
   padding: 12px 16px;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.5s ease-out both;
-  animation-delay: 0.3s;
 
   display: flex;
   gap: 10px;
@@ -351,17 +354,6 @@ footer {
   }
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 ::v-deep(.van-tree-select) {
   flex: 1;
   display: flex;
@@ -384,11 +376,11 @@ footer {
     transition: all 0.3s ease;
 
     &:hover {
-      background: rgba(0, 206, 201, 0.05);
+      background: rgba(var(--color-primary-rgb), 0.05);
     }
 
     &--active {
-      background: rgba(0, 206, 201, 0.1);
+      background: rgba(var(--color-primary-rgb), 0.1);
     }
   }
 }
@@ -450,13 +442,17 @@ footer {
       .work-kind-icon {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+        background: linear-gradient(
+          135deg,
+          var(--color-primary) 0%,
+          var(--color-primary-light) 100%
+        );
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0, 206, 201, 0.25);
+        box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.25);
 
         .van-icon {
           color: #fff;
@@ -471,19 +467,14 @@ footer {
         .price-title {
           font-size: 16px;
           font-weight: 600;
-          color: #323233;
+          color: var(--color-text);
           line-height: 1.4;
           margin-bottom: 4px;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
         }
 
         .work-kind-name {
           font-size: 12px;
-          color: #969799;
+          color: var(--color-text-secondary);
         }
       }
     }
@@ -500,28 +491,28 @@ footer {
       align-items: center;
       gap: 6px;
       font-size: 13px;
-      color: #646566;
+      color: var(--color-text-placeholder);
       line-height: 1.4;
 
       .info-icon {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 14px;
         flex-shrink: 0;
       }
 
       .info-label {
-        color: #646566;
+        color: var(--color-text-placeholder);
       }
 
       .price-value {
         font-size: 18px;
         font-weight: 700;
-        color: #00cec9;
+        color: var(--color-primary);
       }
 
       .price-unit {
         font-size: 12px;
-        color: #969799;
+        color: var(--color-text-secondary);
       }
 
       .info-text {
@@ -544,21 +535,29 @@ footer {
     justify-content: flex-end;
     flex-shrink: 0;
     margin-top: auto;
+    /* 防止真机上触摸被滚动容器拦截 */
+    touch-action: manipulation;
 
     .add-btn {
       width: 100%;
-      background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+      min-height: 44px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
       border: none;
       border-radius: 20px;
       padding: 6px 16px;
       font-size: 12px;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0, 206, 201, 0.3);
+      box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
       transition: all 0.3s ease;
+      /* 真机触摸优化：避免被父级滚动容器拦截点击 */
+      touch-action: manipulation;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
 
       &:active {
         transform: scale(0.95);
-        box-shadow: 0 1px 4px rgba(0, 206, 201, 0.4);
+        box-shadow: 0 1px 4px rgba(var(--color-primary-rgb), 0.4);
       }
     }
   }

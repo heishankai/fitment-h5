@@ -1,6 +1,5 @@
 <template>
   <div class="page-container">
-    <custom-van-navbar />
     <main>
       <custom-tabs
         :tabs="tabsList"
@@ -17,12 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import { getCraftsmanAcceptedOrdersService } from './service'
 import OrderListContent from './components/order-list-content.vue'
 import CustomTabs from './components/custom-tabs.vue'
 
-const orders = ref<any[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+const orders = ref<any[]>([])
 const loading = ref(true)
 const refreshing = ref(false)
 const activeTab = ref('accepted')

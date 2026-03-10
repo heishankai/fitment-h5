@@ -18,3 +18,11 @@ export const getIsSkillVerifiedService = (): Promise<BasicResp<any>> => {
     method: 'GET'
   })
 }
+
+// 获取工种信息
+export const getWorkKindListService = (): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/work-kind`,
+    method: 'GET'
+  })
+}

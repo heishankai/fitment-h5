@@ -1,6 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { showToast, showConfirmDialog } from 'vant'
-import { getToken, showOrderNotification } from '@/utils/index'
+import { getToken, showOrderNotification, isFlutterWebView } from '@/utils/index'
 import { acceptOrder, getCraftsmanOrders } from './service'
 
 interface Order {
@@ -216,8 +216,12 @@ export function useOrder() {
           orders.value.unshift(order)
           newOrderCount.value++
 
-          // 显示通知和震动
-          showOrderNotification()
+          // 显示通知和震动（Flutter WebView 用原生能力，否则用 H5 方式）
+          if (isFlutterWebView() && (window as any).fitment_flutter?.onNewOrder) {
+            ;(window as any).fitment_flutter.onNewOrder(order)
+          } else {
+            showOrderNotification()
+          }
 
           // 触发弹窗显示事件（通过回调函数）
           if (onNewOrderPopup.value) {
@@ -240,8 +244,12 @@ export function useOrder() {
           orders.value.unshift(order)
           newOrderCount.value++
 
-          // 显示通知和震动
-          showOrderNotification()
+          // 显示通知和震动（Flutter WebView 用原生能力，否则用 H5 方式）
+          if (isFlutterWebView() && (window as any).fitment_flutter?.onNewOrder) {
+            ;(window as any).fitment_flutter.onNewOrder(order)
+          } else {
+            showOrderNotification()
+          }
         }
       }
     })

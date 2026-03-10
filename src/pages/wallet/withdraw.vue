@@ -43,9 +43,9 @@
           @click="goToBankCard"
         >
           <div class="bank-info-header">
-            <van-icon name="credit-pay" size="20" color="#00cec9" />
+            <van-icon name="credit-pay" size="20" color="var(--color-primary)" />
             <span class="bank-info-title">提现到</span>
-            <van-icon name="arrow" size="16" color="#999" />
+            <van-icon name="arrow" size="16" color="#a8adad" />
           </div>
           <div v-if="bankCardInfo?.card_number" class="bank-info-content">
             <div class="bank-name">{{ bankCardInfo?.bank_name }}</div>
@@ -58,7 +58,7 @@
 
         <!-- 提现说明 -->
         <div class="notice-section fade-in-up" :style="{ animationDelay: '0.3s' }">
-          <van-icon name="info-o" size="16" color="#999" />
+          <van-icon name="info-o" size="16" color="#a8adad" />
           <div class="notice-text">
             <div>• 每周发起一次提现，周五统一到账</div>
             <div>• 20000元以内提现有0.5%（千分之五），20000以上提现免手续费</div>
@@ -230,12 +230,12 @@ onMounted(() => {
 
 // 可提现金额卡片
 .amount-card {
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   border-radius: 16px;
   padding: 24px;
   color: #fff;
   margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 4px 20px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .amount-label {
@@ -304,8 +304,8 @@ onMounted(() => {
   font-size: 13px;
 
   &:active {
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
-    border-color: #00cec9;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    border-color: var(--color-primary);
     color: #fff;
   }
 }
@@ -387,9 +387,9 @@ onMounted(() => {
 
 .submit-btn {
   height: 48px;
-  background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   border: none;
-  box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
   font-weight: 600;
   font-size: 16px;
 

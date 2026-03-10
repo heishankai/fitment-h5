@@ -54,7 +54,7 @@
       :style="{ animationDelay: shouldAnimate ? '0.2s' : '0s' }"
     >
       <div class="location-card">
-        <van-loading size="16px" color="#00cec9" />
+        <van-loading size="16px" color="#2d635e" />
         <span class="loading-text">定位中...</span>
       </div>
     </div>
@@ -255,7 +255,7 @@ watch(
         flex-shrink: 0;
 
         .location-icon {
-          color: #00cec9;
+          color: var(--color-primary);
           font-size: 22px;
           position: relative;
           z-index: 1;
@@ -283,7 +283,7 @@ watch(
 
         .location-text {
           font-weight: 600;
-          color: #323233;
+          color: var(--color-text);
           font-size: 15px;
           line-height: 1.4;
           overflow: hidden;
@@ -295,7 +295,7 @@ watch(
         }
 
         .location-detail {
-          color: #969799;
+          color: var(--color-text-secondary);
           font-size: 12px;
           line-height: 1.4;
           overflow: hidden;
@@ -311,7 +311,7 @@ watch(
         flex-shrink: 0;
 
         .arrow-icon {
-          color: #969799;
+          color: var(--color-text-secondary);
           font-size: 16px;
         }
       }
@@ -335,7 +335,7 @@ watch(
 
       .loading-text {
         font-size: 14px;
-        color: #969799;
+        color: var(--color-text-secondary);
       }
     }
   }
@@ -367,13 +367,13 @@ watch(
       }
 
       .location-icon-empty {
-        color: #00cec9;
+        color: var(--color-primary);
         font-size: 20px;
       }
 
       .empty-text {
         font-size: 14px;
-        color: #646566;
+        color: var(--color-text-placeholder);
         font-weight: 500;
       }
     }

@@ -1,161 +1,68 @@
 <template>
   <van-popup
     v-model:show="visible"
-    position="top"
-    :style="{ height: 'auto', maxHeight: '85vh' }"
+    position="center"
     round
-    closeable
-    close-icon-position="top-right"
+    :closeable="false"
+    :style="{ width: '90%', maxWidth: '360px' }"
+    class="center-popup"
+    :close-on-click-overlay="true"
     @close="handleClose"
-    class="top-popup"
-    :close-on-click-overlay="false"
   >
-    <div class="order-popup">
-      <!-- 顶部装饰条 -->
-      <div class="popup-decoration">
-        <div class="decoration-dot"></div>
-        <div class="decoration-dot"></div>
-        <div class="decoration-dot"></div>
-      </div>
-
+    <div class="order-popup" v-if="order">
+      <!-- 标题栏 -->
       <div class="popup-header">
-        <div class="header-bg"></div>
-        <div class="header-content">
-          <div class="header-left">
-            <div class="icon-wrapper">
-              <van-icon name="bell" class="bell-icon" />
-              <div class="icon-pulse"></div>
-            </div>
-            <div class="title-content">
-              <h3 class="popup-title">🎉 新订单来了</h3>
-              <div class="popup-subtitle">附近有新的订单需求，快来抢单吧</div>
-            </div>
+        <h3 class="popup-title">🎉 新订单来了</h3>
+        <div class="header-right">
+          <van-tag type="warning" size="medium" round>待接单</van-tag>
+          <div class="close-btn" @click="handleClose">
+            <van-icon name="cross" />
           </div>
-          <van-tag type="warning" size="large" round class="status-tag">
-            <van-icon name="fire" />
-            待接单
-          </van-tag>
         </div>
       </div>
 
-      <div class="popup-content" v-if="order">
-        <!-- 订单信息 -->
-        <div class="section">
-          <div class="section-title">
-            <div class="title-icon-wrapper">
-              <van-icon name="orders-o" />
-            </div>
-            <span>订单信息</span>
+      <!-- 订单摘要（点击查看详情） -->
+      <div class="popup-body" @click="handleViewDetail">
+        <div class="order-summary">
+          <div class="summary-row">
+            <van-icon name="bag-o" />
+            <span>{{ order.work_kind_name }}</span>
           </div>
-          <div class="info-grid">
-            <div class="info-item highlight">
-              <div class="item-icon">
-                <van-icon name="bag-o" />
-              </div>
-              <div class="item-content">
-                <span class="label">工种</span>
-                <span class="value">{{ order.work_kind_name }}</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="item-icon">
-                <van-icon name="location-o" />
-              </div>
-              <div class="item-content">
-                <span class="label">位置</span>
-                <span class="value">{{
-                  order.location || `${order.province} ${order.city} ${order.district}`
-                }}</span>
-              </div>
-            </div>
-            <div class="info-item highlight">
-              <div class="item-icon">
-                <van-icon name="location" />
-              </div>
-              <div class="item-content">
-                <span class="label">距离</span>
-                <span class="value distance-value">{{ distance }}km</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="item-icon">
-                <van-icon name="home-o" />
-              </div>
-              <div class="item-content">
-                <span class="label">房屋类型</span>
-                <span class="value">{{ order.houseType === 'new' ? '新房' : '老房' }}</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="item-icon">
-                <van-icon name="shop-o" />
-              </div>
-              <div class="item-content">
-                <span class="label">户型</span>
-                <span class="value">{{ order.roomType }}</span>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="item-icon">
-                <van-icon name="expand-o" />
-              </div>
-              <div class="item-content">
-                <span class="label">面积</span>
-                <span class="value">{{ order.area }}m²</span>
-              </div>
-            </div>
+          <div class="summary-row">
+            <van-icon name="location-o" />
+            <span>{{ order.location || `${order.province} ${order.city} ${order.district}` }}</span>
+          </div>
+          <div class="summary-row highlight">
+            <van-icon name="location" />
+            <span>距离 {{ distance }}km</span>
+          </div>
+          <div class="summary-row">
+            <van-icon name="home-o" />
+            <span
+              >{{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
+              {{ order.area }}m²</span
+            >
           </div>
         </div>
-
-        <!-- 用户信息 -->
-        <div class="section" v-if="order.wechat_user">
-          <div class="section-title">
-            <div class="title-icon-wrapper">
-              <van-icon name="user-o" />
-            </div>
-            <span>用户信息</span>
-          </div>
-          <div class="user-info">
-            <div class="user-avatar-wrapper">
-              <div class="avatar-ring"></div>
-              <van-image
-                :src="order.wechat_user.avatar || 'https://via.placeholder.com/60'"
-                round
-                width="64"
-                height="64"
-                fit="cover"
-                class="user-avatar"
-              />
-            </div>
-            <div class="user-details">
-              <div class="user-name">
-                <van-icon name="user-circle-o" />
-                {{ order.wechat_user.nickname || '用户' }}
-              </div>
-              <div class="user-phone" v-if="order.wechat_user.phone">
-                <van-icon name="phone-o" />
-                <span>{{ encryptPhone(order.wechat_user.phone) }}</span>
-              </div>
-            </div>
-          </div>
+        <div class="view-detail-hint">
+          <van-icon name="arrow" />
+          <span>点击查看详情</span>
         </div>
       </div>
 
       <!-- 操作按钮 -->
       <div class="popup-footer">
-        <div class="footer-bg"></div>
         <van-button
           type="primary"
           size="large"
           block
           round
-          @click="handleGrabOrder"
+          @click.stop="handleGrabOrder"
           :loading="loading"
           class="grab-btn"
         >
           <van-icon name="shopping-cart-o" />
           <span>立即抢单</span>
-          <van-icon name="arrow" class="arrow-icon" />
         </van-button>
       </div>
     </div>
@@ -164,7 +71,8 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { encryptPhone } from '@/utils/index'
+import { useRouter } from 'vue-router'
+import { isFlutterWebView } from '@/utils/index'
 
 interface Order {
   id: number
@@ -176,12 +84,6 @@ interface Order {
   houseType: string
   roomType: string
   area: string
-  wechat_user?: {
-    id: number
-    nickname: string
-    avatar: string
-    phone?: string
-  }
 }
 
 interface Props {
@@ -198,6 +100,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const router = useRouter()
 const visible = ref(false)
 const loading = ref(false)
 
@@ -206,7 +109,6 @@ watch(
   (val) => {
     visible.value = val
     if (!val && props.order) {
-      // 弹窗关闭时，如果订单被接单，清空订单数据
       emit('close')
     }
   }
@@ -223,6 +125,21 @@ const handleClose = () => {
   emit('update:show', false)
 }
 
+const handleViewDetail = () => {
+  if (!props.order) return
+  handleClose()
+
+  // 跳转订单详情
+  if (isFlutterWebView() && (window as any).fitment_flutter?.openWebView) {
+    ;(window as any).fitment_flutter.openWebView(
+      `/fitment-h5/home/order/${props.order.id}`,
+      '订单详情'
+    )
+  } else {
+    router.push(`/home/order/${props.order.id}`)
+  }
+}
+
 const handleGrabOrder = async () => {
   if (!props.order) return
 
@@ -230,8 +147,6 @@ const handleGrabOrder = async () => {
     loading.value = true
     await props.onGrabOrder(props.order.id)
     loading.value = false
-
-    // 抢单成功后关闭弹窗
     handleClose()
   } catch (error: any) {
     loading.value = false
@@ -243,451 +158,148 @@ const handleGrabOrder = async () => {
 </script>
 
 <style lang="less" scoped>
-.top-popup {
-  margin-top: 0 !important;
-  border-radius: 0 0 28px 28px;
+.center-popup {
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .order-popup {
+  background: #fff;
+  padding: 20px;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
-  padding: 0;
-  background: #fff;
-  position: relative;
-  overflow: hidden;
-}
-
-.popup-decoration {
-  height: 6px;
-  background: linear-gradient(90deg, #00cec9 0%, #00b4d8 50%, #00cec9 100%);
-  background-size: 200% 100%;
-  animation: gradient-shift 3s ease infinite;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 0 20px;
-
-  .decoration-dot {
-    width: 6px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
-    animation: dot-pulse 2s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.2s);
-
-    &:nth-child(1) {
-      --i: 0;
-    }
-    &:nth-child(2) {
-      --i: 1;
-    }
-    &:nth-child(3) {
-      --i: 2;
-    }
-  }
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes dot-pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
 }
 
 .popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
   position: relative;
-  padding: 24px 20px 20px;
-  overflow: hidden;
+  z-index: 10;
 
-  .header-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #e0f7fa 0%, #f0f9ff 50%, #ffffff 100%);
-    z-index: 0;
+  .popup-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
   }
 
-  .header-content {
-    position: relative;
-    z-index: 1;
+  .header-right {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 12px;
   }
 
-  .header-left {
+  .close-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    flex: 1;
-    min-width: 0;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    border-radius: 50%;
+    transition: all 0.2s;
 
-    .icon-wrapper {
-      position: relative;
-      flex-shrink: 0;
-
-      .bell-icon {
-        font-size: 32px;
-        color: #00cec9;
-        animation: bell-ring 2s ease-in-out infinite;
-        position: relative;
-        z-index: 1;
-      }
-
-      .icon-pulse {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        background: rgba(0, 206, 201, 0.2);
-        border-radius: 50%;
-        animation: pulse-ring 2s ease-in-out infinite;
-      }
+    &:active {
+      background: #f0f0f0;
+      color: var(--color-text);
     }
-
-    .title-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .popup-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #323233;
-      margin: 0 0 6px 0;
-      line-height: 1.3;
-      letter-spacing: -0.3px;
-    }
-
-    .popup-subtitle {
-      font-size: 13px;
-      color: #646566;
-      margin: 0;
-      line-height: 1.4;
-    }
-  }
-
-  .status-tag {
-    flex-shrink: 0;
-    padding: 6px 14px;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
 
     .van-icon {
-      margin-right: 4px;
-      font-size: 14px;
+      font-size: 20px;
     }
   }
 }
 
-@keyframes bell-ring {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  10%,
-  30% {
-    transform: rotate(-12deg);
-  }
-  20%,
-  40% {
-    transform: rotate(12deg);
-  }
-  50% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.4);
-    opacity: 0;
-  }
-}
-
-.popup-content {
+.popup-body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
-  max-height: calc(85vh - 240px);
-  background: #fff;
-}
+  padding: 12px;
+  margin: 0 -12px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: background 0.2s;
 
-.section {
-  margin-bottom: 24px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 17px;
-    font-weight: 700;
-    color: #323233;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #f0f0f0;
-
-    .title-icon-wrapper {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 206, 201, 0.2);
-
-      .van-icon {
-        color: #fff;
-        font-size: 18px;
-      }
-    }
+  &:active {
+    background: #eef0f2;
   }
 }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.order-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
-  .info-item {
+  .summary-row {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border-radius: 12px;
-    padding: 14px;
-    border: 1px solid #f0f0f0;
-    transition: all 0.3s;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color-text);
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    &.highlight {
-      background: linear-gradient(135deg, #e0f7fa 0%, #f0f9ff 100%);
-      border-color: rgba(0, 206, 201, 0.2);
-    }
-
-    .item-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .van-icon {
+      color: var(--color-primary);
+      font-size: 16px;
       flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0, 206, 201, 0.25);
-
-      .van-icon {
-        color: #fff;
-        font-size: 18px;
-      }
+      margin-top: 2px;
     }
 
-    .item-content {
+    span {
       flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .label {
-      font-size: 12px;
-      color: #969799;
-      font-weight: 500;
-    }
-
-    .value {
-      font-size: 15px;
-      font-weight: 600;
-      color: #323233;
-      line-height: 1.4;
       word-break: break-all;
+      line-height: 1.4;
+    }
 
-      &.distance-value {
-        color: #00cec9;
-        font-size: 16px;
-      }
+    &.highlight span {
+      color: var(--color-primary);
+      font-weight: 600;
     }
   }
 }
 
-.user-info {
+.view-detail-hint {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 16px;
-  padding: 18px;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e0e0e0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
 
-  .user-avatar-wrapper {
-    position: relative;
-    flex-shrink: 0;
-
-    .avatar-ring {
-      position: absolute;
-      top: -4px;
-      left: -4px;
-      right: -4px;
-      bottom: -4px;
-      border: 2px solid #00cec9;
-      border-radius: 50%;
-      opacity: 0.3;
-      animation: ring-pulse 2s ease-in-out infinite;
-    }
-
-    .user-avatar {
-      position: relative;
-      z-index: 1;
-      border: 3px solid #fff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+  .van-icon {
+    font-size: 12px;
+    transition: transform 0.2s;
   }
 
-  .user-details {
-    flex: 1;
-    min-width: 0;
-
-    .user-name {
-      font-size: 17px;
-      font-weight: 700;
-      color: #323233;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .van-icon {
-        color: #00cec9;
-        font-size: 18px;
-      }
-    }
-
-    .user-phone {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #646566;
-      padding: 6px 12px;
-      background: rgba(0, 206, 201, 0.08);
-      border-radius: 8px;
-      width: fit-content;
-
-      .van-icon {
-        color: #00cec9;
-        font-size: 16px;
-      }
-    }
-  }
-}
-
-@keyframes ring-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.1;
+  &:hover .van-icon {
+    transform: translateX(4px);
   }
 }
 
 .popup-footer {
-  padding: 20px;
-  background: #fff;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid #f0f0f0;
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-
-  .footer-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.95) 20%,
-      #fff 100%
-    );
-    pointer-events: none;
-  }
 
   .grab-btn {
-    position: relative;
-    z-index: 1;
-    background: linear-gradient(135deg, #00cec9 0%, #00b4d8 100%);
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
-    height: 56px;
-    font-size: 18px;
-    font-weight: 700;
-    box-shadow: 0 6px 20px rgba(0, 206, 201, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-
-    &:active {
-      transform: scale(0.97);
-      box-shadow: 0 3px 12px rgba(0, 206, 201, 0.3);
-    }
 
     .van-icon {
-      font-size: 22px;
-
-      &.arrow-icon {
-        font-size: 16px;
-        margin-left: 4px;
-        transition: transform 0.3s;
-      }
-    }
-
-    &:hover .arrow-icon {
-      transform: translateX(4px);
+      margin-right: 6px;
+      font-size: 18px;
     }
   }
 }

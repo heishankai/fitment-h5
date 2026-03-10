@@ -32,7 +32,6 @@
               <van-stepper
                 v-model="item.quantity"
                 :min="1"
-                :max="999"
                 integer
                 @change="handleUpdateItem(item)"
               />
@@ -89,22 +88,17 @@ const visible = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-// 处理弹出层显示状态变化
 const handleUpdateShow = (show: boolean) => {
   visible.value = show
 }
 
-// 计算清单总数量（所有项的 quantity 之和）
+// 计算清单总数量
 const cartTotalCount = computed(() => {
   return props.cartList.reduce((total, item) => total + (item.quantity || 1), 0)
 })
 
 // 更新工价数量
 const handleUpdateItem = (item: PriceCartItem) => {
-  // 确保 quantity 是整数
-  if (item.quantity !== undefined) {
-    item.quantity = Math.floor(Number(item.quantity))
-  }
   emit('update-item', item)
 }
 
@@ -141,12 +135,12 @@ const handleSubmit = () => {
       margin: 0;
       font-size: 18px;
       font-weight: 600;
-      color: #323233;
+      color: var(--color-text);
     }
 
     .cart-count {
       font-size: 14px;
-      color: #969799;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -181,7 +175,7 @@ const handleSubmit = () => {
         .cart-item-name {
           font-size: 15px;
           font-weight: 600;
-          color: #323233;
+          color: var(--color-text);
           display: -webkit-box;
           -webkit-line-clamp: 1;
           line-clamp: 1;
@@ -191,19 +185,19 @@ const handleSubmit = () => {
 
         .cart-item-work-kind {
           font-size: 12px;
-          color: #969799;
+          color: var(--color-text-secondary);
         }
 
         .cart-item-price {
           font-size: 16px;
-          color: #00cec9;
+          color: var(--color-primary);
           font-weight: 700;
           margin-top: 4px;
         }
 
         .cart-item-desc {
           font-size: 13px;
-          color: #646566;
+          color: var(--color-text-placeholder);
           display: -webkit-box;
           -webkit-line-clamp: 2;
           line-clamp: 2;
@@ -240,13 +234,13 @@ const handleSubmit = () => {
 
       .total-label {
         font-size: 16px;
-        color: #323233;
+        color: var(--color-text);
         font-weight: 500;
       }
 
       .total-price {
         font-size: 24px;
-        color: #00cec9;
+        color: var(--color-primary);
         font-weight: 700;
       }
     }
