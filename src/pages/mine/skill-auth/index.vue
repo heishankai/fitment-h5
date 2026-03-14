@@ -8,12 +8,41 @@
     <main class="fade-in-up">
       <van-field
         class="info-card fade-in-up shine-effect"
-        v-model="selectedWorkKind.workKindName"
+        v-model="selectedWorkKind.work_kind_name"
         is-link
         readonly
         label="工种"
         placeholder="请选择工种"
         @click="showPicker = true"
+        required
+      />
+
+      <van-field
+        v-model="skillInfo.work_years"
+        class="info-card fade-in-up"
+        type="digit"
+        label="工龄"
+        required
+        placeholder="请输入工龄（年）"
+        :readonly="skillInfo?.isSkillVerified"
+        maxlength="2"
+      >
+        <template #button>
+          <span>年</span>
+        </template></van-field
+      >
+
+      <van-field
+        v-model="skillInfo.skill_intro"
+        class="info-card fade-in-up"
+        type="textarea"
+        label="技能介绍"
+        required
+        placeholder="请简要介绍您的专业技能与经验"
+        rows="4"
+        maxlength="200"
+        show-word-limit
+        :readonly="skillInfo?.isSkillVerified"
       />
 
       <section v-show="active === 0 || active === 2">
@@ -141,19 +170,21 @@ const work_kind_list = ref()
 
 const active = ref(0)
 const selectedWorkKind = ref({
-  workKindId: '',
-  workKindName: ''
+  work_kind_code: '',
+  work_kind_name: ''
 })
 
 const skillInfo = ref({
   promise_image: [],
-  operation_video: []
+  operation_video: [],
+  work_years: '',
+  skill_intro: ''
 })
 
 const onConfirm = ({ selectedOptions }) => {
   showPicker.value = false
-  selectedWorkKind.value.workKindId = String(selectedOptions[0].value)
-  selectedWorkKind.value.workKindName = selectedOptions[0].text
+  selectedWorkKind.value.work_kind_code = selectedOptions[0].value
+  selectedWorkKind.value.work_kind_name = selectedOptions[0].text
 }
 
 // 获取工种信息
@@ -163,7 +194,7 @@ const getWorkKindList = async () => {
 
   work_kind_list.value = (data || [])?.map((item) => ({
     text: item?.work_kind_name,
-    value: item?.id
+    value: item?.work_kind_code
   }))
 }
 
@@ -302,13 +333,23 @@ const handleDeleteOperationVideo = () => {
 const submit = async () => {
   const { promise_image, operation_video } = skillInfo.value
 
-  if (!selectedWorkKind.value.workKindId || !selectedWorkKind.value.workKindName) {
+  if (!selectedWorkKind.value.work_kind_code || !selectedWorkKind.value.work_kind_name) {
     showToast('请选择工种')
     return
   }
 
   if (!promise_image?.length || !operation_video?.length) {
     showToast('请上传承诺书和实操视频')
+    return
+  }
+
+  if (!skillInfo.value.work_years?.trim()) {
+    showToast('请输入工龄')
+    return
+  }
+
+  if (!skillInfo.value.skill_intro?.trim()) {
+    showToast('请填写技能介绍')
     return
   }
 
@@ -327,11 +368,17 @@ const getisSkillVerified = async () => {
   const { success, data } = await getIsSkillVerifiedService()
   if (!success) return
 
-  selectedWorkKind.value.workKindId = String(data?.workKindId)
-  selectedWorkKind.value.workKindName = data?.workKindName
+  selectedWorkKind.value.work_kind_code = data?.work_kind_code
+  selectedWorkKind.value.work_kind_name = data?.work_kind_name
 
-  skillInfo.value.promise_image = data?.promise_image
-  skillInfo.value.operation_video = data?.operation_video
+  skillInfo.value.promise_image = data?.promise_image ?? []
+  skillInfo.value.operation_video = [
+    {
+      url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1768400370715_z8rfrc_777.mov'
+    }
+  ]
+  skillInfo.value.work_years = data?.work_years ?? ''
+  skillInfo.value.skill_intro = data?.skill_intro ?? ''
   skillInfo.value.isSkillVerified = data?.isSkillVerified
 }
 
@@ -381,6 +428,7 @@ footer {
   background: #fff;
   border-radius: 12px;
   padding: 24px;
+  margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: all 0.3s;
