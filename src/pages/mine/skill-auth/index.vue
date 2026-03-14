@@ -372,11 +372,7 @@ const getisSkillVerified = async () => {
   selectedWorkKind.value.work_kind_name = data?.work_kind_name
 
   skillInfo.value.promise_image = data?.promise_image ?? []
-  skillInfo.value.operation_video = [
-    {
-      url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1768400370715_z8rfrc_777.mov'
-    }
-  ]
+  skillInfo.value.operation_video = data?.operation_video ?? []
   skillInfo.value.work_years = data?.work_years ?? ''
   skillInfo.value.skill_intro = data?.skill_intro ?? ''
   skillInfo.value.isSkillVerified = data?.isSkillVerified
