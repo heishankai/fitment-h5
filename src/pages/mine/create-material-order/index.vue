@@ -1,34 +1,28 @@
 <template>
   <div class="page-container">
     <!-- 搜索栏 -->
-    <SearchBar class="fade-in-up" />
+    <SearchBar />
     <main>
-      <div class="tree-select-wrapper">
+      <div ref="treeSelectWrapperRef" class="tree-select-wrapper">
         <van-tree-select
           v-model:main-active-index="activeIndex"
           height="100%"
           :items="categories"
           @click-nav="onClickNav"
-          class="fade-in-up"
-          :style="{ animationDelay: '0.1s' }"
         >
           <template #content>
             <div v-if="commodityList?.length" class="product-list">
               <van-card
-                v-for="(product, index) in commodityList"
+                v-for="product in commodityList"
                 :key="product?.id"
                 :title="product?.commodity_name"
-                :desc="product?.commodity_description"
                 :thumb="product?.commodity_cover"
                 class="product-card fade-in-up shine-effect"
-                :style="{ animationDelay: `${0.2 + index * 0.05}s` }"
                 @click="navigateToDetail(product)"
+                :price="`${product?.commodity_price} / ${product?.commodity_unit}`"
               >
-                <template #price>
-                  <div class="product-price-wrapper">
-                    <span class="product-price">¥{{ product?.commodity_price }}</span>
-                    <span class="product-unit">/{{ product?.commodity_unit }}</span>
-                  </div>
+                <template #desc>
+                  <div class="product-desc">{{ product?.commodity_description }}</div>
                 </template>
                 <template #footer>
                   <van-button
@@ -75,6 +69,8 @@
 </template>
 
 <script lang="ts" setup>
+defineOptions({ name: 'CreateMaterialOrder' })
+
 import SearchBar from './components/search-bar.vue'
 import CartPopup from './components/cart-popup.vue'
 import {
@@ -85,10 +81,12 @@ import {
 import { useRouter, useRoute } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useCart } from './composables/useCart'
+import { useTreeSelectScrollRestore } from '@/composables/useTreeSelectScrollRestore'
 
 const router = useRouter()
 const route = useRoute()
 
+const treeSelectWrapperRef = ref<HTMLElement | null>(null)
 const activeIndex = ref(0)
 const showCartList = ref(false)
 
@@ -113,35 +111,31 @@ const handleAddToCart = (product: any) => {
 
 // 提交辅料单
 const handleSubmit = async () => {
-  if (cartList.value.length === 0) {
+  if (cartList.value?.length === 0) {
     showToast('清单为空，请先添加商品')
     return
   }
 
-  try {
-    await showConfirmDialog({
-      title: '确认提交',
-      message: `共 ${cartTotalCount.value} 件商品，总计 ¥${totalPrice.value.toFixed(2)}，确认提交吗？`
-    })
+  await showConfirmDialog({
+    title: '确认提交',
+    message: `共 ${cartTotalCount.value} 件商品，总计 ¥${totalPrice.value.toFixed(2)}，确认提交吗？`
+  })
 
-    const { success } = await addMaterialService({
-      orderId: Number(route.params.id),
-      commodity_list: (cartList.value || []).map((item) => {
-        return {
-          commodity_id: item?.id,
-          ...item
-        }
-      })
+  const { success } = await addMaterialService({
+    orderId: Number(route.params.id),
+    commodity_list: (cartList.value || []).map((item) => {
+      return {
+        commodity_id: item?.id,
+        ...item
+      }
     })
+  })
 
-    if (success) {
-      showToast('提交成功')
-      clearCart()
-      router.back()
-      showCartList.value = false
-    }
-  } catch {
-    console.log('用户取消')
+  if (success) {
+    showToast('提交成功')
+    clearCart()
+    router.back()
+    showCartList.value = false
   }
 }
 
@@ -175,7 +169,21 @@ const navigateToDetail = (product: any) => {
   })
 }
 
-onMounted(getCategoryList)
+const { save, restore } = useTreeSelectScrollRestore(
+  'create-material-order-scroll',
+  treeSelectWrapperRef,
+  route,
+  activeIndex,
+  categories,
+  (id: any) => getCommodityConfig(id)
+)
+
+onMounted(() => getCategoryList().then(restore))
+onActivated(() => categories.value.length && restore())
+onBeforeRouteLeave((_to, _from, next) => {
+  save()
+  next()
+})
 </script>
 
 <style lang="less" scoped>
@@ -217,8 +225,6 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.5s ease-out both;
-  animation-delay: 0.3s;
 
   display: flex;
   gap: 10px;
@@ -232,34 +238,7 @@ footer {
     justify-content: center;
     gap: 4px;
     position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    &:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    }
-
-    .van-icon {
-      font-size: 16px;
-      transition: transform 0.3s ease;
-    }
-
-    &:active .van-icon {
-      transform: scale(1.1);
-    }
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
   }
 }
 
@@ -283,10 +262,6 @@ footer {
 
   .van-sidebar-item {
     transition: all 0.3s ease;
-
-    &:hover {
-      background: rgba(var(--color-primary-rgb), 0.05);
-    }
 
     &--active {
       background: rgba(var(--color-primary-rgb), 0.1);
@@ -373,7 +348,7 @@ footer {
 
   :deep(.van-card__title) {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--color-text);
     line-height: 1.4;
     margin-bottom: 8px;
@@ -385,7 +360,7 @@ footer {
     word-break: break-word;
   }
 
-  :deep(.van-card__desc) {
+  .product-desc {
     font-size: 13px;
     color: var(--color-text-placeholder);
     line-height: 1.5;
@@ -395,6 +370,7 @@ footer {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-break: break-word;
   }
 
   :deep(.van-card__tags) {
@@ -422,24 +398,6 @@ footer {
     margin-top: 8px;
   }
 
-  .product-price-wrapper {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-
-  .product-price {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--color-primary);
-  }
-
-  .product-unit {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-    font-weight: 400;
-  }
-
   :deep(.van-card__footer) {
     margin-top: 12px;
     padding-top: 12px;
@@ -450,19 +408,11 @@ footer {
 
   .add-btn {
     width: 100%;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
     border-radius: 20px;
     padding: 16px 16px;
     font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
-    transition: all 0.3s ease;
-
-    &:active {
-      transform: scale(0.95);
-      box-shadow: 0 1px 4px rgba(var(--color-primary-rgb), 0.4);
-    }
   }
 }
 </style>

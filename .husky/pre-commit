@@ -1,2 +1,17 @@
-npx lint-staged
-npm run type-check
+#!/usr/bin/env sh
+set -e
+
+ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
+
+INIT="${XDG_CONFIG_HOME:-$HOME/.config}/husky/init.sh"
+[ -f "$INIT" ] && . "$INIT"
+
+# macOS + GUI：PATH 无 node；nvm 多在 ~/.zshrc，需 -i 才加载
+if [ "$(uname -s)" = "Darwin" ] && [ -x /bin/zsh ]; then
+  exec /bin/zsh -il -c "cd \"$ROOT\" && export PATH=\"$ROOT/node_modules/.bin:\$PATH\" && \"$ROOT/node_modules/.bin/lint-staged\" && \"$ROOT/node_modules/.bin/vue-tsc\" --build --force"
+fi
+
+cd "$ROOT"
+export PATH="$ROOT/node_modules/.bin:/usr/local/bin:/opt/homebrew/bin:$HOME/.volta/bin:$PATH"
+"$ROOT/node_modules/.bin/lint-staged"
+"$ROOT/node_modules/.bin/vue-tsc" --build --force

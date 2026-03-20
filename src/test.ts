@@ -4,7 +4,7 @@ const user1 = {
   phone: '18667177723',
   nickname: '叮当优+师傅',
   avatar: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png',
-  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInBob25lIjoiMTg2NjcxNzc3MjMiLCJjb2RlIjoiODYzNyIsInR5cGUiOiJjcmFmdHNtYW4iLCJpYXQiOjE3Njg2MzYwMDksImV4cCI6MTc3NDY4NDAwOX0.cG7_JI9aBxHs4VF_CUkydzi5x04_hzrLFlbgtEoxFkM'
+  auth_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInBob25lIjoiMTg2NjcxNzc3MjMiLCJjb2RlIjoiODYzNyIsInR5cGUiOiJjcmFmdHNtYW4iLCJpYXQiOjE3Njg2MzYwMDksImV4cCI6MTc3NDY4NDAwOX0.cG7_JI9aBxHs4VF_CUkydzi5x04_hzrLFlbgtEoxFkM'
 }
 
 工长 :

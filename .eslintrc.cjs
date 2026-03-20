@@ -35,6 +35,13 @@ module.exports = {
   // 为不同文件类型设置不同的规则
   overrides: [
     {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        // 避免与 @typescript-eslint/no-unused-vars 重复；否则函数类型里的参数名会误报
+        'no-unused-vars': 'off'
+      }
+    },
+    {
       files: ['*.cjs'],
       env: {
         node: true

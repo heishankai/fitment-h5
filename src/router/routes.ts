@@ -194,20 +194,20 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: '/mine/construction-order/:id/construction-progress',
-        name: '施工进度查看',
+        name: '施工进度',
         meta: { title: '施工进度' },
         component: () => import('@/pages/mine/construction-order/construction-progress-view.vue')
       },
       {
         path: '/mine/construction-progress/:id',
-        name: '施工进度',
-        meta: { title: '施工进度' },
+        name: '创建施工进度',
+        meta: { title: '创建施工进度' },
         component: () => import('@/pages/mine/construction-progress/index.vue')
       },
       {
         path: '/mine/foreman-price/:id',
         name: '创建工价',
-        meta: { title: '创建工价' },
+        meta: { title: '创建工价', keepAlive: true },
         component: () => import('@/pages/mine/foreman-price/index.vue')
       },
       {
@@ -219,7 +219,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: '/mine/create-material-order/:id',
         name: '创建辅料单',
-        meta: { title: '创建辅料单' },
+        meta: { title: '创建辅料单', keepAlive: true },
         component: () => import('@/pages/mine/create-material-order/index.vue')
       },
       {

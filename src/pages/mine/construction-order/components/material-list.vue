@@ -341,7 +341,6 @@ const navigateToDetail = (commodity: Commodity) => {
   &.final-total {
     margin-top: 4px;
     padding-top: 12px;
-    border-top: 2px solid rgba(var(--color-primary-rgb), 0.2);
     border-bottom: none;
 
     .summary-label {
@@ -363,6 +362,7 @@ const navigateToDetail = (commodity: Commodity) => {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

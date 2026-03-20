@@ -6,7 +6,6 @@
         <material-list
           v-if="materialsData && materialsData.commodity_list?.length"
           :materials="materialsData"
-          class="fade-in-up"
         />
         <van-empty v-else description="暂无辅材清单" />
       </van-pull-refresh>
@@ -29,7 +28,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MaterialList from './components/material-list.vue'
 import { getMaterialsByOrderId, getOrderDetail, getUserInfoService } from './service'
@@ -122,7 +120,6 @@ footer {
   left: 0;
   right: 0;
   z-index: 100;
-  animation: slideUp 0.5s ease-out both;
 
   .action-btn {
     width: 100%;
@@ -132,50 +129,12 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-    &:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    }
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
     .van-icon {
       font-size: 16px;
-      transition: transform 0.3s ease;
     }
-
-    &:active .van-icon {
-      transform: scale(1.1);
-    }
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.fade-in-up {
-  animation: fadeInUp 0.4s ease-out both;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <main>
-      <div class="tree-select-wrapper">
+      <div ref="treeSelectWrapperRef" class="tree-select-wrapper">
         <van-tree-select
           v-model:main-active-index="activeIndex"
           height="100%"
@@ -108,6 +108,8 @@
 </template>
 
 <script lang="ts" setup>
+defineOptions({ name: 'ForemanPrice' })
+
 import { useRouter, useRoute } from 'vue-router'
 import PriceCartPopup from './components/price-cart-popup.vue'
 import {
@@ -118,10 +120,12 @@ import {
 } from './service'
 import { showToast, showConfirmDialog } from 'vant'
 import { usePriceCart } from './composables/usePriceCart'
+import { useTreeSelectScrollRestore } from '@/composables/useTreeSelectScrollRestore'
 
 const router = useRouter()
 const route = useRoute()
 
+const treeSelectWrapperRef = ref<HTMLElement | null>(null)
 const activeIndex = ref(0)
 const showCartList = ref(false)
 
@@ -197,7 +201,7 @@ const handleSubmit = async () => {
           work_title, // 工价标题
           quantity, // 数量
           work_kind_name: work_kind?.work_kind_name, // 工种名称
-          work_kind_id: work_kind?.id, // 工种id
+          work_kind_code: work_kind?.work_kind_code, // 工种id
           labour_cost_name: labour_cost?.labour_cost_name, // 单位名称
           minimum_price, // 最低价格,
           is_set_minimum_price // 是否设置最低价格
@@ -230,7 +234,7 @@ const getWorkKindList = async () => {
   if (!userSuccess || !userData) return
 
   // 保存当前用户的工种名称
-  currentUserWorkKindName.value = userData?.skillInfo?.workKindName
+  currentUserWorkKindName.value = userData?.skillInfo?.work_kind_name
 
   // 获取所有工种
   const { success, data } = await getWorkKindListService()
@@ -238,14 +242,15 @@ const getWorkKindList = async () => {
 
   // 根据用户工种过滤
   let filteredData = data
-  const workKindName = userData?.skillInfo?.workKindName
 
-  if (workKindName === '工长') {
-    // 如果是工长，展示全部工种
+  if (userData?.skillInfo?.work_kind_code === 'GONGZHANG') {
+    // 如果是工长工种，展示全部工种
     filteredData = data
   } else {
-    // 否则，只展示对应工种的
-    filteredData = data.filter((item: any) => item.work_kind_name === workKindName)
+    // 否则，只展示对应工种工种的
+    filteredData = data.filter(
+      (item: any) => item?.work_kind_code === userData?.skillInfo?.work_kind_code
+    )
   }
 
   workKinds.value = filteredData.map((item: any) => ({
@@ -276,8 +281,20 @@ const getWorkKindPrice = async (workKindId: number) => {
   }
 }
 
-onMounted(() => {
-  getWorkKindList()
+const { save, restore } = useTreeSelectScrollRestore(
+  'foreman-price-scroll',
+  treeSelectWrapperRef,
+  route,
+  activeIndex,
+  workKinds,
+  (id: any) => getWorkKindPrice(id)
+)
+
+onMounted(() => getWorkKindList().then(restore))
+onActivated(() => workKinds.value.length && restore())
+onBeforeRouteLeave((_to, _from, next) => {
+  save()
+  next()
 })
 </script>
 

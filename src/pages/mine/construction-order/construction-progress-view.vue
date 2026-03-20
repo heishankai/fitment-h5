@@ -106,8 +106,6 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.5s ease-out both;
-  animation-delay: 0.5s;
 
   .action-btn {
     width: 100%;
@@ -117,21 +115,11 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    &:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    }
 
     .van-icon {
       font-size: 16px;
       transition: transform 0.3s ease;
-    }
-
-    &:active .van-icon {
-      transform: scale(1.1);
     }
   }
 }

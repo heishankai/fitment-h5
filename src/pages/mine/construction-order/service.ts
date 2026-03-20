@@ -42,3 +42,17 @@ export const getSubWorkPricesByOrderId = (orderId: number): Promise<BasicResp<an
     method: 'GET'
   })
 }
+
+/**
+ * 更新订单平米数
+ */
+export const updateOrderAreaService = (
+  orderId: number,
+  area: string | number
+): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/order/${orderId}/area`,
+    method: 'PUT',
+    data: { area }
+  })
+}

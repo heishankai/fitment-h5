@@ -371,16 +371,10 @@ defineExpose({
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     border: none;
     border-radius: 20px;
-    padding: 6px 16px;
+    padding: 18px;
     font-size: 12px;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
-    transition: all 0.3s ease;
-
-    &:active {
-      transform: scale(0.95);
-      box-shadow: 0 1px 4px rgba(var(--color-primary-rgb), 0.4);
-    }
   }
 }
 

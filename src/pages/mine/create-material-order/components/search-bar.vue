@@ -60,14 +60,6 @@ const handleClick = () => {
     gap: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(var(--color-primary-rgb), 0.2);
-    transition: all 0.3s ease;
-    cursor: pointer;
-
-    &:active {
-      transform: scale(0.98);
-      box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.15);
-      border-color: rgba(var(--color-primary-rgb), 0.4);
-    }
 
     .search-placeholder {
       color: var(--color-text-placeholder);

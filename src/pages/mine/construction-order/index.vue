@@ -77,6 +77,14 @@
       @click="onContactUser"
       class="chat-bubble"
     />
+
+    <!-- 修改平米数弹窗（无工价清单时显示） -->
+    <AreaDialog
+      v-model="showAreaDialog"
+      :default-area="String(order?.area ?? '')"
+      @confirm="onAreaDialogConfirm"
+      @cancel="onAreaDialogCancel"
+    />
   </div>
 </template>
 
@@ -88,8 +96,15 @@ import DetailHeader from './components/detail-header.vue'
 import OrderInfo from './components/order-info.vue'
 import PriceList from './components/price-list.vue'
 import SubPriceList from './components/sub-price-list.vue'
+import AreaDialog from './components/area-dialog.vue'
 // utils
-import { getOrderDetail, getUserInfoService, getSubWorkPricesByOrderId } from './service'
+import {
+  getOrderDetail,
+  getUserInfoService,
+  getSubWorkPricesByOrderId,
+  updateOrderAreaService
+} from './service'
+import { showToast } from 'vant'
 import { handleContactUser, calculateChatBubbleOffset } from './utils'
 
 const route = useRoute()
@@ -100,6 +115,7 @@ const user = ref<any>(null)
 const refreshing = ref(false)
 const sub_work_price_groups = ref<any>([])
 const windowSize = ref({ width: window.innerWidth, height: window.innerHeight })
+const showAreaDialog = ref(false)
 
 // 监听窗口大小变化
 const handleResize = () => {
@@ -206,8 +222,8 @@ const goToConstructionProgressView = () => {
   })
 }
 
-// 创建工价
-const handleCreateForemanPrice = () => {
+// 跳转到创建工价页面
+const navigateToCreateForemanPrice = () => {
   const orderId = order.value?.id
   const { area, work_kind_name } = order.value ?? {}
 
@@ -218,6 +234,37 @@ const handleCreateForemanPrice = () => {
       craftsman_user_work_kind_name: work_kind_name
     }
   })
+}
+
+// 创建工价：先判断是否有工价清单
+const handleCreateForemanPrice = () => {
+  const hasPriceList = order.value?.parent_work_price_groups?.length > 0
+
+  // 有工价清单，正常跳转
+  if (hasPriceList) {
+    navigateToCreateForemanPrice()
+    return
+  }
+
+  // 无工价清单，弹出修改平米数弹窗
+  showAreaDialog.value = true
+}
+
+// 平米数弹窗 - 确定：修改并刷新
+const onAreaDialogConfirm = async (areaVal: string) => {
+  const orderId = order.value?.id
+  const { success } = await updateOrderAreaService(Number(orderId), areaVal)
+  if (!success) return
+
+  showToast('修改成功')
+  showAreaDialog.value = false
+  await loadOrderDetail()
+}
+
+// 平米数弹窗 - 取消：跳转创建工价
+const onAreaDialogCancel = () => {
+  showAreaDialog.value = false
+  navigateToCreateForemanPrice()
 }
 
 // 下拉刷新
@@ -271,8 +318,6 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.5s ease-out both;
-  animation-delay: 0.5s;
 
   display: flex;
   gap: 10px;
@@ -285,21 +330,11 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    &:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    }
 
     .van-icon {
       font-size: 16px;
       transition: transform 0.3s ease;
-    }
-
-    &:active .van-icon {
-      transform: scale(1.1);
     }
   }
 }
