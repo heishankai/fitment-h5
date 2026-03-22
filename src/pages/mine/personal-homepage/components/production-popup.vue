@@ -55,7 +55,7 @@
           </div>
 
           <p class="upload-tip">
-            请上传真实的工地施工图片，最多支持 5 张。作品发布后需等待管理员审核。
+            请至少上传 1 张真实工地施工图片，最多 5 张。作品发布后需等待管理员审核。
           </p>
         </div>
       </div>
@@ -87,9 +87,8 @@ const visible = computed({
 const publish_text = ref('')
 const publish_images = ref<string[]>([])
 
-const canPublish = computed(
-  () => publish_images.value.length > 0 || publish_text.value.trim() !== ''
-)
+// 至少上传 1 张工地照片；文案选填
+const canPublish = computed(() => publish_images.value.length > 0)
 
 const handleClose = () => {
   emit('update:show', false)
@@ -152,7 +151,10 @@ const handleRemoveImage = (index: number) => {
 }
 
 const handlePublish = () => {
-  if (!canPublish.value) return
+  if (publish_images.value.length < 1) {
+    showToast('请至少上传 1 张工地图片')
+    return
+  }
   emit('publish', {
     publish_text: publish_text.value,
     publish_images: [...publish_images.value]

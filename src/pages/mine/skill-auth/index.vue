@@ -371,6 +371,13 @@ const getisSkillVerified = async () => {
   selectedWorkKind.value.work_kind_code = data?.work_kind_code
   selectedWorkKind.value.work_kind_name = data?.work_kind_name
 
+  // skillInfo.value.promise_image = data?.promise_image ?? [{
+  //   url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
+  // }]
+  // skillInfo.value.operation_video = data?.operation_video ?? [{
+  //   url: 'https://download.samplelib.com/mp4/sample-30s.mp4'
+  // }]
+
   skillInfo.value.promise_image = data?.promise_image ?? []
   skillInfo.value.operation_video = data?.operation_video ?? []
   skillInfo.value.work_years = data?.work_years ?? ''

@@ -12,7 +12,7 @@
         <div class="quick-access-cards fade-in-up" :style="{ animationDelay: '0.35s' }">
           <!-- 辅材清单入口 -->
           <div
-            v-if="user?.skillInfo?.workKindName !== '工长'"
+            v-if="user?.skillInfo?.work_kind_code !== 'GONGZHANG'"
             class="access-card"
             @click="goToMaterialList"
           >

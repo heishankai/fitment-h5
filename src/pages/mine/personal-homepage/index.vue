@@ -5,17 +5,18 @@
         <van-image round class="avatar" :src="userInfo.avatar" fit="cover" />
         <div>
           <div class="nickname">{{ userInfo.nickname }}</div>
-          <div class="work-kind-name">工种：{{ userInfo?.skillInfo?.workKindName || '暂无' }}</div>
+          <div class="work-kind-name">
+            工种：{{ userInfo?.skillInfo?.work_kind_name || '暂无' }}
+          </div>
         </div>
       </div>
-      <div class="works-number">0</div>
-      <div class="works">作品</div>
     </header>
 
     <section>我的作品</section>
 
     <main>
       <van-list
+        :key="listRenderKey"
         v-model:loading="loading"
         :finished="finished"
         finished-text="没有更多了"
@@ -40,6 +41,9 @@ import { homePageAuditService, getHomePageAuditService } from './service'
 
 const showProductionPopup = ref(false)
 
+/** 变更后强制重置 van-list，避免分页状态错乱 */
+const listRenderKey = ref(0)
+
 const userInfo = ref<any>({})
 const loading = ref(false)
 const finished = ref(false)
@@ -49,8 +53,6 @@ const production_list = ref<any[]>([])
 const pageIndex = ref(1)
 
 const onLoad = async () => {
-  // 异步更新数据
-  // setTimeout 仅做示例，真实场景中一般为 ajax 请求
   const { success, data, total }: any = await getHomePageAuditService({
     pageIndex: pageIndex.value,
     pageSize: 10
@@ -69,6 +71,14 @@ const onLoad = async () => {
   if (production_list.value.length >= total) {
     finished.value = true
   }
+}
+
+/** 发布后（或其它需要同步最新列表时）清空分页并重新拉第一页 */
+const refreshProductionList = () => {
+  production_list.value = []
+  pageIndex.value = 1
+  finished.value = false
+  listRenderKey.value += 1
 }
 // 获取用户信息
 const getUserInfo = async () => {
@@ -89,6 +99,7 @@ const handlePublish = async ({
   const { success } = await homePageAuditService({ publish_text, publish_images })
   if (success) {
     showToast('提交成功，审核中...')
+    refreshProductionList()
   }
 }
 
@@ -134,23 +145,6 @@ header {
       line-height: 18px;
       letter-spacing: -0.05px;
     }
-  }
-
-  .works-number {
-    margin-top: 12px;
-    color: #1e2222;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 24px;
-    letter-spacing: -0.3px;
-  }
-
-  .works {
-    color: #6e7373;
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 18px;
-    letter-spacing: -0.1px;
   }
 }
 
