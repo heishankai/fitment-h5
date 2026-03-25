@@ -402,8 +402,6 @@ main {
       font-size: 16px;
       color: var(--color-primary);
       flex-shrink: 0;
-      transition: transform 0.3s ease;
-      animation: pulse 2s infinite;
     }
 
     .location-text {
@@ -418,17 +416,6 @@ main {
 
   &:hover .location-icon {
     transform: scale(1.2);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.6;
   }
 }
 
@@ -448,19 +435,6 @@ main {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0;
-    animation: fadeInUp 0.4s ease-out both;
-
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-color: var(--color-primary);
-
-      .check-in-icon {
-        transform: rotate(15deg) scale(1.1);
-      }
-    }
 
     .check-in-header {
       display: flex;
@@ -541,16 +515,7 @@ main {
       border-radius: 6px;
       overflow: hidden;
       position: relative;
-      transition: transform 0.3s ease;
-      animation: fadeInUp 0.4s ease-out both;
-
-      &:hover {
-        transform: scale(1.05);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
+      cursor: pointer;
 
       img {
         width: 100%;
@@ -610,8 +575,6 @@ footer {
   background: #fff;
   border-top: 1px solid #f0f0f0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
-  animation: slideUp 0.5s ease-out both;
-  animation-delay: 0.3s;
 
   display: flex;
   gap: 10px;
@@ -624,46 +587,11 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-    &:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    }
 
     .van-icon {
       font-size: 16px;
-      transition: transform 0.3s ease;
     }
-
-    &:active .van-icon {
-      transform: scale(1.1);
-    }
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
   }
 }
 </style>

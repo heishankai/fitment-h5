@@ -7,7 +7,6 @@
           v-if="constructionProgressData?.length"
           :construction_progress="constructionProgressData"
           :order-id="orderId"
-          class="fade-in-up"
         />
         <van-empty v-else description="暂无施工进度记录" />
       </van-pull-refresh>
@@ -87,6 +86,7 @@ onMounted(() => {
 
 main {
   flex: 1;
+  min-height: 0; /* flex 子项默认可被内容撑开，不设置则 overflow 无法在本区域滚动 */
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -95,8 +95,9 @@ main {
   gap: 12px;
 }
 
+/* 由 main 滚动；勿设 height:100%，否则内部高度被锁死、列表长时无法滑动 */
 .pull-refresh {
-  height: 100%;
+  display: block;
 }
 
 footer {
@@ -121,34 +122,6 @@ footer {
       font-size: 16px;
       transition: transform 0.3s ease;
     }
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.fade-in-up {
-  animation: fadeInUp 0.4s ease-out both;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>
