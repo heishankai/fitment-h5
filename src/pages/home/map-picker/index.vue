@@ -74,7 +74,7 @@
 
 <script lang="ts" setup>
 import { ref, onUnmounted, nextTick, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { showToast } from 'vant'
 import { getReverseGeocode, updateCraftsmanUser, getCraftsmanUser } from '../service'
 import { saveLocationToLocal } from '../utils'
@@ -87,7 +87,7 @@ interface Location {
   address: string
 }
 
-const router = useRouter()
+// const router = useRouter()
 const route = useRoute()
 
 const mapContainerRef = ref<HTMLElement | null>(null)
@@ -370,7 +370,10 @@ const handleConfirm = async () => {
       })
 
       showToast('位置更新成功')
-      router.back()
+
+      // Flutter WebView 中：用 pop 关闭当前页面
+      ;(window as any)?.fitment_flutter?.pop()
+      // router.back()
     } else {
       showToast('获取位置信息失败')
     }
@@ -672,6 +675,7 @@ onUnmounted(() => {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

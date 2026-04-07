@@ -74,23 +74,65 @@ export default defineConfig(({ mode }: { mode: string }) => {
       vue(),
       vueJsx()
     ],
-
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       }
     },
-    server: mode != 'production' ? getEnvProxy(mode) : {},
+    server:
+      mode !== 'production'
+        ? getEnvProxy(mode)
+        : {
+            // 服务启动时是否自动打开浏览器
+            open: false,
+            // 预热文件以降低启动期间的初始页面加载时长
+            warmup: {
+              /**
+               * @description 预热文件： 目录只是在开发环境生效，生产环境不会生效
+               * 首页、views、 components
+               */
+              clientFiles: ['./index.html', './src/{views,components}/*']
+            }
+          },
     build: {
       outDir: 'fitment-h5',
-      // 设置为false，不生成.map文件
+      // 构建后是否生成 source map 文件(用于线上报错代码报错映射对应代码)
       sourcemap: false,
       // 设置为true打包时不生成.html文件
       emptyOutDir: true,
-      // 设置主入口文件
+      cssTarget: 'chrome80',
+      // chunk 大小警告的限制（以 kbs 为单位）
+      chunkSizeWarningLimit: 2000,
+      /**
+       * Vite 5 生产构建走 Rollup，只能写 rollupOptions。
+       */
       rollupOptions: {
-        input: './index.html'
+        input: './index.html',
+        output: {
+          chunkFileNames: 'js/[name]-[hash].js',
+          entryFileNames: 'js/[name]-[hash].js',
+          assetFileNames: '[ext]/[name]-[hash].[ext]',
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return
+            // pnpm: .../node_modules/.pnpm/xxx/node_modules/vue/...
+            const pnpm = id.match(
+              /node_modules\/\.pnpm\/[^/]+\/node_modules\/(@[^/]+\/[^/]+|[^/]+)\//
+            )
+            if (pnpm?.[1]) return pnpm[1].replace(/\//g, '-')
+            const flat = id.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)\//)
+            if (flat?.[1]) return flat[1].replace(/\//g, '-')
+          }
+        }
       }
+    },
+    optimizeDeps: {
+      /**
+       * @description 开发模式生效： 需要预构建的依赖项 如：pinia、lodash-es、axios
+       * 优化依赖预构建，加快页面加载速度，避免重复打包依赖
+       */
+      include: ['pinia', 'lodash-es', 'axios'],
+      // 打包时强制排除的依赖项
+      exclude: ['vant', '@vant/use']
     }
   }
 })
