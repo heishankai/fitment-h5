@@ -47,18 +47,27 @@
 
       <section v-show="active === 0 || active === 2">
         <section-title title="上传承诺书" />
-        <div class="upload-item" @click="handleChoosePromiseImage">
-          <div v-if="skillInfo.promise_image?.[0]?.url" class="image-preview">
-            <img :src="skillInfo.promise_image[0].url" alt="承诺书" />
+        <p class="upload-hint">最多上传 {{ promiseImageMax }} 张</p>
+        <div class="promise-upload-grid">
+          <div
+            v-for="(item, idx) in skillInfo.promise_image"
+            :key="`${item.url}-${idx}`"
+            class="promise-cell image-preview"
+          >
+            <img :src="item.url" alt="承诺书" />
             <div
               v-if="!skillInfo?.isSkillVerified"
               class="delete-btn"
-              @click.stop="handleDeletePromiseImage"
+              @click.stop="handleDeletePromiseImage(idx)"
             >
               <van-icon name="cross" />
             </div>
           </div>
-          <div v-else class="upload-placeholder">
+          <div
+            v-if="!skillInfo?.isSkillVerified && skillInfo.promise_image.length < promiseImageMax"
+            class="promise-cell upload-placeholder"
+            @click="handleChoosePromiseImage"
+          >
             <van-icon name="photograph" size="24" />
             <span>点击上传</span>
           </div>
@@ -174,6 +183,8 @@ const selectedWorkKind = ref({
   work_kind_name: ''
 })
 
+const promiseImageMax = 5
+
 const skillInfo = ref({
   promise_image: [],
   operation_video: [],
@@ -216,6 +227,12 @@ const prevStep = () => {
 const handleChoosePromiseImage = async () => {
   if (skillInfo.value?.isSkillVerified) return
 
+  const current = skillInfo.value.promise_image?.length ?? 0
+  if (current >= promiseImageMax) {
+    showToast(`最多上传${promiseImageMax}张`)
+    return
+  }
+
   const bridge = await waitForFitmentFlutter()
   if (!bridge) {
     showToast('请在 App 中使用此功能')
@@ -223,9 +240,10 @@ const handleChoosePromiseImage = async () => {
   }
 
   try {
-    // 使用 Flutter 原生方法选择图片并自动上传
+    const remain = promiseImageMax - current
+    // 使用 Flutter 原生方法选择图片并自动上传（一次可选多张，不超过剩余张数）
     const res = await bridge.chooseImage({
-      count: 1,
+      count: remain,
       upload: {
         url: '/upload',
         name: 'file',
@@ -242,19 +260,28 @@ const handleChoosePromiseImage = async () => {
       return
     }
 
-    const fileInfo = res.tempFiles[0]
+    const appended = []
+    let firstError = ''
+    for (const fileInfo of res.tempFiles) {
+      if (fileInfo.error) {
+        if (!firstError) firstError = fileInfo.error || '部分图片上传失败'
+        continue
+      }
+      if (fileInfo.url) {
+        appended.push({ url: fileInfo.url })
+      }
+    }
 
-    if (fileInfo.error) {
-      showToast(fileInfo.error || '上传失败，请重试')
+    if (appended.length === 0) {
+      showToast(firstError || '上传失败：未返回图片URL')
       return
     }
 
-    if (fileInfo.url) {
-      skillInfo.value.promise_image = [{ url: fileInfo.url }]
-      showToast('上传成功')
-    } else {
-      showToast('上传失败：未返回图片URL')
-    }
+    skillInfo.value.promise_image = [...skillInfo.value.promise_image, ...appended].slice(
+      0,
+      promiseImageMax
+    )
+    showToast(firstError ? `已上传${appended.length}张，其余失败` : '上传成功')
   } catch (error) {
     console.error('选择或上传图片失败:', error)
     showToast('操作失败，请重试')
@@ -314,11 +341,11 @@ const handleChooseOperationVideo = async () => {
 }
 
 /**
- * 删除承诺书
+ * 删除承诺书单张
  */
-const handleDeletePromiseImage = () => {
+const handleDeletePromiseImage = (index) => {
   if (skillInfo.value?.isSkillVerified) return
-  skillInfo.value.promise_image = []
+  skillInfo.value.promise_image = skillInfo.value.promise_image.filter((_, i) => i !== index)
 }
 
 /**
@@ -372,6 +399,10 @@ const getisSkillVerified = async () => {
   selectedWorkKind.value.work_kind_name = data?.work_kind_name
 
   // skillInfo.value.promise_image = data?.promise_image ?? [{
+  //   url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
+  // }, {
+  //   url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
+  // }, {
   //   url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
   // }]
   // skillInfo.value.operation_video = data?.operation_video ?? [{
@@ -464,6 +495,73 @@ section {
 
   &:last-child {
     margin-bottom: 0;
+  }
+}
+
+.upload-hint {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.promise-upload-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .promise-cell {
+    width: calc((100% - 16px) / 3);
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .promise-cell.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .promise-cell .delete-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+
+    :deep(.van-icon) {
+      color: #fff;
+      font-size: 16px;
+    }
+  }
+
+  .promise-cell.upload-placeholder {
+    border: 1px dashed #dcdee0;
+    background: #f7f8fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:active {
+      background: #f2f3f5;
+      border-color: var(--van-primary-color);
+    }
+
+    span {
+      font-size: 12px;
+    }
   }
 }
 
