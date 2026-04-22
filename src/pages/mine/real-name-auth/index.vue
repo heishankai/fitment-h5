@@ -46,15 +46,15 @@
         <van-field
           v-model="cardInfo.card_name"
           name="card_name"
-          label="名称"
-          placeholder="请填写证件名称"
-          :rules="[{ required: true, message: '请填写名称' }]"
+          label="姓名"
+          placeholder="请填写证件姓名"
+          :rules="[{ required: true, message: '请填写姓名' }]"
         />
         <van-field
           v-model="cardInfo.card_number"
           name="card_number"
-          label="号码"
-          placeholder="请填写证件号码"
+          label="身份证号"
+          placeholder="请填写身份证号"
           maxlength="18"
           :rules="[
             { required: true, message: '请填写号码' },
@@ -70,13 +70,6 @@
           label="住址"
           placeholder="请填写证件住址"
           :rules="[{ required: true, message: '请填写住址' }]"
-        />
-        <van-field
-          v-model="cardInfo.period_of_validity"
-          name="period_of_validity"
-          label="有效期"
-          placeholder="请填写有效期"
-          :rules="[{ required: true, message: '请填写有效期' }]"
         />
       </div>
     </main>
