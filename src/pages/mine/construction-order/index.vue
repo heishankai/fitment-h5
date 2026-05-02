@@ -2,14 +2,11 @@
   <div class="page-container">
     <main v-if="order">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-        <!-- 订单头部（包含用户信息） -->
+        <!-- 订单概览（包含用户信息和订单信息） -->
         <detail-header :order="order" :user="order?.wechat_user" class="fade-in-up" />
 
-        <!-- 订单信息 -->
-        <order-info :order="order" class="fade-in-up" :style="{ animationDelay: '0.2s' }" />
-
         <!-- 快捷入口卡片 -->
-        <div class="quick-access-cards fade-in-up" :style="{ animationDelay: '0.35s' }">
+        <div class="quick-access-cards fade-in-up" :style="{ animationDelay: '0.2s' }">
           <!-- 辅材清单入口 -->
           <div
             v-if="user?.skillInfo?.work_kind_code !== 'GONGZHANG'"
@@ -93,7 +90,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 // components
 import DetailHeader from './components/detail-header.vue'
-import OrderInfo from './components/order-info.vue'
 import PriceList from './components/price-list.vue'
 import SubPriceList from './components/sub-price-list.vue'
 import AreaDialog from './components/area-dialog.vue'

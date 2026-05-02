@@ -1,226 +1,238 @@
 <template>
-  <header class="detail-header">
-    <div class="header-content">
-      <div class="work-kind-section">
-        <div class="work-kind-icon" aria-hidden="true">
-          <van-icon name="bag-o" />
+  <van-cell-group :border="false" class="detail-header">
+    <div class="top-row">
+      <div class="title-block">
+        <div class="title-line">
+          <h1>{{ order.work_kind_name || '施工订单' }}</h1>
+          <van-tag :type="statusType" round>{{ order.order_status_name }}</van-tag>
+          <van-tag v-if="isAssigned" type="warning" plain round>被分配</van-tag>
         </div>
-        <div class="work-kind-info">
-          <h1 class="work-kind-name">{{ order.work_kind_name }}</h1>
-          <div class="tags-container">
-            <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
-              {{ order.order_status_name }}
-            </van-tag>
-            <!-- 分配标识 -->
-            <van-tag
-              v-if="order.is_assigned || order.is_assigned_order"
-              type="warning"
-              plain
-              round
-              class="assigned-tag"
-            >
-              <van-icon name="user-circle-o" />
-              被分配
-            </van-tag>
-          </div>
+
+        <div class="sub-line">
+          <van-icon name="wap-home-o" />
+          <span>{{ order.housing_name || '小区未填写' }}</span>
         </div>
       </div>
 
-      <!-- 用户信息 -->
-      <div class="user-section" v-if="user">
-        <van-image
-          :src="user.avatar || 'https://via.placeholder.com/40'"
-          round
-          width="40"
-          height="40"
-          fit="cover"
-          class="user-avatar"
-          :alt="`${user.nickname || '用户'}的头像`"
-        />
-        <div class="user-info">
-          <div class="user-name">{{ user.nickname || '用户' }}</div>
-          <a
-            v-if="user.phone"
-            :href="getPhoneHref(user.phone)"
-            class="user-phone"
-            aria-label="拨打用户电话"
-          >
-            <van-icon name="phone-o" aria-hidden="true" />
-            <span>{{ encryptPhone(user.phone) }}</span>
-          </a>
-        </div>
-      </div>
-
-      <time class="order-time" v-if="order.createdAt" :datetime="order.createdAt">
-        {{ formatTime(order.createdAt) }}
-      </time>
+      <van-button
+        v-if="user?.phone"
+        :url="phoneHref"
+        type="primary"
+        size="small"
+        round
+        icon="phone"
+        class="call-btn"
+      >
+        {{ user.phone }}
+      </van-button>
+      <van-tag v-else plain round class="empty-phone">暂无电话</van-tag>
     </div>
-  </header>
+
+    <div class="stats">
+      <div v-for="item in statItems" :key="item.label" class="stat-item">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+      </div>
+    </div>
+
+    <van-cell
+      v-for="row in detailRows"
+      :key="row.icon"
+      :icon="row.icon"
+      :title="row.text"
+      :border="false"
+      :class="['meta-cell', row.className]"
+    />
+  </van-cell-group>
 </template>
 
 <script setup lang="ts">
-import { formatTime, encryptPhone } from '@/utils/index'
+import { computed } from 'vue'
+import { formatTime } from '@/utils/index'
 
-defineProps<{
-  order: {
-    work_kind_name: string
-    order_status: number
-    order_status_name: string
-    createdAt?: string
-    is_assigned?: boolean
-    is_assigned_order?: boolean
-  }
-  user?: {
-    avatar?: string
-    nickname?: string
-    phone?: string
-  } | null
+const props = defineProps<{
+  order: any
+  user?: { phone?: string } | null
 }>()
 
-// 获取订单状态类型
-const getStatusType = (status: number) => {
-  switch (status) {
-    case 1:
-      return 'warning' // 待接单
-    case 2:
-      return 'primary' // 已接单
-    case 3:
-      return 'success' // 已完成
-    case 4:
-      return 'danger' // 已取消
-    default:
-      return 'default'
-  }
-}
+const statusType = computed(() => {
+  const statusMap = {
+    1: 'warning',
+    2: 'primary',
+    3: 'success',
+    4: 'danger'
+  } as const
 
-const getPhoneHref = (phone: string) => {
-  return `tel:${phone.replace(/[^\d+]/g, '')}`
-}
+  return statusMap[props.order.order_status as keyof typeof statusMap] || 'default'
+})
+
+const isAssigned = computed(() => props.order.is_assigned || props.order.is_assigned_order)
+
+const phoneHref = computed(() =>
+  props.user?.phone ? `tel:${props.user.phone.replace(/[^\d+]/g, '')}` : ''
+)
+
+const address = computed(() => {
+  const { location, province, city, district } = props.order
+  return location || `${province || ''} ${city || ''} ${district || ''}`.trim()
+})
+
+const statItems = computed(() => [
+  { label: '户型', value: props.order.roomType || '-' },
+  { label: '面积', value: props.order.area ? `${props.order.area}m²` : '-' },
+  { label: '下单', value: props.order.createdAt ? formatTime(props.order.createdAt) : '-' }
+])
+
+const detailRows = computed(() => {
+  const rows: Array<{ icon: string; text: string; className?: string }> = []
+
+  if (address.value) {
+    rows.push({ icon: 'location-o', text: address.value })
+  }
+
+  if (props.order.remark) {
+    rows.push({ icon: 'description-o', text: props.order.remark, className: 'remark-cell' })
+  }
+
+  return rows
+})
 </script>
 
 <style lang="less" scoped>
 .detail-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 12px;
-  color: #fff;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border: 1px solid #edf2f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(30, 34, 34, 0.05);
+}
 
-  .header-content {
-    .work-kind-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
+.top-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px 8px;
+}
 
-      .work-kind-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
+.title-block {
+  flex: 1;
+  min-width: 0;
+}
 
-        .van-icon {
-          font-size: 24px;
-          color: #fff;
-        }
-      }
+.title-line,
+.sub-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
 
-      .work-kind-info {
-        flex: 1;
-        min-width: 0;
+.title-line h1,
+.sub-line span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-        .work-kind-name {
-          font-size: 20px;
-          font-weight: 700;
-          margin: 0 0 8px 0;
-          line-height: 1.3;
-        }
+.title-line h1 {
+  flex: 1;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
 
-        .tags-container {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
+.sub-line {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
 
-        .status-tag {
-          font-weight: 600;
-        }
+  .van-icon {
+    color: var(--color-primary);
+  }
+}
 
-        .assigned-tag {
-          font-weight: 500;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
+.call-btn {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
 
-          .van-icon {
-            font-size: 12px;
-          }
-        }
-      }
-    }
+  :deep(.van-button__text) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
 
-    .user-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      margin-bottom: 12px;
+.empty-phone {
+  color: var(--color-text-placeholder);
+}
 
-      .user-avatar {
-        flex-shrink: 0;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-      }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 10px 6px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f5f8f7;
+}
 
-      .user-info {
-        flex: 1;
-        min-width: 0;
+.stat-item {
+  min-width: 0;
+  padding: 8px 6px;
+  text-align: center;
 
-        .user-name {
-          font-size: 15px;
-          font-weight: 600;
-          color: #fff;
-          margin: 0 0 6px 0;
-          line-height: 1.3;
-        }
+  & + & {
+    border-left: 1px solid #e8efec;
+  }
 
-        .user-phone {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.9);
-          text-decoration: none;
-          transition: opacity 0.2s;
+  span,
+  strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-          &:hover {
-            opacity: 0.8;
-          }
+  span {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+  }
 
-          &:active {
-            opacity: 0.7;
-          }
+  strong {
+    margin-top: 2px;
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 650;
+  }
+}
 
-          .van-icon {
-            font-size: 14px;
-          }
-        }
-      }
-    }
+.meta-cell {
+  padding: 6px 12px 9px;
+  color: var(--color-text-secondary);
+  background: #fff;
 
-    .order-time {
-      display: block;
-      font-size: 12px;
-      opacity: 0.9;
-    }
+  :deep(.van-cell__left-icon) {
+    color: var(--color-primary);
+  }
+
+  :deep(.van-cell__title span) {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.remark-cell {
+  color: var(--color-warning);
+
+  :deep(.van-cell__left-icon) {
+    color: var(--color-warning);
   }
 }
 </style>
