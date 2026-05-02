@@ -39,7 +39,7 @@
       v-for="row in detailRows"
       :key="row.icon"
       :icon="row.icon"
-      :title="row.text"
+      :title="`${row.label}：${row.text}`"
       :border="false"
       :class="['meta-cell', row.className]"
     />
@@ -84,14 +84,19 @@ const statItems = computed(() => [
 ])
 
 const detailRows = computed(() => {
-  const rows: Array<{ icon: string; text: string; className?: string }> = []
+  const rows: Array<{ icon: string; text: string; className?: string; label: string }> = []
 
   if (address.value) {
-    rows.push({ icon: 'location-o', text: address.value })
+    rows.push({ icon: 'location-o', label: '地址', text: address.value })
   }
 
   if (props.order.remark) {
-    rows.push({ icon: 'description-o', text: props.order.remark, className: 'remark-cell' })
+    rows.push({
+      icon: 'description-o',
+      label: '备注',
+      text: props.order.remark,
+      className: 'remark-cell'
+    })
   }
 
   return rows
