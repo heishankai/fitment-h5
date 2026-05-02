@@ -39,8 +39,13 @@
         />
         <div class="user-info">
           <div class="user-name">{{ user.nickname || '用户' }}</div>
-          <a v-if="user.phone" :href="`tel:${user.phone}`" class="user-phone">
-            <van-icon name="phone-o" />
+          <a
+            v-if="user.phone"
+            :href="getPhoneHref(user.phone)"
+            class="user-phone"
+            aria-label="拨打用户电话"
+          >
+            <van-icon name="phone-o" aria-hidden="true" />
             <span>{{ encryptPhone(user.phone) }}</span>
           </a>
         </div>
@@ -86,6 +91,10 @@ const getStatusType = (status: number) => {
     default:
       return 'default'
   }
+}
+
+const getPhoneHref = (phone: string) => {
+  return `tel:${phone.replace(/[^\d+]/g, '')}`
 }
 </script>
 

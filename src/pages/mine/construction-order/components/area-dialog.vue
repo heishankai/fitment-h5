@@ -1,23 +1,58 @@
 <template>
   <van-popup
     :show="modelValue"
-    position="center"
+    position="bottom"
     round
+    closeable
     class="area-dialog-popup"
-    style="width: 80%"
     @update:show="handleUpdateShow"
   >
     <div class="area-dialog">
       <div class="area-dialog-header">
-        <h3>修改平米数</h3>
-        <p class="area-dialog-desc">订单暂无工价清单，请先确认或修改平米数</p>
+        <h3>修改房屋信息</h3>
+        <p class="area-dialog-desc">请务必联系用户确认好信息再创建工价！</p>
       </div>
       <div class="area-dialog-body">
         <van-field
-          v-model="areaInput"
-          type="digit"
-          label="平米数"
+          v-model="form.housing_name"
+          label="小区名称"
+          placeholder="请输入小区名称"
+          maxlength="200"
+          show-word-limit
+          class="area-field"
+        />
+        <van-field
+          v-model="form.location"
+          label="详细地址"
+          placeholder="请输入详细地址"
+          maxlength="200"
+          show-word-limit
+          class="area-field"
+        />
+        <van-field
+          v-model="form.roomType"
+          label="户型"
+          placeholder="请输入户型"
+          maxlength="50"
+          show-word-limit
+          class="area-field"
+        />
+        <van-field
+          v-model="form.area"
+          type="number"
+          label="面积"
           placeholder="请输入平米数"
+          class="area-field"
+        />
+        <van-field
+          v-model="form.remark"
+          type="textarea"
+          label="备注"
+          placeholder="请输入备注"
+          maxlength="800"
+          rows="3"
+          autosize
+          show-word-limit
           class="area-field"
         />
       </div>
@@ -33,26 +68,47 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { showToast } from 'vant'
+
+interface HouseInfoForm {
+  housing_name?: string
+  location?: string
+  roomType?: string
+  area?: string
+  remark?: string
+}
 
 const props = defineProps<{
   modelValue: boolean
-  defaultArea?: string
+  defaultInfo?: HouseInfoForm
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  confirm: [area: string]
+  confirm: [form: HouseInfoForm]
   cancel: []
 }>()
 
-const areaInput = ref('')
+const form = ref<HouseInfoForm>({
+  housing_name: '',
+  location: '',
+  roomType: '',
+  area: '',
+  remark: ''
+})
+
+const normalizeForm = (value?: HouseInfoForm): HouseInfoForm => ({
+  housing_name: String(value?.housing_name ?? ''),
+  location: String(value?.location ?? ''),
+  roomType: String(value?.roomType ?? ''),
+  area: String(value?.area ?? ''),
+  remark: String(value?.remark ?? '')
+})
 
 watch(
   () => props.modelValue,
   (show) => {
     if (show) {
-      areaInput.value = String(props.defaultArea ?? '')
+      form.value = normalizeForm(props.defaultInfo)
     }
   },
   { immediate: true }
@@ -64,12 +120,13 @@ const handleUpdateShow = (show: boolean) => {
 }
 
 const handleConfirm = () => {
-  const areaVal = areaInput.value?.trim()
-  if (!areaVal) {
-    showToast('请输入平米数')
-    return
-  }
-  emit('confirm', areaVal)
+  emit('confirm', {
+    housing_name: form.value.housing_name?.trim(),
+    location: form.value.location?.trim(),
+    roomType: form.value.roomType?.trim(),
+    area: form.value.area?.trim(),
+    remark: form.value.remark?.trim()
+  })
 }
 
 const handleCancel = () => {
@@ -81,13 +138,19 @@ const handleCancel = () => {
 <style lang="less" scoped>
 .area-dialog-popup {
   background: #fff;
+  max-height: 86vh;
 }
 
 .area-dialog {
-  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  max-height: 86vh;
+  padding: 18px 16px calc(14px + env(safe-area-inset-bottom));
 
   .area-dialog-header {
-    margin-bottom: 12px;
+    flex-shrink: 0;
+    margin-bottom: 14px;
+    text-align: center;
 
     h3 {
       margin: 0 0 4px;
@@ -105,15 +168,19 @@ const handleCancel = () => {
   }
 
   .area-dialog-body {
+    flex: 1;
+    overflow-y: auto;
     margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
 
     :deep(.area-field) {
       padding: 10px 12px;
       background: var(--color-background);
       border-radius: 8px;
+      margin-bottom: 10px;
 
       .van-field__label {
-        width: 56px;
+        width: 72px;
         font-size: 14px;
         color: var(--color-text-secondary);
       }
@@ -126,6 +193,7 @@ const handleCancel = () => {
   }
 
   .area-dialog-footer {
+    flex-shrink: 0;
     display: flex;
     gap: 8px;
 

@@ -44,15 +44,21 @@ export const getSubWorkPricesByOrderId = (orderId: number): Promise<BasicResp<an
 }
 
 /**
- * 更新订单平米数
+ * 更新订单房屋信息
  */
-export const updateOrderAreaService = (
+export const updateOrderHouseInfoService = (
   orderId: number,
-  area: string | number
+  data: {
+    housing_name?: string
+    location?: string
+    roomType?: string
+    area?: string | number
+    remark?: string
+  }
 ): Promise<BasicResp<any>> => {
   return Request({
-    url: `/api/order/${orderId}/area`,
+    url: `/api/order/${orderId}/house-info`,
     method: 'PUT',
-    data: { area }
+    data
   })
 }

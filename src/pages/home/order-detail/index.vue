@@ -96,10 +96,15 @@
                 <van-icon name="user-circle-o" />
                 {{ order.wechat_user.nickname || '用户' }}
               </div>
-              <div class="user-phone" v-if="order.wechat_user.phone">
-                <van-icon name="phone-o" />
+              <a
+                class="user-phone"
+                v-if="order.wechat_user.phone"
+                :href="getPhoneHref(order.wechat_user.phone)"
+                aria-label="拨打用户电话"
+              >
+                <van-icon name="phone-o" aria-hidden="true" />
                 <span>{{ encryptPhone(order.wechat_user.phone) }}</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
@@ -155,6 +160,10 @@ const getStatusType = (status: number) => {
     default:
       return 'default'
   }
+}
+
+const getPhoneHref = (phone: string) => {
+  return `tel:${phone.replace(/[^\d+]/g, '')}`
 }
 
 // 加载订单详情
@@ -427,6 +436,7 @@ onMounted(() => {
           padding: 6px 12px;
           background: rgba(var(--color-primary-rgb), 0.08);
           border-radius: 8px;
+          text-decoration: none;
           width: fit-content;
 
           .van-icon {

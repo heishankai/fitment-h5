@@ -81,7 +81,7 @@
     <!-- 修改平米数弹窗（无工价清单时显示） -->
     <AreaDialog
       v-model="showAreaDialog"
-      :default-area="String(order?.area ?? '')"
+      :default-info="houseInfoDefault"
       @confirm="onAreaDialogConfirm"
       @cancel="onAreaDialogCancel"
     />
@@ -102,7 +102,7 @@ import {
   getOrderDetail,
   getUserInfoService,
   getSubWorkPricesByOrderId,
-  updateOrderAreaService
+  updateOrderHouseInfoService
 } from './service'
 import { showToast } from 'vant'
 import { handleContactUser, calculateChatBubbleOffset } from './utils'
@@ -140,6 +140,14 @@ const isAssignedOrder = computed(() => {
 const currentUserPhone = computed(() => {
   return user.value?.phone
 })
+
+const houseInfoDefault = computed(() => ({
+  housing_name: order.value?.housing_name ?? '',
+  location: order.value?.location ?? '',
+  roomType: order.value?.roomType ?? '',
+  area: String(order.value?.area ?? ''),
+  remark: order.value?.remark ?? ''
+}))
 
 // 过滤父工价数据：如果是分配的订单，只显示分配给当前用户的工价
 const filteredParentWorkPriceGroups = computed(() => {
@@ -250,10 +258,23 @@ const handleCreateForemanPrice = () => {
   showAreaDialog.value = true
 }
 
-// 平米数弹窗 - 确定：修改并刷新
-const onAreaDialogConfirm = async (areaVal: string) => {
+// 房屋信息弹窗 - 确定：修改并刷新
+const onAreaDialogConfirm = async (form: {
+  housing_name?: string
+  location?: string
+  roomType?: string
+  area?: string
+  remark?: string
+}) => {
   const orderId = order.value?.id
-  const { success } = await updateOrderAreaService(Number(orderId), areaVal)
+  const payload = {
+    housing_name: form.housing_name,
+    location: form.location,
+    roomType: form.roomType,
+    remark: form.remark,
+    ...(form.area !== undefined && form.area !== '' ? { area: form.area } : {})
+  }
+  const { success } = await updateOrderHouseInfoService(Number(orderId), payload)
   if (!success) return
 
   showToast('修改成功')
@@ -261,7 +282,7 @@ const onAreaDialogConfirm = async (areaVal: string) => {
   await loadOrderDetail()
 }
 
-// 平米数弹窗 - 取消：跳转创建工价
+// 房屋信息弹窗 - 取消：跳转创建工价
 const onAreaDialogCancel = () => {
   showAreaDialog.value = false
   navigateToCreateForemanPrice()
