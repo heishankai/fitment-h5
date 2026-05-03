@@ -1,10 +1,5 @@
 <template>
   <div class="page">
-    <van-steps :active="active">
-      <van-step>上传承诺书</van-step>
-      <van-step>上传实操视频</van-step>
-      <van-step>认证审核</van-step>
-    </van-steps>
     <main class="fade-in-up">
       <van-field
         class="info-card fade-in-up shine-effect"
@@ -34,7 +29,7 @@
 
       <van-field
         v-model="skillInfo.skill_intro"
-        class="info-card fade-in-up"
+        class="info-card"
         type="textarea"
         label="技能介绍"
         required
@@ -45,7 +40,31 @@
         :readonly="skillInfo?.isSkillVerified"
       />
 
-      <section v-show="active === 0 || active === 2">
+      <van-field class="info-card" name="checkboxGroup" label="关联工长">
+        <template #input>
+          <van-radio-group
+            v-model="skillInfo.isShowRelatedCraftsman"
+            direction="horizontal"
+            @change="onChangeRelatedCraftsman"
+          >
+            <van-radio :name="false">不关联工长</van-radio>
+            <van-radio :name="true">关联工长</van-radio>
+          </van-radio-group>
+        </template>
+      </van-field>
+
+      <van-field
+        v-if="skillInfo.isShowRelatedCraftsman"
+        class="info-card fade-in-up"
+        readonly
+        :is-link="!skillInfo?.isSkillVerified"
+        label="选择工长"
+        :model-value="relatedCraftsmanFieldText"
+        placeholder="点击搜索并选择工长"
+        @click="openRelatedCraftsmanField"
+      />
+
+      <section>
         <section-title title="上传承诺书" />
         <p class="upload-hint">最多上传 {{ promiseImageMax }} 张</p>
         <div class="promise-upload-grid">
@@ -74,7 +93,7 @@
         </div>
       </section>
 
-      <section v-show="active === 1 || active === 2">
+      <section>
         <section-title title="上传实操视频" />
         <div class="upload-item" @click="handleChooseOperationVideo">
           <div v-if="skillInfo.operation_video?.[0]?.url" class="video-preview">
@@ -101,31 +120,6 @@
     </main>
     <footer class="fade-in-up">
       <van-button
-        v-if="active > 0"
-        type="primary"
-        size="large"
-        round
-        block
-        native-type="submit"
-        class="save-btn"
-        @click="prevStep"
-      >
-        上一步
-      </van-button>
-      <van-button
-        v-if="active < 2"
-        type="primary"
-        size="large"
-        round
-        block
-        native-type="submit"
-        class="save-btn"
-        @click="nextStep"
-      >
-        下一步
-      </van-button>
-      <van-button
-        v-if="active === 2 && !skillInfo?.isSkillVerified"
         type="primary"
         size="large"
         round
@@ -137,33 +131,16 @@
         提交认证
       </van-button>
     </footer>
-    <van-popup
-      v-model:show="showPicker"
-      destroy-on-close
-      round
-      position="bottom"
-      :style="{ paddingBottom: 'env(safe-area-inset-bottom)', maxHeight: '70vh' }"
-      class="work-kind-picker-popup"
-    >
-      <div class="picker-header">
-        <span class="picker-drag-bar" />
-      </div>
-      <van-picker
-        title="选择工种"
-        :columns="work_kind_list"
-        :show-toolbar="true"
-        confirm-button-text="确定"
-        cancel-button-text="取消"
-        @cancel="showPicker = false"
-        @confirm="onConfirm"
-      />
-    </van-popup>
+    <WorkKindPickerPopup v-model:show="showPicker" :columns="work_kind_list" @confirm="onConfirm" />
+    <RelatedCraftsmanPopup ref="relatedCraftsmanPopupRef" @select="onRelatedCraftsmanSelect" />
   </div>
 </template>
 
 <script setup>
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import SectionTitle from '@/components/section-title.vue'
+import WorkKindPickerPopup from './components/work-kind-picker-popup.vue'
+import RelatedCraftsmanPopup from './components/related-craftsman-popu.vue'
 import { getToken, waitForFitmentFlutter } from '@/utils'
 import {
   isSkillVerifiedService,
@@ -176,8 +153,8 @@ const router = useRouter()
 
 const showPicker = ref(false)
 const work_kind_list = ref()
+const relatedCraftsmanPopupRef = ref(null)
 
-const active = ref(0)
 const selectedWorkKind = ref({
   work_kind_code: '',
   work_kind_name: ''
@@ -189,11 +166,45 @@ const skillInfo = ref({
   promise_image: [],
   operation_video: [],
   work_years: '',
-  skill_intro: ''
+  skill_intro: '',
+  relatedCraftsmanUserId: null, // 关联工长id
+  relatedCraftsmanNickname: '',
+  relatedCraftsmanPhone: '',
+  isShowRelatedCraftsman: false // 是否关联工长
 })
 
+const relatedCraftsmanFieldText = computed(() => {
+  const { relatedCraftsmanNickname, relatedCraftsmanPhone } = skillInfo.value
+  if (!relatedCraftsmanNickname && !relatedCraftsmanPhone) return ''
+  if (relatedCraftsmanNickname && relatedCraftsmanPhone) {
+    return `${relatedCraftsmanNickname} ${relatedCraftsmanPhone}`
+  }
+  return relatedCraftsmanNickname || relatedCraftsmanPhone
+})
+
+// 关联工长
+const onChangeRelatedCraftsman = (value) => {
+  skillInfo.value.isShowRelatedCraftsman = value
+  if (!value) {
+    skillInfo.value.relatedCraftsmanUserId = null
+    skillInfo.value.relatedCraftsmanNickname = ''
+    skillInfo.value.relatedCraftsmanPhone = ''
+    return
+  }
+}
+
+const onRelatedCraftsmanSelect = (item) => {
+  skillInfo.value.relatedCraftsmanUserId = item?.id ?? null
+  skillInfo.value.relatedCraftsmanNickname = item?.nickname ?? ''
+  skillInfo.value.relatedCraftsmanPhone = item?.phone ?? ''
+}
+
+const openRelatedCraftsmanField = () => {
+  if (skillInfo.value?.isSkillVerified) return
+  relatedCraftsmanPopupRef.value?.open()
+}
+
 const onConfirm = ({ selectedOptions }) => {
-  showPicker.value = false
   selectedWorkKind.value.work_kind_code = selectedOptions[0].value
   selectedWorkKind.value.work_kind_name = selectedOptions[0].text
 }
@@ -207,18 +218,6 @@ const getWorkKindList = async () => {
     text: item?.work_kind_name,
     value: item?.work_kind_code
   }))
-}
-
-// 下一步
-const nextStep = () => {
-  active.value++
-}
-
-// 上一步
-const prevStep = () => {
-  if (active.value > 0) {
-    active.value--
-  }
 }
 
 /**
@@ -380,6 +379,31 @@ const submit = async () => {
     return
   }
 
+  if (skillInfo.value?.isShowRelatedCraftsman && !skillInfo.value.relatedCraftsmanUserId) {
+    showToast('请选择要关联的工长')
+    return
+  }
+
+  const isRelate = skillInfo.value.isShowRelatedCraftsman
+  const confirmMessage = !isRelate
+    ? '您选择了不关联工长。提交后将不会绑定任何工长账号，确定提交认证吗？'
+    : [
+        '请确认将要关联的工长信息：',
+        `昵称：${skillInfo.value.relatedCraftsmanNickname || '—'}`,
+        `手机号：${skillInfo.value.relatedCraftsmanPhone || '—'}`,
+        '',
+        '提交后信息与关联关系将进入审核，确定提交认证吗？'
+      ].join('\n')
+
+  try {
+    await showConfirmDialog({
+      title: '确认提交',
+      message: confirmMessage
+    })
+  } catch {
+    return
+  }
+
   const { success } = await isSkillVerifiedService({
     ...skillInfo.value,
     ...selectedWorkKind.value
@@ -398,6 +422,12 @@ const getisSkillVerified = async () => {
   selectedWorkKind.value.work_kind_code = data?.work_kind_code
   selectedWorkKind.value.work_kind_name = data?.work_kind_name
 
+  if (data) {
+    skillInfo.value = data
+  }
+  skillInfo.value.isShowRelatedCraftsman = Boolean(skillInfo.value.relatedCraftsmanUserId)
+
+  // 模拟数据
   // skillInfo.value.promise_image = data?.promise_image ?? [{
   //   url: 'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
   // }, {
@@ -408,12 +438,6 @@ const getisSkillVerified = async () => {
   // skillInfo.value.operation_video = data?.operation_video ?? [{
   //   url: 'https://download.samplelib.com/mp4/sample-30s.mp4'
   // }]
-
-  skillInfo.value.promise_image = data?.promise_image ?? []
-  skillInfo.value.operation_video = data?.operation_video ?? []
-  skillInfo.value.work_years = data?.work_years ?? ''
-  skillInfo.value.skill_intro = data?.skill_intro ?? ''
-  skillInfo.value.isSkillVerified = data?.isSkillVerified
 }
 
 onMounted(() => {
@@ -461,16 +485,10 @@ footer {
 .info-card {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
+  padding: 18px;
   margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
   transition: all 0.3s;
-}
-
-.info-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .info-label {
@@ -636,59 +654,6 @@ section {
     span {
       font-size: 14px;
     }
-  }
-}
-
-/* 工种选择弹窗 */
-.work-kind-picker-popup {
-  background: var(--color-bg);
-  overflow: visible;
-
-  .picker-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px 4px;
-  }
-
-  .picker-drag-bar {
-    display: block;
-    width: 40px;
-    height: 4px;
-    margin: 0 auto;
-    background: var(--color-border);
-    border-radius: 2px;
-  }
-
-  :deep(.van-picker) {
-    --van-picker-background: transparent;
-    --van-picker-toolbar-height: 44px;
-    --van-picker-title-font-size: 16px;
-  }
-
-  :deep(.van-picker__toolbar) {
-    height: 44px;
-    padding: 0 20px;
-  }
-
-  :deep(.van-picker__cancel) {
-    font-size: 15px;
-    color: var(--color-text-secondary);
-  }
-
-  :deep(.van-picker__confirm) {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-primary);
-  }
-
-  :deep(.van-picker-column__item) {
-    font-size: 16px;
-  }
-
-  :deep(.van-picker-column__item--selected) {
-    font-weight: 600;
-    color: var(--color-text);
   }
 }
 </style>
