@@ -137,6 +137,13 @@ const saving = ref(false)
 const orderId = Number(route.params.id)
 const STORAGE_KEY = `construction_progress_${orderId}`
 
+/** 开发环境无缓存照片时用于调试施工照片区域 UI（不同 seed 避免三张同图） */
+const MOCK_CONSTRUCTION_PHOTOS: Array<{ url: string }> = [
+  { url: 'https://picsum.photos/seed/fitment-site-1/400/400' },
+  { url: 'https://picsum.photos/seed/fitment-site-2/400/400' },
+  { url: 'https://picsum.photos/seed/fitment-site-3/400/400' }
+]
+
 const construction_progress = ref({
   start_time: '',
   end_time: '',
@@ -318,7 +325,7 @@ const onSave = async () => {
     const { success } = await saveConstructionProgress({
       orderId,
       ...construction_progress.value,
-      photos: construction_progress.value.photos.map((p) => p.url)
+      photos: construction_progress.value.photos?.map((p) => p.url)
     })
 
     if (!success) return
@@ -335,6 +342,9 @@ const onSave = async () => {
 onMounted(() => {
   // 先加载本地存储的数据
   loadFromStorage()
+  if (import.meta.env.DEV && (construction_progress.value.photos?.length ?? 0) === 0) {
+    construction_progress.value.photos = MOCK_CONSTRUCTION_PHOTOS.map((p) => ({ url: p.url }))
+  }
   // 然后获取位置信息（如果位置为空）
   if (!construction_progress.value.location) {
     getUserLocation(construction_progress)

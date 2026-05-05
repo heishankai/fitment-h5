@@ -43,15 +43,6 @@
           class="fade-in-up"
           :style="{ animationDelay: '0.3s' }"
         />
-
-        <!-- 子工价清单 -->
-        <sub-price-list
-          v-if="filteredSubWorkPriceGroups?.length"
-          :sub-work-prices="filteredSubWorkPriceGroups"
-          :show-summary="!isAssignedOrder"
-          class="fade-in-up"
-          :style="{ animationDelay: '0.4s' }"
-        />
       </van-pull-refresh>
     </main>
 
@@ -91,15 +82,9 @@ import { useRoute, useRouter } from 'vue-router'
 // components
 import DetailHeader from './components/detail-header.vue'
 import PriceList from './components/price-list.vue'
-import SubPriceList from './components/sub-price-list.vue'
 import AreaDialog from './components/area-dialog.vue'
 // utils
-import {
-  getOrderDetail,
-  getUserInfoService,
-  getSubWorkPricesByOrderId,
-  updateOrderHouseInfoService
-} from './service'
+import { getOrderDetail, getUserInfoService, updateOrderHouseInfoService } from './service'
 import { showToast } from 'vant'
 import { handleContactUser, calculateChatBubbleOffset } from './utils'
 
@@ -109,7 +94,6 @@ const router = useRouter()
 const order = ref<any>(null)
 const user = ref<any>(null)
 const refreshing = ref(false)
-const sub_work_price_groups = ref<any>([])
 const windowSize = ref({ width: window.innerWidth, height: window.innerHeight })
 const showAreaDialog = ref(false)
 
@@ -165,31 +149,6 @@ const filteredParentWorkPriceGroups = computed(() => {
   })
 })
 
-// 过滤子工价数据：如果是分配的订单，只显示分配给当前用户的工价组
-const filteredSubWorkPriceGroups = computed(() => {
-  if (!sub_work_price_groups.value?.length) return []
-
-  // 如果不是分配的订单，返回全部子工价组
-  if (!isAssignedOrder.value) {
-    return sub_work_price_groups.value
-  }
-
-  // 如果是分配的订单，需要用户手机号才能过滤
-  if (!currentUserPhone.value) {
-    return sub_work_price_groups.value
-  }
-
-  // 如果是分配的订单，只返回分配给当前用户的工价组
-  // 检查子工价组中的每个子工价是否分配给当前用户
-  return sub_work_price_groups.value.filter((group: any) => {
-    if (!group.sub_work_price_groups?.length) return false
-    // 如果组内任何一个子工价分配给当前用户，则显示该组
-    return group.sub_work_price_groups.some((price: any) => {
-      return price.assigned_craftsman?.phone === currentUserPhone.value
-    })
-  })
-})
-
 // 加载订单详情
 const loadOrderDetail = async () => {
   const orderId = Number(route?.params?.id)
@@ -200,11 +159,6 @@ const loadOrderDetail = async () => {
   const { success: userSuccess, data: userData } = await getUserInfoService()
   if (!userSuccess) return
   user.value = userData
-
-  const { success: subWorkPricesSuccess, data: subWorkPricesData } =
-    await getSubWorkPricesByOrderId(orderId)
-  if (!subWorkPricesSuccess) return
-  sub_work_price_groups.value = subWorkPricesData
 }
 
 // 联系用户

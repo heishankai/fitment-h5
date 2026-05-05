@@ -169,15 +169,41 @@ const navigateToDetail = (price: any) => {
 
 // 提交工价清单
 const handleSubmit = async () => {
-  if (!cartList.value?.length) {
-    showToast('清单为空，请先添加工价')
-    return
-  }
+  if (!cartList.value?.length) return showToast('清单为空，请先添加工价')
 
   try {
     await showConfirmDialog({
       title: '确认提交',
       message: `共 ${cartTotalCount.value} 项工价，确认提交吗？`
+    })
+
+    console.log({
+      order_id: Number(route.params.id), // 订单id
+      area, // 平米数
+      total_price: totalPrice.value, // 施工总费用
+      work_price_list: (cartList.value || [])?.map((item) => {
+        const {
+          quantity,
+          id,
+          work_kind,
+          work_price,
+          work_title,
+          labour_cost,
+          minimum_price,
+          is_set_minimum_price
+        } = item ?? {}
+        return {
+          work_price_id: id, // 工价id
+          work_price, // 工价
+          work_title, // 工价标题
+          quantity, // 数量
+          work_kind_name: work_kind?.work_kind_name, // 工种名称
+          work_kind_code: work_kind?.work_kind_code, // 工种id
+          labour_cost_name: labour_cost?.labour_cost_name, // 单位名称
+          minimum_price, // 最低价格,
+          is_set_minimum_price // 是否设置最低价格
+        }
+      })
     })
 
     const { success } = await submitWorkPriceService({

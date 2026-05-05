@@ -86,7 +86,7 @@
       </van-card>
     </div>
 
-    <!-- 价格汇总区域 -->
+    <!-- 价格汇总区域（与接口 total_service_fee_details / gangmaster_cost_details 等对齐） -->
     <div class="price-summary">
       <!-- 工价合计 -->
       <div class="summary-row">
@@ -94,37 +94,28 @@
         <span class="summary-value">¥{{ Number(orderInfo?.total_price || 0).toFixed(2) }}</span>
       </div>
 
-      <!-- 工长费用 -->
-      <div class="summary-row" v-if="orderInfo?.gangmaster_cost">
-        <span class="summary-label">工长工费：</span>
-        <span class="summary-value service-fee"
-          >¥{{ Number(orderInfo.gangmaster_cost).toFixed(2) }}</span
-        >
+      <!-- 平台服务费（可多笔） -->
+      <div v-for="row in platformServiceFeeRows" :key="row.key" class="summary-row">
+        <span class="summary-label">{{ row.label }}</span>
+        <span class="summary-value-meta">
+          <van-tag v-if="row.isPaid" type="success" plain class="paid-tag"> 已支付 </van-tag>
+          <span class="summary-value service-fee">¥{{ row.amount.toFixed(2) }}</span>
+        </span>
       </div>
 
-      <!-- 上门服务数量 -->
-      <div
-        class="summary-row"
-        v-if="orderInfo?.visiting_service_num !== undefined && orderInfo.visiting_service_num > 0"
-      >
-        <span class="summary-label"> 上门服务数量： </span>
-        <span class="summary-value">{{ orderInfo.visiting_service_num }}次</span>
-      </div>
-
-      <!-- 平台服务费 -->
-      <div class="summary-row">
-        <span class="summary-label">平台服务费：</span>
-        <span class="summary-value service-fee"
-          >¥{{ calculatePlatformServiceFee(orderInfo).toFixed(2) }}</span
-        >
+      <!-- 工长工费（仅工长单；多条时仅首条展示上门次数） -->
+      <div v-for="row in gangmasterFeeRows" :key="row.key" class="summary-row">
+        <span class="summary-label">{{ row.label }}</span>
+        <span class="summary-value-meta">
+          <van-tag v-if="row.isPaid" type="success" plain class="paid-tag"> 已支付 </van-tag>
+          <span class="summary-value service-fee">¥{{ row.amount.toFixed(2) }}</span>
+        </span>
       </div>
 
       <!-- 最终总价 -->
       <div class="summary-row final-total">
         <span class="summary-label">总计：</span>
-        <span class="summary-value final-price"
-          >¥{{ calculateFinalTotal(orderInfo).toFixed(2) }}</span
-        >
+        <span class="summary-value final-price">¥{{ grandTotalFormatted }}</span>
       </div>
 
       <!-- 支付状态和验收状态 -->
@@ -147,10 +138,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DetailSectionTitle from '@/components/detail-section-title.vue'
+import {
+  calculateOrderFeeGrandTotal,
+  getGangmasterFeeRows,
+  getPlatformServiceFeeRows
+} from '../order-fee-summary'
 
-defineProps<{
+const props = defineProps<{
   parentWorkPriceGroups?: any[]
   orderInfo?: any
 }>()
@@ -158,24 +155,11 @@ defineProps<{
 const router = useRouter()
 const route = useRoute()
 
-// 计算平台服务费：(total_price + gangmaster_cost) * 10%
-const calculatePlatformServiceFee = (orderInfo: any): number => {
-  const totalPrice = parseFloat(String(orderInfo?.total_price || 0)) || 0
-  const gangmasterCost = parseFloat(String(orderInfo?.gangmaster_cost || 0)) || 0
-  return (totalPrice + gangmasterCost) * 0.1
-}
+const platformServiceFeeRows = computed(() => getPlatformServiceFeeRows(props.orderInfo))
 
-// 计算最终总价（工价合计 + 工长工费 + 平台服务费）
-const calculateFinalTotal = (orderInfo: any): number => {
-  // 工价合计
-  const totalPrice = parseFloat(String(orderInfo?.total_price || 0)) || 0
-  // 工长工费
-  const gangmasterCost = parseFloat(String(orderInfo?.gangmaster_cost || 0)) || 0
-  // 平台服务费
-  const platformServiceFee = calculatePlatformServiceFee(orderInfo)
+const gangmasterFeeRows = computed(() => getGangmasterFeeRows(props.orderInfo))
 
-  return totalPrice + gangmasterCost + platformServiceFee
-}
+const grandTotalFormatted = computed(() => calculateOrderFeeGrandTotal(props.orderInfo).toFixed(2))
 
 // 跳转详情
 const navigateToDetail = (price: any) => {
@@ -438,6 +422,18 @@ const navigateToDetail = (price: any) => {
   .summary-label {
     color: var(--color-text-placeholder);
     font-weight: 500;
+  }
+
+  .summary-value-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .paid-tag {
+    flex-shrink: 0;
+    margin: 0;
   }
 
   .summary-value {

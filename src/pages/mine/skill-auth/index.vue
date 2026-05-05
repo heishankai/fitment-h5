@@ -170,7 +170,7 @@ const skillInfo = ref({
   relatedCraftsmanUserId: null, // 关联工长id
   relatedCraftsmanNickname: '',
   relatedCraftsmanPhone: '',
-  isShowRelatedCraftsman: false // 是否关联工长
+  isShowRelatedCraftsman: true // 是否关联工长，默认关联工长
 })
 
 const relatedCraftsmanFieldText = computed(() => {
@@ -200,7 +200,6 @@ const onRelatedCraftsmanSelect = (item) => {
 }
 
 const openRelatedCraftsmanField = () => {
-  if (skillInfo.value?.isSkillVerified) return
   relatedCraftsmanPopupRef.value?.open()
 }
 
@@ -425,7 +424,19 @@ const getisSkillVerified = async () => {
   if (data) {
     skillInfo.value = data
   }
-  skillInfo.value.isShowRelatedCraftsman = Boolean(skillInfo.value.relatedCraftsmanUserId)
+
+  const hasSkillInfo = Boolean(
+    data?.work_kind_code ||
+    data?.work_kind_name ||
+    data?.work_years ||
+    data?.skill_intro ||
+    data?.promise_image?.length ||
+    data?.operation_video?.length ||
+    data?.relatedCraftsmanUserId
+  )
+  skillInfo.value.isShowRelatedCraftsman = hasSkillInfo
+    ? Boolean(skillInfo.value.relatedCraftsmanUserId)
+    : true
 
   // 模拟数据
   // skillInfo.value.promise_image = data?.promise_image ?? [{
