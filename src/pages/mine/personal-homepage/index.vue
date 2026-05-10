@@ -90,13 +90,14 @@ const getUserInfo = async () => {
 
 const handlePublish = async ({
   publish_text,
-  publish_images
+  publish_images,
+  publish_video
 }: {
   publish_text: string
   publish_images: string[]
+  publish_video: string[]
 }) => {
-  console.log(publish_text, publish_images, 'imagesimagesimages')
-  const { success } = await homePageAuditService({ publish_text, publish_images })
+  const { success } = await homePageAuditService({ publish_text, publish_images, publish_video })
   if (success) {
     showToast('提交成功，审核中...')
     refreshProductionList()

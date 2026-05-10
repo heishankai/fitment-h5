@@ -18,10 +18,10 @@
           <van-icon name="user-circle-o" aria-hidden="true" />
           {{ user.nickname || '用户' }}
         </h2>
-        <a v-if="user.phone" :href="`tel:${user.phone}`" class="user-phone">
+        <button v-if="user.phone" type="button" class="user-phone" @click="handleCallPhone">
           <van-icon name="phone-o" aria-hidden="true" />
           <span>{{ encryptPhone(user.phone) }}</span>
-        </a>
+        </button>
       </div>
     </div>
   </section>
@@ -29,15 +29,23 @@
 
 <script setup lang="ts">
 import DetailSectionTitle from '@/components/detail-section-title.vue'
-import { encryptPhone } from '@/utils/index'
+import { showToast } from 'vant'
+import { callPhone, encryptPhone } from '@/utils/index'
 
-defineProps<{
+const props = defineProps<{
   user: {
     avatar?: string
     nickname?: string
     phone?: string
   } | null
 }>()
+
+const handleCallPhone = async () => {
+  const success = await callPhone(props.user?.phone)
+  if (!success) {
+    showToast('暂无可拨打的电话')
+  }
+}
 </script>
 
 <style lang="less" scoped>
@@ -85,6 +93,7 @@ defineProps<{
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      border: none;
       font-size: 14px;
       color: var(--color-text-placeholder);
       padding: 6px 12px;

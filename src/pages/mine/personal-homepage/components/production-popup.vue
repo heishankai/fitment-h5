@@ -58,6 +58,28 @@
             请至少上传 1 张真实工地施工图片，最多 5 张。作品发布后需等待管理员审核。
           </p>
         </div>
+
+        <!-- 视频上传区 -->
+        <div class="upload-section video-section">
+          <div class="upload-header">
+            <span class="upload-label">工地视频</span>
+            <span class="upload-count">{{ publish_video.length }}/1</span>
+          </div>
+
+          <div v-if="publish_video[0]" class="video-preview">
+            <video :src="publish_video[0]" class="preview-video" controls />
+            <button class="remove-btn" @click="handleRemoveVideo">
+              <van-icon name="cross" size="14" color="#fff" />
+            </button>
+          </div>
+
+          <button v-else class="video-add-btn" @click="handleAddVideo">
+            <van-icon name="video-o" size="28" />
+            <span>添加视频</span>
+          </button>
+
+          <p class="upload-tip">视频非必填，最多上传 1 个。建议上传真实施工现场视频。</p>
+        </div>
       </div>
     </div>
   </van-popup>
@@ -76,7 +98,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   'update:show': [value: boolean]
-  publish: [payload: { publish_text: string; publish_images: string[] }]
+  publish: [payload: { publish_text: string; publish_images: string[]; publish_video: string[] }]
 }>()
 
 const visible = computed({
@@ -86,6 +108,7 @@ const visible = computed({
 
 const publish_text = ref('')
 const publish_images = ref<string[]>([])
+const publish_video = ref<string[]>([])
 
 // 至少上传 1 张工地照片；文案选填
 const canPublish = computed(() => publish_images.value.length > 0)
@@ -150,6 +173,59 @@ const handleRemoveImage = (index: number) => {
   publish_images.value = publish_images.value.filter((_, i) => i !== index)
 }
 
+/**
+ * 选择并上传视频（使用 Flutter 原生 bridge.chooseMedia）
+ */
+const handleAddVideo = async () => {
+  if (publish_video.value.length >= 1) return
+
+  const bridge = await waitForFitmentFlutter()
+  if (!bridge) {
+    showToast('请在 App 中使用此功能')
+    return
+  }
+
+  try {
+    const res = await bridge.chooseMedia({
+      count: 1,
+      allowVideo: true,
+      upload: {
+        url: '/upload',
+        name: 'file',
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        },
+        formData: {
+          biz: 'home_page_video'
+        }
+      }
+    })
+
+    const fileInfo = Array.isArray(res) ? res[0] : res?.tempFiles?.[0]
+    if (!fileInfo) return
+
+    if (fileInfo.error) {
+      showToast(fileInfo.error || '上传失败，请重试')
+      return
+    }
+
+    if (fileInfo.url) {
+      publish_video.value = [fileInfo.url]
+      showToast('上传成功')
+      return
+    }
+
+    showToast('上传失败：未返回视频URL')
+  } catch (error) {
+    console.error('选择或上传视频失败:', error)
+    showToast('操作失败，请重试')
+  }
+}
+
+const handleRemoveVideo = () => {
+  publish_video.value = []
+}
+
 const handlePublish = () => {
   if (publish_images.value.length < 1) {
     showToast('请至少上传 1 张工地图片')
@@ -157,10 +233,12 @@ const handlePublish = () => {
   }
   emit('publish', {
     publish_text: publish_text.value,
-    publish_images: [...publish_images.value]
+    publish_images: [...publish_images.value],
+    publish_video: [...publish_video.value]
   })
   publish_text.value = ''
   publish_images.value = []
+  publish_video.value = []
   emit('update:show', false)
 }
 </script>
@@ -358,6 +436,64 @@ const handlePublish = () => {
       color: var(--color-text-placeholder);
       margin-top: 12px;
       line-height: 1.5;
+    }
+  }
+
+  .video-section {
+    margin-top: 24px;
+
+    .video-preview {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      background: #000;
+
+      .preview-video {
+        display: block;
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+      }
+
+      .remove-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+    }
+
+    .video-add-btn {
+      width: 100%;
+      height: 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--color-background);
+      border: 1px dashed var(--color-border);
+      border-radius: 12px;
+      color: var(--color-text-placeholder);
+      cursor: pointer;
+
+      &:active {
+        background: var(--color-bg-hover);
+      }
+
+      span {
+        font-size: 13px;
+      }
     }
   }
 }

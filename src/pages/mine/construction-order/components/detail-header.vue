@@ -16,12 +16,12 @@
 
       <van-button
         v-if="user?.phone"
-        :url="phoneHref"
         type="primary"
         size="small"
         round
         icon="phone"
         class="call-btn"
+        @click="handleCallPhone"
       >
         {{ user.phone }}
       </van-button>
@@ -48,7 +48,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { formatTime } from '@/utils/index'
+import { showToast } from 'vant'
+import { callPhone, formatTime } from '@/utils/index'
 
 const props = defineProps<{
   order: any
@@ -68,9 +69,12 @@ const statusType = computed(() => {
 
 const isAssigned = computed(() => props.order.is_assigned || props.order.is_assigned_order)
 
-const phoneHref = computed(() =>
-  props.user?.phone ? `tel:${props.user.phone.replace(/[^\d+]/g, '')}` : ''
-)
+const handleCallPhone = async () => {
+  const success = await callPhone(props.user?.phone)
+  if (!success) {
+    showToast('暂无可拨打的电话')
+  }
+}
 
 const address = computed(() => {
   const { location, province, city, district } = props.order

@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { useSystemNotificationSocket } from '@/composables/useSystemNotificationSocket'
 
 const route = useRoute()
+const { connect: connectSystemNotificationSocket } = useSystemNotificationSocket()
+
+watch(
+  () => route.fullPath,
+  () => connectSystemNotificationSocket()
+)
 </script>
 
 <template>

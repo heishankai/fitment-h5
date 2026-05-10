@@ -102,7 +102,7 @@ const searchCraftsman = () => {
     showToast('请输入正确的11位手机号')
     return
   }
-  run({ craftsman_phone: p })
+  run({ phone: p })
 }
 
 const handleSelectCraftsman = (item: any) => {

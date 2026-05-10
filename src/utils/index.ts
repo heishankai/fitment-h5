@@ -444,6 +444,46 @@ export const encryptPhone = (phone: string): string => {
 }
 
 /**
+ * 拨打电话。Flutter WebView 中优先走原生桥接，普通浏览器回退到 tel 协议。
+ */
+export const callPhone = async (phone?: string | number | null): Promise<boolean> => {
+  if (typeof window === 'undefined') return false
+
+  const phoneNumber = String(phone ?? '').replace(/[^\d+]/g, '')
+  if (!phoneNumber) return false
+
+  const bridge = await waitForFitmentFlutter()
+  const bridgeCall =
+    bridge?.callPhone || bridge?.makePhoneCall || bridge?.phoneCall || bridge?.dialPhone
+
+  if (typeof bridgeCall === 'function') {
+    bridgeCall(phoneNumber)
+    return true
+  }
+
+  const flutter = (window as any).flutter_inappwebview
+  if (flutter?.callHandler) {
+    try {
+      await flutter.callHandler('FlutterCallPhone', phoneNumber)
+      return true
+    } catch (error) {
+      console.warn('调用 FlutterCallPhone 失败，尝试使用 tel 协议:', error)
+    }
+  }
+
+  const globalCall =
+    (window as any).FlutterCallPhone || (window as any).CallPhone || (window as any).MakePhoneCall
+
+  if (typeof globalCall === 'function') {
+    globalCall(phoneNumber)
+    return true
+  }
+
+  window.location.href = `tel:${phoneNumber}`
+  return true
+}
+
+/**
  * 检测是否在微信小程序 web-view 环境中
  */
 export const isInMiniProgram = (): boolean => {

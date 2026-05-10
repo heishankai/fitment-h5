@@ -35,11 +35,9 @@ export const searchForemanPageService = (
   params: Partial<{
     pageIndex: number
     pageSize: number
-    craftsman_phone: string
     phone: string
   }> = {}
 ): Promise<BasicResp<any>> => {
-  const tel = params.craftsman_phone ?? params.phone
   return Request({
     url: `/api/craftsman-user/page`,
     method: 'POST',
@@ -47,7 +45,7 @@ export const searchForemanPageService = (
       pageIndex: params.pageIndex ?? 1,
       pageSize: params.pageSize ?? 20,
       work_kind_code: 'GONGZHANG',
-      ...(tel ? { craftsman_phone: tel } : {})
+      phone: params.phone
     }
   })
 }

@@ -17,6 +17,9 @@
         class="image-item"
       />
     </div>
+    <div v-if="item?.publish_video?.[0]" class="video-box">
+      <video :src="item.publish_video[0]" class="video-item" controls />
+    </div>
   </div>
 </template>
 
@@ -108,6 +111,21 @@ const getStatusClass = (status: number) => {
     font-weight: 400;
     line-height: 24.375px;
     letter-spacing: -0.234px;
+  }
+
+  .video-box {
+    margin-top: 8px;
+    border-radius: 12px;
+    border: 0.735px solid #e6eaea;
+    overflow: hidden;
+    background: #000;
+
+    .video-item {
+      display: block;
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
   }
 
   .image-list {

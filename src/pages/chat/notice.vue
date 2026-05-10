@@ -60,6 +60,10 @@ const getUnreadNotificationCount = async () => {
   }
 }
 
+const handleSystemNotificationReceived = () => {
+  getUnreadNotificationCount()
+}
+
 // 暴露刷新方法供父组件调用
 defineExpose({
   refresh: getUnreadNotificationCount
@@ -97,7 +101,12 @@ onMounted(() => {
     //
   } else {
     getUnreadNotificationCount()
+    window.addEventListener('system-notification-received', handleSystemNotificationReceived)
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('system-notification-received', handleSystemNotificationReceived)
 })
 </script>
 
