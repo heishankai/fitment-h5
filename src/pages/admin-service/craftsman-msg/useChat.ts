@@ -13,6 +13,7 @@ interface ChatMessage {
   messageType?: 'text' | 'image' | string
   createdAt?: string
   created_at?: string
+  serviceAvatar?: string
 }
 
 export function useChat() {
@@ -24,6 +25,7 @@ export function useChat() {
   const socket = ref<any>()
   const messagesRef = ref<HTMLElement>()
   const craftsmanUserAvatar = ref<string>('')
+  const serviceAvatar = ref<string>('')
 
   const getWsUrl = () => {
     // 优先使用 VITE_WS_URL
@@ -186,6 +188,9 @@ export function useChat() {
       showToast('连接失败，请刷新页面重试')
     })
     socket.value.on('new-message', (data: ChatMessage) => {
+      if (data.serviceAvatar) {
+        serviceAvatar.value = data.serviceAvatar
+      }
       const msg: ChatMessage = {
         ...data,
         sender_type: data.sender_type || data.senderType,
@@ -208,6 +213,7 @@ export function useChat() {
       if (res.data.craftsman_user?.avatar) {
         craftsmanUserAvatar.value = res.data.craftsman_user.avatar
       }
+      serviceAvatar.value = res.data.service_config?.avatar || ''
       await loadMessages()
       await connectWS()
     } catch (e: any) {
@@ -276,6 +282,7 @@ export function useChat() {
     handleSendImage,
     init,
     disconnect,
-    craftsmanUserAvatar
+    craftsmanUserAvatar,
+    serviceAvatar
   }
 }

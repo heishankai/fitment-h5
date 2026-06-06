@@ -26,6 +26,7 @@ interface Props {
   // eslint-disable-next-line no-unused-vars
   formatTime: (time: string) => string
   wechatUserAvatar?: string
+  serviceAvatar?: string
 }
 const props = defineProps<Props>()
 
@@ -38,8 +39,7 @@ const avatarUrl = computed(() => {
     // 微信用户使用传入的头像
     return props.wechatUserAvatar || ''
   } else {
-    // 客服消息，可以从 msg 中获取头像，或使用默认头像
-    return props.msg.serviceAvatar || props.msg.avatar || ''
+    return props.serviceAvatar || props.msg.serviceAvatar || props.msg.avatar || ''
   }
 })
 
@@ -90,8 +90,8 @@ const previewImage = (url: string) => {
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 
       img {
-        max-width: 200px;
-        max-height: 300px;
+        max-width: 160px;
+        max-height: 240px;
         display: block;
         cursor: pointer;
       }
@@ -132,8 +132,8 @@ const previewImage = (url: string) => {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 
       img {
-        max-width: 200px;
-        max-height: 300px;
+        max-width: 160px;
+        max-height: 240px;
         display: block;
         cursor: pointer;
       }

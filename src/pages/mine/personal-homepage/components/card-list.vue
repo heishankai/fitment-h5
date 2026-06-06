@@ -1,24 +1,37 @@
 <template>
   <div class="card" v-for="item in production_list" :key="item.id">
     <header>
-      <div class="time">{{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm') }}</div>
+      <div class="time">{{ formatCreatedAt(item?.createdAt) }}</div>
       <div class="state-tag" :class="getStatusClass(item?.status)">
         <van-icon :name="getStatusIcon(item?.status)" />
-        <span>{{ item?.status_name }}</span>
+        <span>{{ getStatusText(item) }}</span>
       </div>
     </header>
-    <p v-show="item.publish_text">{{ item.publish_text }}</p>
-    <div class="image-list" :class="{ single: item?.publish_images?.length === 1 }">
+    <p v-show="item?.publish_text">{{ item.publish_text }}</p>
+    <div
+      v-if="getPublishImages(item).length"
+      class="image-list"
+      :class="{ single: getPublishImages(item).length === 1 }"
+    >
       <van-image
-        v-for="(img, idx) in item?.publish_images"
+        v-for="(img, idx) in getPublishImages(item)"
         :key="idx"
         :src="img"
         fit="cover"
         class="image-item"
       />
     </div>
-    <div v-if="item?.publish_video?.[0]" class="video-box">
-      <video :src="item.publish_video[0]" class="video-item" controls />
+    <div v-if="getPublishVideos(item).length" class="video-box">
+      <video
+        v-for="videoUrl in getPublishVideos(item)"
+        :key="videoUrl"
+        :src="videoUrl"
+        :poster="getPublishImages(item)[0]"
+        class="video-item"
+        controls
+        preload="metadata"
+        @error="handleVideoError"
+      />
     </div>
   </div>
 </template>
@@ -29,6 +42,39 @@ import dayjs from 'dayjs'
 defineProps<{
   production_list: any[]
 }>()
+
+const normalizeUrlList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item : (item as { url?: string })?.url))
+      .filter((url): url is string => typeof url === 'string' && !!url)
+  }
+  return typeof value === 'string' && value ? [value] : []
+}
+
+const getPublishImages = (item: any): string[] => normalizeUrlList(item?.publish_images)
+
+const getPublishVideos = (item: any): string[] => normalizeUrlList(item?.publish_video)
+
+const formatCreatedAt = (value: unknown): string => {
+  if (!value) return '--'
+  const time = dayjs(value as string)
+  return time.isValid() ? time.format('YYYY-MM-DD HH:mm') : '--'
+}
+
+const getStatusText = (item: any): string => {
+  if (item?.status_name) return item.status_name
+  const map: Record<number, string> = {
+    1: '已发布',
+    2: '审核中',
+    3: '审核失败'
+  }
+  return map[item?.status] ?? '未知状态'
+}
+
+const handleVideoError = (event: Event) => {
+  console.error('个人主页视频播放失败:', event)
+}
 
 // status: 1 已发布 2 审核中 3 拒绝/审核失败
 const getStatusIcon = (status: number) => {

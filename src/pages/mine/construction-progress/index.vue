@@ -138,11 +138,7 @@ const orderId = Number(route.params.id)
 const STORAGE_KEY = `construction_progress_${orderId}`
 
 /** 开发环境无缓存照片时用于调试施工照片区域 UI（不同 seed 避免三张同图） */
-const MOCK_CONSTRUCTION_PHOTOS: Array<{ url: string }> = [
-  { url: 'https://picsum.photos/seed/fitment-site-1/400/400' },
-  { url: 'https://picsum.photos/seed/fitment-site-2/400/400' },
-  { url: 'https://picsum.photos/seed/fitment-site-3/400/400' }
-]
+const MOCK_CONSTRUCTION_PHOTOS: Array<{ url: string }> = []
 
 const construction_progress = ref({
   start_time: '',

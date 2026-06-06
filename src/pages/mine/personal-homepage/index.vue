@@ -2,9 +2,9 @@
   <div class="page">
     <header>
       <div class="user-info">
-        <van-image round class="avatar" :src="userInfo.avatar" fit="cover" />
+        <van-image round class="avatar" :src="userInfo.avatar || defaultAvatar" fit="cover" />
         <div>
-          <div class="nickname">{{ userInfo.nickname }}</div>
+          <div class="nickname">{{ userInfo.nickname || '工匠用户' }}</div>
           <div class="work-kind-name">
             工种：{{ userInfo?.skillInfo?.work_kind_name || '暂无' }}
           </div>
@@ -23,6 +23,11 @@
         @load="onLoad"
       >
         <cardlist :production_list="production_list" />
+        <van-empty
+          v-if="!loading && finished && production_list.length === 0"
+          image="default"
+          description="暂无作品"
+        />
       </van-list>
     </main>
     <van-floating-bubble icon="plus" @click="showProductionPopup = true" />
@@ -35,6 +40,7 @@ import { getUserInfoService } from './service'
 import cardlist from './components/card-list.vue'
 import ProductionPopup from './components/production-popup.vue'
 import { showToast } from 'vant'
+import { nextTick } from 'vue'
 
 // service
 import { homePageAuditService, getHomePageAuditService } from './service'
@@ -47,29 +53,52 @@ const listRenderKey = ref(0)
 const userInfo = ref<any>({})
 const loading = ref(false)
 const finished = ref(false)
+const requesting = ref(false)
 
 const production_list = ref<any[]>([])
 
 const pageIndex = ref(1)
+const pageSize = 10
+const defaultAvatar =
+  'https://din-dang-zhi-zhuang.oss-cn-hangzhou.aliyuncs.com/uploads/1763214991038_s366qe_logo.png'
 
 const onLoad = async () => {
-  const { success, data, total }: any = await getHomePageAuditService({
-    pageIndex: pageIndex.value,
-    pageSize: 10
-  })
-
-  if (!success) {
+  if (requesting.value || finished.value) {
     loading.value = false
     return
   }
-  pageIndex.value += 1
 
-  production_list.value = [...data, ...production_list.value]
+  requesting.value = true
+  loading.value = true
 
-  loading.value = false
+  try {
+    const { success, data, total }: any = await getHomePageAuditService({
+      pageIndex: pageIndex.value,
+      pageSize
+    })
 
-  if (production_list.value.length >= total) {
+    if (!success) {
+      loading.value = false
+      finished.value = true
+      return
+    }
+
+    const list = Array.isArray(data) ? data : []
+    pageIndex.value += 1
+    production_list.value = [...production_list.value, ...list]
+
+    const totalCount = Number(total)
+    if (Number.isFinite(totalCount)) {
+      finished.value = production_list.value.length >= totalCount
+    } else {
+      finished.value = list.length < pageSize
+    }
+  } catch (error) {
+    console.error('加载个人主页作品失败:', error)
     finished.value = true
+  } finally {
+    requesting.value = false
+    loading.value = false
   }
 }
 
@@ -79,13 +108,20 @@ const refreshProductionList = () => {
   pageIndex.value = 1
   finished.value = false
   listRenderKey.value += 1
+  nextTick(() => {
+    onLoad()
+  })
 }
 // 获取用户信息
 const getUserInfo = async () => {
-  const { success, data } = await getUserInfoService()
-  if (!success) return
-  userInfo.value = data
-  console.log(data, 'userInfo')
+  try {
+    const { success, data } = await getUserInfoService()
+    if (!success) return
+    userInfo.value = data ?? {}
+  } catch (error) {
+    console.error('加载个人主页用户信息失败:', error)
+    userInfo.value = {}
+  }
 }
 
 const handlePublish = async ({
@@ -106,6 +142,7 @@ const handlePublish = async ({
 
 onMounted(() => {
   getUserInfo()
+  onLoad()
 })
 </script>
 

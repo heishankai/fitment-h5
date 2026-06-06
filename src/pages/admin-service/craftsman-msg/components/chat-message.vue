@@ -27,6 +27,7 @@ interface Props {
   formatTime: (time: string) => string
   craftsmanUserAvatar?: string
   wechatUserAvatar?: string
+  serviceAvatar?: string
 }
 const props = defineProps<Props>()
 
@@ -52,6 +53,8 @@ const avatarUrl = computed(() => {
     return props.craftsmanUserAvatar || props.wechatUserAvatar || ''
   } else {
     return (
+      props.serviceAvatar ||
+      props.msg.serviceAvatar ||
       props.wechatUserAvatar ||
       props.craftsmanUserAvatar ||
       props.msg.wechatUserAvatar ||
@@ -110,8 +113,8 @@ const previewImage = (url: string) => {
       box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 
       img {
-        max-width: 200px;
-        max-height: 300px;
+        max-width: 160px;
+        max-height: 240px;
         display: block;
         cursor: pointer;
       }
@@ -152,8 +155,8 @@ const previewImage = (url: string) => {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 
       img {
-        max-width: 200px;
-        max-height: 300px;
+        max-width: 160px;
+        max-height: 240px;
         display: block;
         cursor: pointer;
       }

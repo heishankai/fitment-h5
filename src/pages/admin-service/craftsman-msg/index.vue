@@ -8,7 +8,8 @@
           :msg="msg"
           :isMine="msg.sender_type === 'craftsman'"
           :formatTime="formatTime"
-          :craftsmanUserAvatar="craftsmanUserAvatar"
+          :craftsman-user-avatar="craftsmanUserAvatar"
+          :service-avatar="serviceAvatar"
         />
       </template>
 
@@ -58,7 +59,8 @@ const {
   handleSendImage,
   init,
   disconnect,
-  craftsmanUserAvatar
+  craftsmanUserAvatar,
+  serviceAvatar
 } = useChat()
 
 const handleImageSelect = (file: any) => {
