@@ -444,13 +444,40 @@ export const encryptPhone = (phone: string): string => {
 }
 
 /**
- * 拨打电话。Flutter WebView 中优先走原生桥接，普通浏览器回退到 tel 协议。
+ * 小程序 web-view 拨号：H5 跳转到小程序代理页，由小程序调用 wx.makePhoneCall。
+ */
+const callMiniProgramPhone = (phoneNumber: string): Promise<boolean> => {
+  const miniProgram = (window as any).wx?.miniProgram
+  if (!miniProgram?.navigateTo) return Promise.resolve(false)
+
+  return new Promise((resolve) => {
+    try {
+      miniProgram.navigateTo({
+        url: `/package-mine/phone-call/index?phone=${encodeURIComponent(phoneNumber)}`,
+        success: () => resolve(true),
+        fail: (error: unknown) => {
+          console.warn('调用小程序拨号代理页失败，尝试其他拨号方式:', error)
+          resolve(false)
+        }
+      })
+    } catch (error) {
+      console.warn('小程序拨号代理页不可用，尝试其他拨号方式:', error)
+      resolve(false)
+    }
+  })
+}
+
+/**
+ * 拨打电话。小程序 web-view / Flutter WebView 中优先走原生桥接，普通浏览器回退到 tel 协议。
  */
 export const callPhone = async (phone?: string | number | null): Promise<boolean> => {
   if (typeof window === 'undefined') return false
 
   const phoneNumber = String(phone ?? '').replace(/[^\d+]/g, '')
   if (!phoneNumber) return false
+
+  const miniProgramCalled = await callMiniProgramPhone(phoneNumber)
+  if (miniProgramCalled) return true
 
   const bridge = await waitForFitmentFlutter()
   const bridgeCall =

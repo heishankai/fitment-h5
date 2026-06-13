@@ -57,7 +57,7 @@ router.beforeEach(async (to: any, from: any, next: any) => {
  */
 router.afterEach((to: any) => {
   // 路由切换后再次更新标题（确保标题更新）
-  const title = to.meta?.title || '装修助手'
+  const title = to.meta?.title || '智惠装'
   updateMiniProgramTitle(title)
 })
 
