@@ -18,7 +18,7 @@
         <template #title>
           <div class="card-title">
             <span class="title-text">{{ order.work_kind_name }}</span>
-            <van-tag :type="getStatusType(order.order_status)" round class="status-tag">
+            <van-tag :type="getOrderStatusType(order.order_status)" round class="status-tag">
               {{ order.order_status_name }}
             </van-tag>
             <!-- 显示订单类型标签 -->
@@ -37,10 +37,7 @@
                 <div class="icon-wrapper">
                   <van-icon name="location-o" />
                 </div>
-                <span class="desc-text">{{
-                  order.location ||
-                  `${order.province || ''}${order.city || ''}${order.district || ''}`
-                }}</span>
+                <span class="desc-text">{{ getOrderAddress(order) }}</span>
               </div>
             </div>
             <div class="desc-row">
@@ -48,10 +45,7 @@
                 <div class="icon-wrapper">
                   <van-icon name="home-o" />
                 </div>
-                <span class="desc-text"
-                  >{{ order.houseType === 'new' ? '新房' : '老房' }} · {{ order.roomType }} ·
-                  {{ order.area }}m²</span
-                >
+                <span class="desc-text">{{ getOrderHouseText(order) }}</span>
               </div>
             </div>
             <div class="desc-row" v-if="order.wechat_user">
@@ -59,7 +53,7 @@
                 <div class="icon-wrapper">
                   <van-icon name="user-o" />
                 </div>
-                <span class="desc-text">{{ order.wechat_user.nickname || '用户' }}</span>
+                <span class="desc-text">{{ getOrderUserName(order) }}</span>
               </div>
             </div>
           </div>
@@ -72,32 +66,17 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { formatTime } from '@/utils/index'
+import type { ConstructionOrder } from '../type'
+import { getOrderAddress, getOrderHouseText, getOrderStatusType, getOrderUserName } from '../utils'
 
 const router = useRouter()
+
 defineProps<{
-  orders: any[]
+  orders: ConstructionOrder[]
 }>()
 
-// 获取订单状态类型
-const getStatusType = (
-  status: number
-): 'warning' | 'primary' | 'success' | 'danger' | 'default' => {
-  switch (status) {
-    case 1:
-      return 'warning'
-    case 2:
-      return 'primary'
-    case 3:
-      return 'success'
-    case 4:
-      return 'danger'
-    default:
-      return 'default'
-  }
-}
-
-// 跳转到订单详情
-const goToDetail = (orderId: number) => {
+// 进入工地订单详情。
+const goToDetail = (orderId: number): void => {
   router.push(`/mine/construction-order/${orderId}`)
 }
 </script>

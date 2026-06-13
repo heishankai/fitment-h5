@@ -16,61 +16,40 @@
 </template>
 
 <script lang="ts" setup>
-import { getCraftsmanAcceptedOrdersService } from './service'
+import { useRequest } from 'vue-hooks-plus'
 import OrderListContent from './components/order-list-content.vue'
 import CustomTabs from './components/custom-tabs.vue'
+import { ORDER_TAB_CONFIG, ORDER_TAB_LIST } from './constants'
+import { getCraftsmanAcceptedOrdersService } from './service'
+import type { ConstructionOrder, CraftsmanAcceptedOrdersParams, OrderTabName } from './type'
 
-const orders = ref<any[]>([])
-const loading = ref(true)
 const refreshing = ref(false)
-const activeTab = ref('accepted')
+const activeTab = ref<OrderTabName>('accepted')
+const orders = ref<ConstructionOrder[]>([])
+const tabsList = ORDER_TAB_LIST
 
-// Tabs 列表
-const tabsList = [
-  { name: 'accepted', title: '已接单' },
-  { name: 'completed', title: '已完成' },
-  { name: 'cancelled', title: '已取消' }
-]
-
-// Tab 配置
-const tabConfig = {
-  accepted: { status: [2], title: '已接单' },
-  completed: { status: [3], title: '已完成' },
-  cancelled: { status: [4], title: '已取消' }
-}
-
-// 加载订单列表
-const loadOrders = async () => {
-  try {
-    loading.value = true
-    const config = tabConfig[activeTab.value as keyof typeof tabConfig]
-    const { data, success } = await getCraftsmanAcceptedOrdersService({
-      order_status: config.status
-    })
-
-    if (!success) return
-    orders.value = data || []
-  } catch (error) {
-    console.error('加载订单失败:', error)
-  } finally {
-    loading.value = false
+const getOrderParams = (tabName: OrderTabName): CraftsmanAcceptedOrdersParams => {
+  return {
+    order_status: ORDER_TAB_CONFIG[tabName].status
   }
 }
 
-// Tab 切换
-watch(activeTab, () => {
-  loadOrders()
-})
+// 订单列表请求：tab 变化由 refreshDeps 自动触发，成功后直接回填列表。
+const { refresh } = useRequest(
+  () => getCraftsmanAcceptedOrdersService(getOrderParams(activeTab.value)),
+  {
+    refreshDeps: [activeTab],
+    onSuccess(res) {
+      orders.value = res.success ? res.data || [] : []
+    },
+    onFinally() {
+      refreshing.value = false
+    }
+  }
+)
 
-// 下拉刷新
-const onRefresh = async () => {
-  await loadOrders()
-  refreshing.value = false
-}
-
-onMounted(() => {
-  loadOrders()
-})
+// 下拉刷新：直接复用 useRequest 的 refresh。
+const onRefresh = refresh
 </script>
 
 <style lang="less" scoped>

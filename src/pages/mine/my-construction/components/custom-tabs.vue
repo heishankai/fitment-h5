@@ -38,19 +38,16 @@
 </template>
 
 <script lang="ts" setup>
-interface Tab {
-  name: string
-  title: string
-}
+import type { OrderTab, OrderTabName } from '../type'
 
 const props = defineProps<{
-  tabs: Tab[]
-  activeTab: string
+  tabs: readonly OrderTab[]
+  activeTab: OrderTabName
   refreshing: boolean
 }>()
 
 const emit = defineEmits<{
-  'update:activeTab': [value: string]
+  'update:activeTab': [value: OrderTabName]
   'update:refreshing': [value: boolean]
   refresh: []
 }>()
@@ -69,16 +66,17 @@ const activeTab = computed({
   }
 })
 
-// 获取当前 tab 在数组中的索引
+// Swiper 当前索引，异常时回到第一个 tab。
 const currentSwiperIndex = computed(() => {
-  return props.tabs.findIndex((tab) => tab.name === props.activeTab) || 0
+  const index = props.tabs.findIndex((tab) => tab.name === props.activeTab)
+  return index >= 0 ? index : 0
 })
 
-const handleTabChange = (tabName: string) => {
+const handleTabChange = (tabName: OrderTabName) => {
   activeTab.value = tabName
 }
 
-// 处理 Swiper 的切换事件
+// 滑动切换时同步当前 tab。
 const handleSwiperChange = (index: number) => {
   if (props.tabs[index]) {
     activeTab.value = props.tabs[index].name
