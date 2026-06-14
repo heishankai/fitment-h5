@@ -53,7 +53,7 @@
 import dayjs from 'dayjs'
 import { showImagePreview } from 'vant'
 import DetailSectionTitle from '@/components/detail-section-title.vue'
-import { formatTime } from '@/pages/mine/construction-progress/utils'
+import { formatTime } from '../utils'
 
 defineProps<{
   construction_progress: Array<{

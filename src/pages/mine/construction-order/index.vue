@@ -1,40 +1,33 @@
 <template>
   <div class="page-container">
-    <main v-if="order">
+    <main v-if="order" :class="{ 'has-action-bar': showActionBar }">
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 订单概览（包含用户信息和订单信息） -->
-        <detail-header :order="order" :user="order?.wechat_user" class="fade-in-up" />
+        <detail-header :order="order" :contact-user="order?.wechat_user" class="fade-in-up" />
 
-        <!-- 快捷入口卡片 -->
-        <div class="quick-access-cards fade-in-up" :style="{ animationDelay: '0.2s' }">
-          <!-- 辅材清单入口 -->
-          <div
-            v-if="user?.skillInfo?.work_kind_code !== 'GONGZHANG'"
-            class="access-card"
+        <van-cell-group
+          class="quick-entry-list fade-in-up"
+          :style="{ animationDelay: '0.2s' }"
+          inset
+        >
+          <van-cell
+            v-if="showMaterialListEntry"
+            title="辅材清单"
+            label="查看辅材信息"
+            icon="shopping-cart-o"
+            is-link
+            center
             @click="goToMaterialList"
-          >
-            <div class="card-icon-wrapper material-icon">
-              <van-icon name="shopping-cart-o" />
-            </div>
-            <div class="card-content">
-              <div class="card-title">辅材清单</div>
-              <div class="card-desc">查看辅材信息</div>
-            </div>
-            <van-icon name="arrow" class="arrow-icon" />
-          </div>
-
-          <!-- 施工进度入口 -->
-          <div class="access-card" @click="goToConstructionProgressView">
-            <div class="card-icon-wrapper progress-icon">
-              <van-icon name="orders-o" />
-            </div>
-            <div class="card-content">
-              <div class="card-title">施工进度</div>
-              <div class="card-desc">查看施工记录</div>
-            </div>
-            <van-icon name="arrow" class="arrow-icon" />
-          </div>
-        </div>
+          />
+          <van-cell
+            title="施工进度"
+            label="查看施工记录"
+            icon="orders-o"
+            is-link
+            center
+            @click="goToConstructionProgressView"
+          />
+        </van-cell-group>
 
         <!-- 工价清单 -->
         <price-list
@@ -46,25 +39,21 @@
       </van-pull-refresh>
     </main>
 
-    <footer v-if="order?.order_status === 2 && !order?.is_assigned">
-      <van-button
+    <van-action-bar v-if="showActionBar" class="order-action-bar" safe-area-inset-bottom>
+      <van-action-bar-button
+        :type="canCreatePrice ? 'default' : 'primary'"
+        icon="chat-o"
+        text="联系用户"
+        @click="onContactUser"
+      />
+      <van-action-bar-button
+        v-if="canCreatePrice"
         type="primary"
-        size="normal"
-        round
-        class="action-btn"
-        @click="handleCreateForemanPrice"
         icon="plus"
-      >
-        创建工价
-      </van-button>
-    </footer>
-    <van-floating-bubble
-      v-if="order?.order_status === 2"
-      icon="chat"
-      :offset="chatBubbleOffset"
-      @click="onContactUser"
-      class="chat-bubble"
-    />
+        text="创建工价"
+        @click="handleCreateForemanPrice"
+      />
+    </van-action-bar>
 
     <!-- 修改平米数弹窗（无工价清单时显示） -->
     <AreaDialog
@@ -77,50 +66,56 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-// components
+import { showToast } from 'vant'
+import { useRequest } from 'vue-hooks-plus'
 import DetailHeader from './components/detail-header.vue'
 import PriceList from './components/price-list.vue'
 import AreaDialog from './components/area-dialog.vue'
-// utils
 import { getOrderDetail, getUserInfoService, updateOrderHouseInfoService } from './service'
-import { showToast } from 'vant'
-import { handleContactUser, calculateChatBubbleOffset } from './utils'
+import { handleContactUser } from './utils'
+import type { HouseInfoForm, PageData } from './type'
 
 const route = useRoute()
 const router = useRouter()
 
-const order = ref<any>(null)
-const user = ref<any>(null)
 const refreshing = ref(false)
-const windowSize = ref({ width: window.innerWidth, height: window.innerHeight })
 const showAreaDialog = ref(false)
 
-// 监听窗口大小变化
-const handleResize = () => {
-  windowSize.value = {
-    width: window.innerWidth,
-    height: window.innerHeight
+const orderId = computed(() => Number(route.params.id))
+
+// 数据请求：订单详情和当前工匠信息一起加载，刷新时只需要调用 refresh。
+const getPageData = async (): Promise<PageData> => {
+  const [orderRes, userRes] = await Promise.all([
+    getOrderDetail(orderId.value),
+    getUserInfoService()
+  ])
+
+  return {
+    order: orderRes.success ? orderRes.data : null,
+    user: userRes.success ? userRes.data : null
   }
 }
 
-// 计算浮动气泡位置（右下角）
-// chat 气泡位置（下方）
-const chatBubbleOffset = computed(() => {
-  return calculateChatBubbleOffset(windowSize.value, order.value?.order_status)
+// useRequest 接管初始请求、路由参数变化重刷和下拉刷新收尾。
+const { data: pageData, refresh } = useRequest(getPageData, {
+  refreshDeps: [orderId],
+  onFinally() {
+    refreshing.value = false
+  }
 })
 
-// 判断是否是分配的订单
-const isAssignedOrder = computed(() => {
-  return order.value?.is_assigned === true
-})
+const order = computed(() => pageData.value?.order ?? null)
+const user = computed(() => pageData.value?.user ?? null)
+const priceGroups = computed(() => order.value?.parent_work_price_groups ?? [])
 
-// 获取当前用户手机号
-const currentUserPhone = computed(() => {
-  return user.value?.phone
-})
+// 页面展示状态集中放在这里，模板只负责消费结果。
+const showMaterialListEntry = computed(() => user.value?.skillInfo?.work_kind_code !== 'GONGZHANG')
+const canCreatePrice = computed(() => order.value?.order_status === 2 && !order.value?.is_assigned)
+const showActionBar = computed(() => order.value?.order_status === 2)
 
+// 无工价清单时创建工价前需要先补房屋信息，弹窗默认值从订单回填。
 const houseInfoDefault = computed(() => ({
   housing_name: order.value?.housing_name ?? '',
   location: order.value?.location ?? '',
@@ -129,64 +124,39 @@ const houseInfoDefault = computed(() => ({
   remark: order.value?.remark ?? ''
 }))
 
-// 过滤父工价数据：如果是分配的订单，只显示分配给当前用户的工价
+// 被分配订单只展示当前工匠手机号匹配的工价，其余订单展示全部工价。
 const filteredParentWorkPriceGroups = computed(() => {
-  if (!order.value?.parent_work_price_groups) return []
+  if (!order.value?.is_assigned || !user.value?.phone) return priceGroups.value
 
-  // 如果不是分配的订单，返回全部父工价
-  if (!isAssignedOrder.value) {
-    return order.value.parent_work_price_groups
-  }
-
-  // 如果是分配的订单，需要用户手机号才能过滤
-  if (!currentUserPhone.value) {
-    return order.value.parent_work_price_groups
-  }
-
-  // 如果是分配的订单，只返回分配给当前用户的工价（通过手机号匹配）
-  return order.value.parent_work_price_groups.filter((price: any) => {
-    return price.assigned_craftsman?.phone === currentUserPhone.value
+  return priceGroups.value.filter((price) => {
+    return price.assigned_craftsman?.phone === user.value?.phone
   })
 })
 
-// 加载订单详情
-const loadOrderDetail = async () => {
-  const orderId = Number(route?.params?.id)
-  const { success, data } = await getOrderDetail(orderId)
-  if (!success) return
-  order.value = data
-
-  const { success: userSuccess, data: userData } = await getUserInfoService()
-  if (!userSuccess) return
-  user.value = userData
-}
-
-// 联系用户
+// 底部操作：联系用户进入聊天房间。
 const onContactUser = async () => {
   await handleContactUser(order.value?.wechat_user, router)
 }
 
-// 跳转到辅材清单页面
+// 快捷入口：辅材清单和施工进度都属于当前订单详情的子页面。
 const goToMaterialList = () => {
   router.push({
     path: `/mine/construction-order/${order.value?.id}/material-list`
   })
 }
 
-// 跳转到施工进度查看页面
 const goToConstructionProgressView = () => {
   router.push({
     path: `/mine/construction-order/${order.value?.id}/construction-progress`
   })
 }
 
-// 跳转到创建工价页面
+// 创建工价：已有工价直接进入创建页；没有工价先弹出房屋信息确认。
 const navigateToCreateForemanPrice = () => {
-  const orderId = order.value?.id
   const { area, work_kind_name } = order.value ?? {}
 
   router.push({
-    path: `/mine/foreman-price/${orderId}`,
+    path: `/mine/foreman-price/${order.value?.id}`,
     query: {
       area,
       craftsman_user_work_kind_name: work_kind_name
@@ -194,29 +164,17 @@ const navigateToCreateForemanPrice = () => {
   })
 }
 
-// 创建工价：先判断是否有工价清单
 const handleCreateForemanPrice = () => {
-  const hasPriceList = order.value?.parent_work_price_groups?.length > 0
-
-  // 有工价清单，正常跳转
-  if (hasPriceList) {
+  if (priceGroups.value.length > 0) {
     navigateToCreateForemanPrice()
     return
   }
 
-  // 无工价清单，弹出修改平米数弹窗
   showAreaDialog.value = true
 }
 
-// 房屋信息弹窗 - 确定：修改并刷新
-const onAreaDialogConfirm = async (form: {
-  housing_name?: string
-  location?: string
-  roomType?: string
-  area?: string
-  remark?: string
-}) => {
-  const orderId = order.value?.id
+// 房屋信息确认后刷新订单详情，保证后续创建工价拿到最新数据。
+const onAreaDialogConfirm = async (form: HouseInfoForm) => {
   const payload = {
     housing_name: form.housing_name,
     location: form.location,
@@ -224,38 +182,20 @@ const onAreaDialogConfirm = async (form: {
     remark: form.remark,
     ...(form.area !== undefined && form.area !== '' ? { area: form.area } : {})
   }
-  const { success } = await updateOrderHouseInfoService(Number(orderId), payload)
+  const { success } = await updateOrderHouseInfoService(Number(order.value?.id), payload)
   if (!success) return
 
   showToast('修改成功')
   showAreaDialog.value = false
-  await loadOrderDetail()
+  await refresh()
 }
 
-// 房屋信息弹窗 - 取消：跳转创建工价
 const onAreaDialogCancel = () => {
   showAreaDialog.value = false
   navigateToCreateForemanPrice()
 }
 
-// 下拉刷新
-const onRefresh = async () => {
-  refreshing.value = true
-  try {
-    await loadOrderDetail()
-  } finally {
-    refreshing.value = false
-  }
-}
-
-onMounted(() => {
-  loadOrderDetail()
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
+const onRefresh = refresh
 </script>
 
 <style lang="less" scoped>
@@ -280,137 +220,57 @@ main {
   overscroll-behavior: contain;
   padding: 16px;
   gap: 12px;
+
+  &.has-action-bar {
+    padding-bottom: calc(74px + constant(safe-area-inset-bottom));
+    padding-bottom: calc(74px + env(safe-area-inset-bottom));
+  }
 }
 
-footer {
-  flex-shrink: 0;
-  padding: 12px 16px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+.quick-entry-list {
+  margin: 0 0 12px;
+  overflow: hidden;
+  border: 1px solid #edf2f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(30, 34, 34, 0.05);
 
-  display: flex;
-  gap: 10px;
+  :deep(.van-cell) {
+    padding: 14px 16px;
+  }
 
-  .action-btn {
-    flex: 1;
-    height: 44px;
+  :deep(.van-cell__left-icon) {
+    margin-right: 10px;
+    color: var(--color-primary);
+    font-size: 22px;
+  }
+
+  :deep(.van-cell__title) {
     font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
 
-    .van-icon {
-      font-size: 16px;
-      transition: transform 0.3s ease;
-    }
+  :deep(.van-cell__label) {
+    margin-top: 4px;
   }
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
+.order-action-bar {
+  --van-action-bar-height: 58px;
 
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-// 浮动气泡层级控制
-:deep(.chat-bubble) {
-  z-index: 1000;
-}
-
-// 快捷入口卡片样式
-.quick-access-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.access-card {
+  padding: 0 12px;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid #edf2f0;
   background: #fff;
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -4px 16px rgba(30, 34, 34, 0.06);
 
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  :deep(.van-action-bar-button) {
+    height: 42px;
+    font-weight: 600;
   }
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  .card-icon-wrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-
-    .van-icon {
-      font-size: 24px;
-      color: #fff;
-    }
-
-    &.material-icon {
-      background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
-    }
-
-    &.progress-icon {
-      background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-light) 100%);
-    }
-  }
-
-  &:active .card-icon-wrapper {
-    transform: scale(0.95);
-  }
-
-  .card-content {
-    flex: 1;
-    min-width: 0;
-
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #323233;
-      margin-bottom: 4px;
-    }
-
-    .card-desc {
-      font-size: 13px;
-      color: #969799;
-      line-height: 1.4;
-    }
-  }
-
-  .arrow-icon {
-    font-size: 16px;
-    color: #c8c9cc;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-  }
-
-  &:active .arrow-icon {
-    transform: translateX(2px);
+  :deep(.van-action-bar-button--default) {
+    color: var(--color-primary);
+    border: 1px solid #dce8e6;
   }
 }
 </style>

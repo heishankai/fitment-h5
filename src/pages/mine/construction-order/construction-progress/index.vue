@@ -6,7 +6,6 @@
         <construction-progress
           v-if="constructionProgressData?.length"
           :construction_progress="constructionProgressData"
-          :order-id="orderId"
         />
         <van-empty v-else description="暂无施工进度记录" />
       </van-pull-refresh>

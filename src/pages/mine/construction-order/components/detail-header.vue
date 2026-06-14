@@ -1,45 +1,46 @@
 <template>
   <van-cell-group :border="false" class="detail-header">
-    <div class="top-row">
-      <div class="title-block">
-        <div class="title-line">
-          <h1>{{ order.work_kind_name || '施工订单' }}</h1>
-          <van-tag :type="statusType" round>{{ order.order_status_name }}</van-tag>
-          <van-tag v-if="isAssigned" type="warning" plain round>被分配</van-tag>
-        </div>
+    <van-cell class="header-cell" center :border="false">
+      <template #title>
+        <span class="order-title">{{ orderTitle }}</span>
+        <van-tag :type="statusType" round>{{ statusText }}</van-tag>
+        <van-tag v-if="isAssigned" type="warning" plain round>被分配</van-tag>
+      </template>
 
-        <div class="sub-line">
-          <van-icon name="wap-home-o" />
-          <span>{{ order.housing_name || '小区未填写' }}</span>
-        </div>
-      </div>
+      <template #label>
+        <van-icon name="wap-home-o" />
+        <span>{{ housingName }}</span>
+      </template>
 
-      <van-button
-        v-if="user?.phone"
-        type="primary"
-        size="small"
-        round
-        icon="phone"
-        class="call-btn"
-        @click="handleCallPhone"
-      >
-        {{ user.phone }}
-      </van-button>
-      <van-tag v-else plain round class="empty-phone">暂无电话</van-tag>
-    </div>
+      <template #value>
+        <van-button
+          v-if="contactPhone"
+          type="primary"
+          size="small"
+          round
+          icon="phone"
+          class="call-btn"
+          @click="handleCallPhone"
+        >
+          {{ contactPhone }}
+        </van-button>
+        <van-tag v-else plain round class="empty-phone">暂无电话</van-tag>
+      </template>
+    </van-cell>
 
-    <div class="stats">
-      <div v-for="item in statItems" :key="item.label" class="stat-item">
-        <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
-      </div>
-    </div>
+    <van-grid :column-num="3" :border="false" class="stats-grid">
+      <van-grid-item v-for="item in statItems" :key="item.label">
+        <span class="stat-label">{{ item.label }}</span>
+        <strong class="stat-value">{{ item.value }}</strong>
+      </van-grid-item>
+    </van-grid>
 
     <van-cell
       v-for="row in detailRows"
       :key="row.icon"
       :icon="row.icon"
-      :title="`${row.label}：${row.text}`"
+      :title="row.label"
+      :label="row.text"
       :border="false"
       :class="['meta-cell', row.className]"
     />
@@ -50,12 +51,19 @@
 import { computed } from 'vue'
 import { showToast } from 'vant'
 import { callPhone, formatTime } from '@/utils/index'
+import type { OrderDetail, WechatUser } from '../type'
 
 const props = defineProps<{
-  order: any
-  user?: { phone?: string } | null
+  order: OrderDetail
+  contactUser?: WechatUser | null
 }>()
 
+const orderTitle = computed(() => props.order.work_kind_name || '施工订单')
+const statusText = computed(() => props.order.order_status_name || '待处理')
+const housingName = computed(() => props.order.housing_name || '小区未填写')
+const contactPhone = computed(() => props.contactUser?.phone || '')
+
+// 订单状态只负责控制标签颜色，展示文案直接使用接口返回的名称。
 const statusType = computed(() => {
   const statusMap = {
     1: 'warning',
@@ -70,28 +78,31 @@ const statusType = computed(() => {
 const isAssigned = computed(() => props.order.is_assigned || props.order.is_assigned_order)
 
 const handleCallPhone = async () => {
-  const success = await callPhone(props.user?.phone)
+  const success = await callPhone(contactPhone.value)
   if (!success) {
     showToast('暂无可拨打的电话')
   }
 }
 
+// 地址优先使用接口里的 location；没有时再拼省市区。
 const address = computed(() => {
   const { location, province, city, district } = props.order
   return location || `${province || ''} ${city || ''} ${district || ''}`.trim()
 })
 
+// 概览数据集中到数组里，模板直接渲染，减少重复结构。
 const statItems = computed(() => [
   { label: '户型', value: props.order.roomType || '-' },
   { label: '面积', value: props.order.area ? `${props.order.area}m²` : '-' },
   { label: '下单', value: props.order.createdAt ? formatTime(props.order.createdAt) : '-' }
 ])
 
+// 地址和备注是可选信息，只有接口存在时才展示。
 const detailRows = computed(() => {
   const rows: Array<{ icon: string; text: string; className?: string; label: string }> = []
 
   if (address.value) {
-    rows.push({ icon: 'location-o', label: '地址', text: address.value })
+    rows.push({ icon: 'location-o', label: '地址', text: address.value, className: 'address-cell' })
   }
 
   if (props.order.remark) {
@@ -117,56 +128,48 @@ const detailRows = computed(() => {
   box-shadow: 0 4px 14px rgba(30, 34, 34, 0.05);
 }
 
-.top-row {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 10px 12px 8px;
-}
+.header-cell {
+  padding: 12px;
 
-.title-block {
-  flex: 1;
-  min-width: 0;
-}
+  :deep(.van-cell__title) {
+    display: flex;
+    min-width: 0;
+    gap: 6px;
+    align-items: center;
+  }
 
-.title-line,
-.sub-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
+  :deep(.van-cell__label) {
+    display: flex;
+    min-width: 0;
+    gap: 5px;
+    align-items: center;
+    margin-top: 5px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
 
-.title-line h1,
-.sub-line span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  :deep(.van-cell__label span) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.title-line h1 {
-  flex: 1;
-  margin: 0;
-  color: var(--color-text);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.sub-line {
-  margin-top: 4px;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-
-  .van-icon {
+  :deep(.van-cell__label .van-icon) {
+    flex: none;
     color: var(--color-primary);
+  }
+
+  :deep(.van-cell__value) {
+    flex: none;
+    max-width: 120px;
+    margin-left: 10px;
   }
 }
 
 .call-btn {
-  flex: 0 0 auto;
-  height: 30px;
+  max-width: 120px;
+  height: 32px;
   padding: 0 10px;
   font-size: 12px;
 
@@ -177,51 +180,61 @@ const detailRows = computed(() => {
   }
 }
 
+.order-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .empty-phone {
   color: var(--color-text-placeholder);
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.stats-grid {
   margin: 0 10px 6px;
   overflow: hidden;
   border-radius: 10px;
   background: #f5f8f7;
-}
 
-.stat-item {
-  min-width: 0;
-  padding: 8px 6px;
-  text-align: center;
+  :deep(.van-grid-item__content) {
+    padding: 9px 4px;
+    background: transparent;
+  }
 
-  & + & {
+  :deep(.van-grid-item + .van-grid-item .van-grid-item__content) {
     border-left: 1px solid #e8efec;
   }
+}
 
-  span,
-  strong {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.stat-label,
+.stat-value {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  span {
-    color: var(--color-text-secondary);
-    font-size: 11px;
-  }
+.stat-label {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
 
-  strong {
-    margin-top: 2px;
-    color: var(--color-text);
-    font-size: 13px;
-    font-weight: 650;
-  }
+.stat-value {
+  margin-top: 2px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .meta-cell {
-  padding: 6px 12px 9px;
+  padding: 8px 12px 10px;
   color: var(--color-text-secondary);
   background: #fff;
 
@@ -230,10 +243,17 @@ const detailRows = computed(() => {
   }
 
   :deep(.van-cell__title span) {
-    overflow: hidden;
     font-size: 12px;
+    font-weight: 600;
+  }
+
+  :deep(.van-cell__label) {
+    overflow: hidden;
+    margin-top: 3px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
     text-overflow: ellipsis;
-    white-space: nowrap;
   }
 }
 

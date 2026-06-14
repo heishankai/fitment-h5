@@ -6,8 +6,8 @@
       <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
         <!-- 工价清单 -->
         <price-list
-          :work-prices="order?.work_prices"
-          :sub-work-prices="order?.sub_work_prices"
+          :parent-work-price-groups="order?.parent_work_price_groups"
+          :order-info="order"
           class="fade-in-up"
         />
       </van-pull-refresh>
@@ -16,38 +16,37 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useRequest } from 'vue-hooks-plus'
 import CustomVanNavbar from '@/components/custom-vannavbar.vue'
 import PriceList from './components/price-list.vue'
 import { getOrderDetail } from './service'
+import type { OrderDetail } from './type'
 
 const route = useRoute()
 
-const order = ref<any>(null)
 const refreshing = ref(false)
 
-// 加载订单详情
-const loadOrderDetail = async () => {
-  const orderId = Number(route?.params?.id)
-  const { success, data } = await getOrderDetail(orderId)
-  if (!success) return
-  order.value = data
+const orderId = computed(() => Number(route.params.id))
+
+// 工价页只需要订单详情接口，接口里已经包含工价和费用汇总字段。
+const getPageData = async (): Promise<OrderDetail | null> => {
+  if (!orderId.value) return null
+
+  const { success, data } = await getOrderDetail(orderId.value)
+  return success ? data : null
 }
 
-// 下拉刷新
-const onRefresh = async () => {
-  refreshing.value = true
-  try {
-    await loadOrderDetail()
-  } finally {
+// useRequest 负责初始请求、路由 ID 变化后的刷新，以及下拉刷新结束态。
+const { data: order, refresh } = useRequest(getPageData, {
+  refreshDeps: [orderId],
+  onFinally() {
     refreshing.value = false
   }
-}
-
-onMounted(() => {
-  loadOrderDetail()
 })
+
+const onRefresh = refresh
 </script>
 
 <style lang="less" scoped>
