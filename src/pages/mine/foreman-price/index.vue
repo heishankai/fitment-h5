@@ -100,6 +100,9 @@
       v-model="showCartList"
       :cart-list="cartList"
       :total-price="totalPrice"
+      :show-gangmaster-cost="canCustomGangmasterCost"
+      v-model:manual-gangmaster-cost-enabled="manualGangmasterCostEnabled"
+      v-model:manual-gangmaster-cost="manualGangmasterCost"
       @update-item="updateCartItem"
       @remove-item="removeCartItem"
       @submit="handleSubmit"
@@ -132,6 +135,21 @@ const showCartList = ref(false)
 const workKinds = ref<any[]>([])
 const priceList = ref<any[]>([])
 const currentUserWorkKindName = ref<string | undefined>(undefined)
+const currentUserWorkKindCode = ref<string | undefined>(undefined)
+const manualGangmasterCostEnabled = ref(false)
+const manualGangmasterCost = ref('')
+
+const canCustomGangmasterCost = computed(() => currentUserWorkKindCode.value === 'GONGZHANG')
+const manualGangmasterCostAmount = computed(() => Number(manualGangmasterCost.value))
+
+type SubmitWorkPricePayload = {
+  order_id: number
+  area: unknown
+  total_price: number
+  work_price_list: Array<Record<string, unknown>>
+  gangmaster_cost_mode?: 'auto' | 'manual'
+  manual_gangmaster_cost?: number
+}
 
 // 使用工价清单功能（传入订单ID）
 const orderId = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
@@ -167,9 +185,74 @@ const navigateToDetail = (price: any) => {
   })
 }
 
+// 组装后端需要的工价清单，保持提交字段集中维护。
+const buildWorkPriceList = () =>
+  (cartList.value || []).map((item) => {
+    const {
+      quantity,
+      id,
+      work_kind,
+      work_price,
+      work_title,
+      labour_cost,
+      minimum_price,
+      is_set_minimum_price
+    } = item ?? {}
+
+    return {
+      work_price_id: id,
+      work_price,
+      work_title,
+      quantity,
+      work_kind_name: work_kind?.work_kind_name,
+      work_kind_code: work_kind?.work_kind_code,
+      labour_cost_name: labour_cost?.labour_cost_name,
+      minimum_price,
+      is_set_minimum_price
+    }
+  })
+
+// 工长可选择填写本次工长费；不开启时后端继续按原规则自动计算。
+const buildSubmitPayload = (): SubmitWorkPricePayload => {
+  const payload: SubmitWorkPricePayload = {
+    order_id: Number(route.params.id),
+    area,
+    total_price: totalPrice.value,
+    work_price_list: buildWorkPriceList()
+  }
+
+  if (!canCustomGangmasterCost.value) return payload
+
+  payload.gangmaster_cost_mode = manualGangmasterCostEnabled.value ? 'manual' : 'auto'
+
+  if (manualGangmasterCostEnabled.value) {
+    payload.manual_gangmaster_cost = manualGangmasterCostAmount.value
+  }
+
+  return payload
+}
+
+// 本次工长费只校验启用后的输入，未启用时走自动计算。
+const validateManualGangmasterCost = () => {
+  if (!canCustomGangmasterCost.value || !manualGangmasterCostEnabled.value) return true
+
+  if (!manualGangmasterCost.value) {
+    showToast('请输入本次工长费')
+    return false
+  }
+
+  if (!Number.isFinite(manualGangmasterCostAmount.value) || manualGangmasterCostAmount.value < 0) {
+    showToast('请输入有效的本次工长费')
+    return false
+  }
+
+  return true
+}
+
 // 提交工价清单
 const handleSubmit = async () => {
   if (!cartList.value?.length) return showToast('清单为空，请先添加工价')
+  if (!validateManualGangmasterCost()) return
 
   try {
     await showConfirmDialog({
@@ -177,67 +260,13 @@ const handleSubmit = async () => {
       message: `共 ${cartTotalCount.value} 项工价，确认提交吗？`
     })
 
-    console.log({
-      order_id: Number(route.params.id), // 订单id
-      area, // 平米数
-      total_price: totalPrice.value, // 施工总费用
-      work_price_list: (cartList.value || [])?.map((item) => {
-        const {
-          quantity,
-          id,
-          work_kind,
-          work_price,
-          work_title,
-          labour_cost,
-          minimum_price,
-          is_set_minimum_price
-        } = item ?? {}
-        return {
-          work_price_id: id, // 工价id
-          work_price, // 工价
-          work_title, // 工价标题
-          quantity, // 数量
-          work_kind_name: work_kind?.work_kind_name, // 工种名称
-          work_kind_code: work_kind?.work_kind_code, // 工种id
-          labour_cost_name: labour_cost?.labour_cost_name, // 单位名称
-          minimum_price, // 最低价格,
-          is_set_minimum_price // 是否设置最低价格
-        }
-      })
-    })
-
-    const { success } = await submitWorkPriceService({
-      order_id: Number(route.params.id), // 订单id
-      area, // 平米数
-      total_price: totalPrice.value, // 施工总费用
-      work_price_list: (cartList.value || [])?.map((item) => {
-        const {
-          quantity,
-          id,
-          work_kind,
-          work_price,
-          work_title,
-          labour_cost,
-          minimum_price,
-          is_set_minimum_price
-        } = item ?? {}
-        return {
-          work_price_id: id, // 工价id
-          work_price, // 工价
-          work_title, // 工价标题
-          quantity, // 数量
-          work_kind_name: work_kind?.work_kind_name, // 工种名称
-          work_kind_code: work_kind?.work_kind_code, // 工种id
-          labour_cost_name: labour_cost?.labour_cost_name, // 单位名称
-          minimum_price, // 最低价格,
-          is_set_minimum_price // 是否设置最低价格
-        }
-      })
-    })
+    const { success } = await submitWorkPriceService(buildSubmitPayload())
 
     if (success) {
       showToast('提交成功')
       clearCart()
+      manualGangmasterCostEnabled.value = false
+      manualGangmasterCost.value = ''
       showCartList.value = false
       router.back()
     }
@@ -259,8 +288,9 @@ const getWorkKindList = async () => {
   const { success: userSuccess, data: userData } = await getUserInfoService()
   if (!userSuccess || !userData) return
 
-  // 保存当前用户的工种名称
+  // 保存当前用户工种，用于筛选工价和判断是否展示工长费设置。
   currentUserWorkKindName.value = userData?.skillInfo?.work_kind_name
+  currentUserWorkKindCode.value = userData?.skillInfo?.work_kind_code
 
   // 获取所有工种
   const { success, data } = await getWorkKindListService()
@@ -269,7 +299,7 @@ const getWorkKindList = async () => {
   // 根据用户工种过滤
   let filteredData = data
 
-  if (userData?.skillInfo?.work_kind_code === 'GONGZHANG') {
+  if (canCustomGangmasterCost.value) {
     // 如果是工长工种，展示全部工种
     filteredData = data
   } else {
@@ -296,7 +326,7 @@ const getWorkKindPrice = async (workKindId: number) => {
   if (!success || !data) return
 
   // 根据用户工种过滤工价
-  if (currentUserWorkKindName.value === '工长') {
+  if (canCustomGangmasterCost.value) {
     // 如果是工长，展示全部工价
     priceList.value = data
   } else {

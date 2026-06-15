@@ -48,7 +48,30 @@
           </div>
         </div>
       </div>
+
       <div class="cart-footer">
+        <div v-if="showGangmasterCost" class="gangmaster-fee">
+          <div class="fee-switch-row">
+            <div>
+              <div class="fee-title">本次工长费</div>
+              <div class="fee-desc">开启后按填写金额生成本次工长费</div>
+            </div>
+            <van-switch v-model="manualEnabled" size="22px" />
+          </div>
+
+          <van-field
+            v-if="manualEnabled"
+            v-model="manualCost"
+            type="number"
+            label="本次工长费"
+            input-align="right"
+            placeholder="请输入本次工长费"
+            clearable
+          >
+            <template #button>元</template>
+          </van-field>
+        </div>
+
         <div class="cart-total">
           <span class="total-label">总计：</span>
           <span class="total-price">¥{{ totalPrice.toFixed(2) }}</span>
@@ -70,13 +93,22 @@ interface Props {
   modelValue: boolean
   cartList: PriceCartItem[]
   totalPrice: number
+  showGangmasterCost?: boolean
+  manualGangmasterCostEnabled?: boolean
+  manualGangmasterCost?: string | number
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showGangmasterCost: false,
+  manualGangmasterCostEnabled: false,
+  manualGangmasterCost: ''
+})
 
 // Emits
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+  'update:manualGangmasterCostEnabled': [value: boolean]
+  'update:manualGangmasterCost': [value: string | number]
   'update-item': [item: PriceCartItem]
   'remove-item': [id: number]
   submit: []
@@ -86,6 +118,16 @@ const emit = defineEmits<{
 const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
+})
+
+const manualEnabled = computed({
+  get: () => props.manualGangmasterCostEnabled,
+  set: (value) => emit('update:manualGangmasterCostEnabled', value)
+})
+
+const manualCost = computed({
+  get: () => props.manualGangmasterCost,
+  set: (value) => emit('update:manualGangmasterCost', value)
 })
 
 const handleUpdateShow = (show: boolean) => {
@@ -250,6 +292,38 @@ const handleSubmit = () => {
       height: 44px;
       font-size: 16px;
       font-weight: 600;
+    }
+  }
+
+  .gangmaster-fee {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: rgba(var(--color-primary-rgb), 0.06);
+    border-radius: 12px;
+
+    .fee-switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .fee-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .fee-desc {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    :deep(.van-cell) {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
     }
   }
 }
