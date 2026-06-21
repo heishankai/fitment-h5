@@ -41,10 +41,10 @@ export function usePriceCart(orderId?: string | number) {
       const saved = localStorage.getItem(key)
       if (saved) {
         const parsed = JSON.parse(saved)
-        // 确保每个项都有 quantity 字段，如果没有则设置为 1，并确保是整数
+        // 确保每个项都有 quantity 字段，如果没有则设置为 1（支持一位小数）
         cartList.value = parsed.map((item: PriceCartItem) => ({
           ...item,
-          quantity: Math.floor(Number(item.quantity) || 1)
+          quantity: Number(item.quantity) || 1
         }))
 
         console.log('从 localStorage 加载工价清单:', cartList.value)
@@ -71,9 +71,9 @@ export function usePriceCart(orderId?: string | number) {
     saveCartToStorage()
   }
 
-  // 计算清单总数量（所有项的 quantity 之和）
+  // 计算清单项数（工价种类数，而非数量之和）
   const cartTotalCount = computed(() => {
-    return cartList.value.reduce((total, item) => total + (item.quantity || 1), 0)
+    return cartList.value.length
   })
 
   // 计算总价格（考虑数量和最低价格）
@@ -135,9 +135,9 @@ export function usePriceCart(orderId?: string | number) {
     const existingIndex = cartList.value.findIndex((item) => item.id === price.id)
 
     if (existingIndex !== -1) {
-      // 如果已存在，增加数量（确保是整数）
+      // 如果已存在，数量 +1
       const existingItem = cartList.value[existingIndex]
-      existingItem.quantity = Math.floor((existingItem.quantity || 1) + 1)
+      existingItem.quantity = (Number(existingItem.quantity) || 1) + 1
       showToast('已添加到清单')
     } else {
       // 如果不存在，添加新工价

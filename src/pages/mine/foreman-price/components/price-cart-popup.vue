@@ -32,7 +32,8 @@
               <van-stepper
                 v-model="item.quantity"
                 :min="1"
-                integer
+                :step="0.1"
+                :decimal-length="1"
                 @change="handleUpdateItem(item)"
               />
               <van-button
@@ -134,9 +135,9 @@ const handleUpdateShow = (show: boolean) => {
   visible.value = show
 }
 
-// 计算清单总数量
+// 计算清单项数（工价种类数，而非数量之和）
 const cartTotalCount = computed(() => {
-  return props.cartList.reduce((total, item) => total + (item.quantity || 1), 0)
+  return props.cartList.length
 })
 
 // 更新工价数量
