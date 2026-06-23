@@ -122,8 +122,9 @@ import {
   getUserInfoService
 } from './service'
 import { showToast, showConfirmDialog } from 'vant'
-import { usePriceCart } from './composables/usePriceCart'
+import { usePriceCart, type WorkPriceSource } from './composables/usePriceCart'
 import { useTreeSelectScrollRestore } from '@/composables/useTreeSelectScrollRestore'
+import { findWorkPriceSourceByCode, resolveWorkPriceCode } from './utils/resolve-work-price-code'
 
 const router = useRouter()
 const route = useRoute()
@@ -156,6 +157,47 @@ const orderId = Array.isArray(route.params.id) ? route.params.id[0] : route.para
 // 从查询参数中获取 area
 const { area } = route.query ?? {}
 
+const workPriceByCode = ref(new Map<string, WorkPriceSource>())
+
+const cacheWorkPrices = (prices: WorkPriceSource[]) => {
+  prices.forEach((price) => {
+    const code = resolveWorkPriceCode(price)
+    if (code) {
+      workPriceByCode.value.set(code, { ...price, code })
+    }
+  })
+}
+
+const getAllWorkPrices = (nearPrices: WorkPriceSource[] = []) => {
+  const priceMap = new Map<string, WorkPriceSource>()
+
+  const appendPrice = (price: WorkPriceSource) => {
+    const key = String(price.id ?? resolveWorkPriceCode(price) ?? price.work_title ?? '')
+    if (!key || priceMap.has(key)) return
+    priceMap.set(key, price)
+  }
+
+  nearPrices.forEach(appendPrice)
+  priceList.value.forEach(appendPrice)
+  workPriceByCode.value.forEach(appendPrice)
+
+  return [...priceMap.values()]
+}
+
+const findWorkPriceByCode = (code: string, nearPrices: WorkPriceSource[] = []) =>
+  findWorkPriceSourceByCode(code, getAllWorkPrices(nearPrices))
+
+const preloadWorkPriceCache = async () => {
+  await Promise.all(
+    workKinds.value.map(async (workKind) => {
+      const { success, data } = await getWorkKindPriceService(workKind.value)
+      if (success && data) {
+        cacheWorkPrices(data)
+      }
+    })
+  )
+}
+
 const {
   cartList,
   cartTotalCount,
@@ -164,7 +206,7 @@ const {
   updateCartItem,
   removeCartItem,
   clearCart
-} = usePriceCart(orderId)
+} = usePriceCart(orderId, area, findWorkPriceByCode)
 
 // 打开清单弹窗
 const openCartPopup = () => {
@@ -172,8 +214,8 @@ const openCartPopup = () => {
 }
 
 // 加入清单
-const handleAddToCart = (price: any) => {
-  addToCart(price)
+const handleAddToCart = (price: WorkPriceSource) => {
+  addToCart(price, priceList.value)
 }
 
 // 跳转工价详情
@@ -314,6 +356,8 @@ const getWorkKindList = async () => {
     value: item.work_kind_code
   }))
 
+  await preloadWorkPriceCache()
+
   // 默认选中第一个
   if (workKinds.value.length > 0) {
     onClickNav(0)
@@ -324,6 +368,8 @@ const getWorkKindList = async () => {
 const getWorkKindPrice = async (workKindId: number) => {
   const { success, data } = await getWorkKindPriceService(workKindId)
   if (!success || !data) return
+
+  cacheWorkPrices(data)
 
   // 根据用户工种过滤工价
   if (canCustomGangmasterCost.value) {

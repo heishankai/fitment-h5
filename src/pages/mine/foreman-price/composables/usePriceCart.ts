@@ -1,10 +1,34 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { showToast } from 'vant'
+import {
+  getCartRefAutoAddConfig,
+  normalizeQuantity,
+  resolveWorkPriceQuantity
+} from '../utils/calculate-work-price-quantity'
+import { normalizeWorkPriceCode, resolveWorkPriceCode } from '../utils/resolve-work-price-code'
+
+export interface WorkPriceSource {
+  id?: number
+  code?: string
+  work_kind_id?: number
+  work_title?: string
+  work_price?: string
+  pricing_description?: string
+  service_scope?: string
+  display_images?: string[]
+  service_details?: unknown[]
+  labour_cost_id?: number
+  labour_cost?: PriceCartItem['labour_cost']
+  work_kind?: PriceCartItem['work_kind']
+  is_set_minimum_price?: string
+  minimum_price?: string
+}
 
 // 工价清单项类型
 export interface PriceCartItem {
   id?: number
+  code?: string
   work_kind_id: number
   work_title: string
   work_price: string
@@ -20,9 +44,89 @@ export interface PriceCartItem {
   quantity?: number
 }
 
-export function usePriceCart(orderId?: string | number) {
+export function usePriceCart(
+  orderId?: string | number,
+  area?: unknown,
+  findWorkPriceByCode?: (
+    code: string,
+    nearPrices?: WorkPriceSource[]
+  ) => WorkPriceSource | undefined
+) {
   const route = useRoute()
   const cartList = ref<PriceCartItem[]>([])
+
+  const getArea = () => {
+    const rawArea = area ?? route.query.area
+    const parsed = Number(rawArea)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+
+  const resolveQuantity = (price: WorkPriceSource, excludeCode?: string) => {
+    const normalizedExcludeCode = normalizeWorkPriceCode(excludeCode)
+    const contextCartList = normalizedExcludeCode
+      ? cartList.value.filter(
+          (item) => normalizeWorkPriceCode(resolveWorkPriceCode(item)) !== normalizedExcludeCode
+        )
+      : cartList.value
+
+    return resolveWorkPriceQuantity(resolveWorkPriceCode(price), {
+      area: getArea(),
+      cartList: contextCartList
+    })
+  }
+
+  const findCartItemIndexByCode = (code?: string) => {
+    const normalizedCode = normalizeWorkPriceCode(code)
+    if (!normalizedCode) return -1
+
+    return cartList.value.findIndex(
+      (item) => normalizeWorkPriceCode(resolveWorkPriceCode(item)) === normalizedCode
+    )
+  }
+
+  const buildCartItem = (price: WorkPriceSource, quantity: number): PriceCartItem => ({
+    id: price.id,
+    code: resolveWorkPriceCode(price),
+    work_kind_id: price.work_kind?.id || price.work_kind_id || 0,
+    work_title: price.work_title || '',
+    work_price: price.work_price || '',
+    pricing_description: price.pricing_description,
+    service_scope: price.service_scope,
+    display_images: price.display_images || [],
+    service_details: price.service_details || [],
+    labour_cost_id: price.labour_cost?.id || price.labour_cost_id,
+    labour_cost: price.labour_cost,
+    work_kind: price.work_kind,
+    is_set_minimum_price: price.is_set_minimum_price,
+    minimum_price: price.minimum_price,
+    quantity: normalizeQuantity(quantity)
+  })
+
+  const ensureRefWorkPriceInCart = (price: WorkPriceSource, nearPrices?: WorkPriceSource[]) => {
+    const autoAddConfig = getCartRefAutoAddConfig(resolveWorkPriceCode(price))
+    if (!autoAddConfig) return
+
+    const refQuantity = normalizeQuantity(autoAddConfig.defaultQuantity)
+    const existingRefIndex = findCartItemIndexByCode(autoAddConfig.refCode)
+
+    if (existingRefIndex !== -1) {
+      if (autoAddConfig.incrementExisting) {
+        const refItem = cartList.value[existingRefIndex]
+        refItem.quantity = normalizeQuantity(
+          (Number(refItem.quantity) || 0) + autoAddConfig.defaultQuantity
+        )
+      }
+      return
+    }
+
+    const refPrice = findWorkPriceByCode?.(autoAddConfig.refCode, nearPrices)
+    if (!refPrice) {
+      showToast(`未找到「${autoAddConfig.refName ?? autoAddConfig.refCode}」工价，请手动添加`)
+      return
+    }
+
+    cartList.value.push(buildCartItem(refPrice, refQuantity))
+  }
 
   // 获取订单ID（从参数或路由中获取）
   const getOrderId = () => {
@@ -44,7 +148,8 @@ export function usePriceCart(orderId?: string | number) {
         // 确保每个项都有 quantity 字段，如果没有则设置为 1（支持一位小数）
         cartList.value = parsed.map((item: PriceCartItem) => ({
           ...item,
-          quantity: Number(item.quantity) || 1
+          code: resolveWorkPriceCode(item) ?? item.code,
+          quantity: normalizeQuantity(item.quantity)
         }))
 
         console.log('从 localStorage 加载工价清单:', cartList.value)
@@ -83,7 +188,7 @@ export function usePriceCart(orderId?: string | number) {
 
     const result = cartList.value.reduce((total, item) => {
       const price = parseFloat(String(item.work_price)) || 0
-      const quantity = item.quantity || 1
+      const quantity = item.quantity ?? 1
       const itemTotal = price * quantity
 
       // 检查是否设置了最低价格（兼容字符串 '1' 和数字 1）
@@ -124,39 +229,33 @@ export function usePriceCart(orderId?: string | number) {
   })
 
   // 加入清单
-  const addToCart = (price: any) => {
+  const addToCart = (price: WorkPriceSource, nearPrices?: WorkPriceSource[]) => {
     console.log('添加工价到清单:', {
       price,
       is_set_minimum_price: price.is_set_minimum_price,
       minimum_price: price.minimum_price
     })
 
-    // 检查是否已存在相同工价id的项（使用工价项的唯一id，而不是work_kind_id）
-    const existingIndex = cartList.value.findIndex((item) => item.id === price.id)
+    ensureRefWorkPriceInCart(price, nearPrices)
+
+    const workPriceCode = resolveWorkPriceCode(price)
+    const existingIndex = findCartItemIndexByCode(workPriceCode)
+    const quantityResult = resolveQuantity(price, existingIndex !== -1 ? workPriceCode : undefined)
+
+    if (quantityResult?.missingRefName) {
+      showToast(`请先添加「${quantityResult.missingRefName}」工价`)
+    }
+
+    const quantity = normalizeQuantity(quantityResult?.quantity ?? 1)
 
     if (existingIndex !== -1) {
-      // 如果已存在，数量 +1
       const existingItem = cartList.value[existingIndex]
-      existingItem.quantity = (Number(existingItem.quantity) || 1) + 1
+      existingItem.quantity = quantityResult
+        ? quantity
+        : normalizeQuantity((Number(existingItem.quantity) || 1) + 1)
       showToast('已添加到清单')
     } else {
-      // 如果不存在，添加新工价
-      const newItem = {
-        id: price.id,
-        work_kind_id: price.work_kind?.id || price.work_kind_id,
-        work_title: price.work_title,
-        work_price: price.work_price,
-        pricing_description: price.pricing_description,
-        service_scope: price.service_scope,
-        display_images: price.display_images || [],
-        service_details: price.service_details || [],
-        labour_cost_id: price.labour_cost?.id || price.labour_cost_id,
-        labour_cost: price.labour_cost,
-        work_kind: price.work_kind,
-        is_set_minimum_price: price.is_set_minimum_price,
-        minimum_price: price.minimum_price,
-        quantity: 1
-      }
+      const newItem = buildCartItem(price, quantity)
       console.log('添加新工价项:', newItem)
       cartList.value.push(newItem)
       showToast('已加入清单')
@@ -165,14 +264,21 @@ export function usePriceCart(orderId?: string | number) {
     saveCartToStorage()
   }
 
-  // 更新清单项（v-model 已直接修改 item，此处仅持久化）
-  const updateCartItem = () => {
+  // 更新清单项（v-model 已直接修改 item，此处规范化数量并持久化）
+  const updateCartItem = (item?: PriceCartItem) => {
+    if (item) {
+      item.quantity = normalizeQuantity(item.quantity)
+    }
     saveCartToStorage()
   }
 
   // 删除清单项
-  const removeCartItem = (id: number) => {
-    const index = cartList.value.findIndex((item) => item.id === id)
+  const removeCartItem = (item: PriceCartItem) => {
+    let index = findCartItemIndexByCode(resolveWorkPriceCode(item))
+    if (index === -1) {
+      index = cartList.value.findIndex((cartItem) => cartItem.id === item.id)
+    }
+
     if (index > -1) {
       cartList.value.splice(index, 1)
       saveCartToStorage()

@@ -16,32 +16,39 @@
       <div class="cart-content">
         <van-empty v-if="cartList.length === 0" description="清单为空" />
         <div v-else class="cart-item-list">
-          <div v-for="item in cartList" :key="item.id" class="cart-item">
-            <div class="cart-item-info">
-              <div class="cart-item-name">{{ item.work_title }}</div>
-              <div class="cart-item-work-kind">{{ item.work_kind?.work_kind_name || '' }}</div>
-              <div class="cart-item-price">
-                ¥{{ item.work_price }}
-                <span v-if="item.labour_cost">/{{ item.labour_cost.labour_cost_name }}</span>
+          <div
+            v-for="item in cartList"
+            :key="`${item.code || item.work_title}-${item.id}`"
+            class="cart-item"
+          >
+            <div class="cart-item-main">
+              <div class="cart-item-info">
+                <div class="cart-item-name">{{ item.work_title }}</div>
+                <div class="cart-item-work-kind">{{ item.work_kind?.work_kind_name || '' }}</div>
+                <div class="cart-item-price">
+                  ¥{{ item.work_price }}
+                  <span v-if="item.labour_cost">/{{ item.labour_cost.labour_cost_name }}</span>
+                </div>
+                <div class="cart-item-desc" v-if="item.pricing_description">
+                  {{ item.pricing_description }}
+                </div>
               </div>
-              <div class="cart-item-desc" v-if="item.pricing_description">
-                {{ item.pricing_description }}
-              </div>
-            </div>
-            <div class="cart-item-actions">
               <van-stepper
                 v-model="item.quantity"
-                :min="1"
+                class="quantity-stepper"
+                :min="MIN_WORK_PRICE_QUANTITY"
                 :step="0.1"
                 :decimal-length="1"
                 @change="handleUpdateItem(item)"
               />
+            </div>
+            <div class="cart-item-delete">
               <van-button
-                size="mini"
+                size="small"
                 type="danger"
                 plain
                 class="delete-btn"
-                @click="handleRemoveItem(item.id!)"
+                @click="handleRemoveItem(item)"
               >
                 删除
               </van-button>
@@ -88,6 +95,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import type { PriceCartItem } from '../composables/usePriceCart'
+import { MIN_WORK_PRICE_QUANTITY } from '../utils/calculate-work-price-quantity'
 
 // Props
 interface Props {
@@ -111,7 +119,7 @@ const emit = defineEmits<{
   'update:manualGangmasterCostEnabled': [value: boolean]
   'update:manualGangmasterCost': [value: string | number]
   'update-item': [item: PriceCartItem]
-  'remove-item': [id: number]
+  'remove-item': [item: PriceCartItem]
   submit: []
 }>()
 
@@ -146,8 +154,8 @@ const handleUpdateItem = (item: PriceCartItem) => {
 }
 
 // 删除工价
-const handleRemoveItem = (id: number) => {
-  emit('remove-item', id)
+const handleRemoveItem = (item: PriceCartItem) => {
+  emit('remove-item', item)
 }
 
 // 提交清单
@@ -201,12 +209,18 @@ const handleSubmit = () => {
 
     .cart-item {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 12px;
       padding: 12px;
       background: #f8f8f8;
       border-radius: 12px;
+
+      .cart-item-main {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
 
       .cart-item-info {
         flex: 1;
@@ -250,14 +264,35 @@ const handleSubmit = () => {
         }
       }
 
-      .cart-item-actions {
+      .quantity-stepper {
+        flex-shrink: 0;
+
+        :deep(.van-stepper__minus),
+        :deep(.van-stepper__plus) {
+          width: 30px;
+          height: 30px;
+          background: #fff;
+        }
+
+        :deep(.van-stepper__input) {
+          width: 50px;
+          height: 30px;
+          font-size: 16px;
+          font-weight: 600;
+          background: #fff;
+        }
+      }
+
+      .cart-item-delete {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 8px;
+        justify-content: flex-end;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
 
         .delete-btn {
-          font-size: 12px;
+          min-width: 64px;
+          min-height: 32px;
+          font-size: 13px;
         }
       }
     }
