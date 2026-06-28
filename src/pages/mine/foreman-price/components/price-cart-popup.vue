@@ -2,7 +2,7 @@
   <van-popup
     v-model:show="visible"
     position="bottom"
-    :style="{ height: '80%' }"
+    :style="{ height: '90%' }"
     round
     closeable
     close-icon-position="top-right"
@@ -16,78 +16,92 @@
       <div class="cart-content">
         <van-empty v-if="cartList.length === 0" description="清单为空" />
         <div v-else class="cart-item-list">
-          <div
+          <van-cell-group
             v-for="item in cartList"
             :key="`${item.code || item.work_title}-${item.id}`"
+            inset
             class="cart-item"
           >
-            <div class="cart-item-main">
-              <div class="cart-item-info">
-                <div class="cart-item-name">{{ item.work_title }}</div>
-                <div class="cart-item-work-kind">{{ item.work_kind?.work_kind_name || '' }}</div>
-                <div class="cart-item-price">
-                  ¥{{ item.work_price }}
-                  <span v-if="item.labour_cost">/{{ item.labour_cost.labour_cost_name }}</span>
-                </div>
-                <div class="cart-item-desc" v-if="item.pricing_description">
-                  {{ item.pricing_description }}
-                </div>
-              </div>
-              <van-stepper
-                v-model="item.quantity"
-                class="quantity-stepper"
-                :min="MIN_WORK_PRICE_QUANTITY"
-                :step="0.1"
-                :decimal-length="1"
-                @change="handleUpdateItem(item)"
-              />
-            </div>
-            <div class="cart-item-delete">
-              <van-button
-                size="small"
-                type="danger"
-                plain
-                class="delete-btn"
-                @click="handleRemoveItem(item)"
-              >
-                删除
-              </van-button>
-            </div>
-          </div>
+            <van-cell :border="false">
+              <template #title>
+                <span class="cart-item-name">{{ item.work_title }}</span>
+              </template>
+              <template #label>
+                <van-space wrap :size="8" class="cart-item-meta">
+                  <van-tag v-if="item.work_kind?.work_kind_name" type="primary" plain>
+                    {{ item.work_kind.work_kind_name }}
+                  </van-tag>
+                  <span class="cart-item-price">
+                    ¥{{ item.work_price }}
+                    <span v-if="item.labour_cost" class="cart-item-unit">
+                      /{{ item.labour_cost.labour_cost_name }}
+                    </span>
+                  </span>
+                </van-space>
+              </template>
+              <template #right-icon>
+                <van-button
+                  icon="delete-o"
+                  size="small"
+                  type="danger"
+                  plain
+                  round
+                  class="delete-btn"
+                  @click="handleRemoveItem(item)"
+                />
+              </template>
+            </van-cell>
+
+            <van-cell title="数量" center class="quantity-cell">
+              <template #right-icon>
+                <van-stepper
+                  v-model="item.quantity"
+                  class="quantity-stepper"
+                  :min="MIN_WORK_PRICE_QUANTITY"
+                  :step="0.1"
+                  :decimal-length="1"
+                  @change="handleUpdateItem(item)"
+                />
+              </template>
+            </van-cell>
+          </van-cell-group>
         </div>
       </div>
 
-      <div class="cart-footer">
-        <div v-if="showGangmasterCost" class="gangmaster-fee">
-          <div class="fee-switch-row">
-            <div>
-              <div class="fee-title">本次工长费</div>
-              <div class="fee-desc">开启后按填写金额生成本次工长费</div>
-            </div>
-            <van-switch v-model="manualEnabled" size="22px" />
-          </div>
+      <footer class="cart-footer">
+        <van-cell-group v-if="showGangmasterCost" inset class="gangmaster-fee">
+          <van-cell
+            center
+            :border="false"
+            title="局改工长费"
+            label="全屋装修不要操作，局改可自定义工长费"
+          >
+            <template #right-icon>
+              <van-switch v-model="manualEnabled" size="22px" />
+            </template>
+          </van-cell>
 
           <van-field
             v-if="manualEnabled"
             v-model="manualCost"
             type="number"
-            label="本次工长费"
+            label="工长费"
             input-align="right"
             placeholder="请输入本次工长费"
-            clearable
           >
             <template #button>元</template>
           </van-field>
-        </div>
+        </van-cell-group>
 
-        <div class="cart-total">
-          <span class="total-label">总计：</span>
-          <span class="total-price">¥{{ totalPrice.toFixed(2) }}</span>
-        </div>
-        <van-button type="primary" size="large" round @click="handleSubmit" class="submit-btn">
-          提交清单
-        </van-button>
-      </div>
+        <van-submit-bar
+          :fixed="false"
+          :price="submitBarPrice"
+          button-text="提交清单"
+          button-type="primary"
+          safe-area-inset-bottom
+          @submit="handleSubmit"
+        />
+      </footer>
     </div>
   </van-popup>
 </template>
@@ -148,6 +162,9 @@ const cartTotalCount = computed(() => {
   return props.cartList.length
 })
 
+// van-submit-bar 的 price 单位为分
+const submitBarPrice = computed(() => Math.round(props.totalPrice * 100))
+
 // 更新工价数量
 const handleUpdateItem = (item: PriceCartItem) => {
   emit('update-item', item)
@@ -198,168 +215,131 @@ const handleSubmit = () => {
   .cart-content {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 12px 0;
     -webkit-overflow-scrolling: touch;
 
     .cart-item-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .cart-item {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 12px;
-      background: #f8f8f8;
-      border-radius: 12px;
+      overflow: hidden;
 
-      .cart-item-main {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
+      :deep(.van-cell) {
+        background: #f8f8f8;
       }
 
-      .cart-item-info {
+      :deep(.van-cell__title) {
         flex: 1;
         min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+      }
 
-        .cart-item-name {
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--color-text);
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
+      .cart-item-name {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text);
+        line-height: 1.5;
+        word-break: break-word;
+        white-space: normal;
+      }
 
-        .cart-item-work-kind {
-          font-size: 12px;
+      .cart-item-meta {
+        margin-top: 6px;
+      }
+
+      .cart-item-price {
+        font-size: 15px;
+        color: var(--color-primary);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .cart-item-unit {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-text-secondary);
+      }
+
+      .delete-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: none;
+      }
+
+      .quantity-cell {
+        :deep(.van-cell__title) {
+          flex: 1;
           color: var(--color-text-secondary);
+          font-size: 14px;
         }
 
-        .cart-item-price {
-          font-size: 16px;
-          color: var(--color-primary);
-          font-weight: 700;
-          margin-top: 4px;
-        }
-
-        .cart-item-desc {
-          font-size: 13px;
-          color: var(--color-text-placeholder);
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          margin-top: 4px;
+        :deep(.van-cell__right-icon) {
+          flex-shrink: 0;
+          margin-left: auto;
         }
       }
 
       .quantity-stepper {
-        flex-shrink: 0;
-
         :deep(.van-stepper__minus),
         :deep(.van-stepper__plus) {
-          width: 30px;
-          height: 30px;
+          width: 36px;
+          height: 36px;
           background: #fff;
         }
 
         :deep(.van-stepper__input) {
-          width: 50px;
-          height: 30px;
+          width: 56px;
+          height: 36px;
           font-size: 16px;
           font-weight: 600;
           background: #fff;
-        }
-      }
-
-      .cart-item-delete {
-        display: flex;
-        justify-content: flex-end;
-        padding-top: 12px;
-        border-top: 1px solid #eee;
-
-        .delete-btn {
-          min-width: 64px;
-          min-height: 32px;
-          font-size: 13px;
         }
       }
     }
   }
 
   .cart-footer {
-    padding: 16px;
-    border-top: 1px solid #f0f0f0;
+    flex-shrink: 0;
     background: #fff;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
 
-    .cart-total {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding: 12px 0;
-
-      .total-label {
-        font-size: 16px;
-        color: var(--color-text);
-        font-weight: 500;
-      }
-
-      .total-price {
-        font-size: 24px;
-        color: var(--color-primary);
-        font-weight: 700;
-      }
+    :deep(.van-submit-bar) {
+      position: relative;
     }
 
-    .submit-btn {
-      width: 100%;
-      height: 44px;
-      font-size: 16px;
-      font-weight: 600;
+    :deep(.van-submit-bar__price) {
+      font-size: 22px;
+      font-weight: 700;
     }
   }
 
   .gangmaster-fee {
-    margin-bottom: 12px;
-    padding: 12px;
-    background: rgba(var(--color-primary-rgb), 0.06);
-    border-radius: 12px;
-
-    .fee-switch-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .fee-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--color-text);
-    }
-
-    .fee-desc {
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--color-text-secondary);
-    }
+    margin: 12px 16px 0;
 
     :deep(.van-cell) {
-      margin-top: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 12px 16px;
+      background: rgba(var(--color-primary-rgb), 0.06);
+    }
+
+    :deep(.van-cell__title) {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    :deep(.van-cell__label) {
+      margin-top: 4px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    :deep(.van-field) {
+      margin-top: 0;
+      background: #fff;
     }
   }
 }

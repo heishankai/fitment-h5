@@ -1,5 +1,14 @@
 import Request from '@/utils/request'
 
+export interface UploadImageResult {
+  success: boolean
+  data: {
+    url: string
+  }
+  code?: number
+  message?: string
+}
+
 /**
  * 上传图片
  * 使用公共的 Request
@@ -8,7 +17,7 @@ import Request from '@/utils/request'
  * 注意：后端使用 FileInterceptor('file')，所以 FormData 中的文件字段名必须是 'file'
  * folder 参数通过 FormData 的 body 传递
  */
-export const uploadImage = (file: File): Promise<{ url: string }> => {
+export const uploadImage = (file: File): Promise<UploadImageResult | undefined> => {
   const formData = new FormData()
   // 文件字段名必须是 'file'（与后端 FileInterceptor('file') 匹配）
   formData.append('file', file)

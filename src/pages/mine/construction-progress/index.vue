@@ -127,6 +127,7 @@ import { showToast, showImagePreview } from 'vant'
 import dayjs from 'dayjs'
 // utils
 import { getToken, waitForFitmentFlutter } from '@/utils'
+import { uploadImage } from '@/service'
 import { saveConstructionProgress } from './service'
 import { getUserLocation, formatTime, validateProgress } from './utils'
 
@@ -226,15 +227,48 @@ const handleCheckIn = (type: 'start' | 'end') => {
 }
 
 /**
- * 选择并上传照片（使用 Flutter 原生方法，支持多选）
+ * H5 / 小程序 web-view 环境选择并上传照片
+ */
+const choosePhotosViaH5 = (count: number): Promise<Array<{ url: string }>> => {
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    if (count > 1) {
+      input.multiple = true
+    }
+
+    input.onchange = async () => {
+      const files = Array.from(input.files || []).slice(0, count)
+      if (!files.length) {
+        resolve([])
+        return
+      }
+
+      const uploadedPhotos: Array<{ url: string }> = []
+      for (const file of files) {
+        try {
+          const res = await uploadImage(file)
+          if (res?.success && res?.data?.url) {
+            uploadedPhotos.push({ url: res.data.url })
+          } else {
+            showToast('上传失败，请重试')
+          }
+        } catch {
+          showToast('上传失败，请重试')
+        }
+      }
+      resolve(uploadedPhotos)
+    }
+
+    input.click()
+  })
+}
+
+/**
+ * 选择并上传照片（App 使用 Flutter 原生方法，H5/小程序使用文件选择）
  */
 const handleChoosePhotos = async () => {
-  const bridge = await waitForFitmentFlutter()
-  if (!bridge) {
-    showToast('请在 App 中使用此功能')
-    return
-  }
-
   const remainingCount = 5 - (construction_progress.value.photos?.length || 0)
   if (remainingCount <= 0) {
     showToast('最多只能上传5张照片')
@@ -242,39 +276,41 @@ const handleChoosePhotos = async () => {
   }
 
   try {
-    // 使用 Flutter 原生方法选择图片并自动上传
-    const res = await bridge.chooseImage({
-      count: remainingCount, // 最多选择剩余数量
-      upload: {
-        url: '/upload',
-        name: 'file',
-        headers: {
-          Authorization: `Bearer ${getToken()}`
-        },
-        formData: {
-          biz: 'construction_photo'
+    const bridge = await waitForFitmentFlutter()
+    let uploadedPhotos: Array<{ url: string }> = []
+
+    if (bridge?.chooseImage) {
+      const res = await bridge.chooseImage({
+        count: remainingCount,
+        upload: {
+          url: '/upload',
+          name: 'file',
+          headers: {
+            Authorization: `Bearer ${getToken()}`
+          },
+          formData: {
+            biz: 'construction_photo'
+          }
+        }
+      })
+
+      if (!res?.tempFiles?.length) {
+        return
+      }
+
+      for (const fileInfo of res.tempFiles) {
+        if (fileInfo.error) {
+          showToast(fileInfo.error || '上传失败，请重试')
+          continue
+        }
+        if (fileInfo.url) {
+          uploadedPhotos.push({ url: fileInfo.url })
         }
       }
-    })
-
-    if (!res || !res.tempFiles || res.tempFiles.length === 0) {
-      return
+    } else {
+      uploadedPhotos = await choosePhotosViaH5(remainingCount)
     }
 
-    // 处理上传结果
-    const uploadedPhotos: Array<{ url: string }> = []
-    for (const fileInfo of res.tempFiles) {
-      if (fileInfo.error) {
-        showToast(fileInfo.error || '上传失败，请重试')
-        continue
-      }
-
-      if (fileInfo.url) {
-        uploadedPhotos.push({ url: fileInfo.url })
-      }
-    }
-
-    // 添加到照片列表
     if (uploadedPhotos.length > 0) {
       construction_progress.value.photos = [
         ...(construction_progress.value.photos || []),

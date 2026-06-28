@@ -40,12 +40,12 @@
     </main>
 
     <van-action-bar v-if="showActionBar" class="order-action-bar" safe-area-inset-bottom>
-      <van-action-bar-button
+      <!-- <van-action-bar-button
         :type="canCreatePrice ? 'default' : 'primary'"
         icon="chat-o"
         text="联系用户"
         @click="onContactUser"
-      />
+      /> -->
       <van-action-bar-button
         v-if="canCreatePrice"
         type="primary"
@@ -74,7 +74,6 @@ import DetailHeader from './components/detail-header.vue'
 import PriceList from './components/price-list.vue'
 import AreaDialog from './components/area-dialog.vue'
 import { getOrderDetail, getUserInfoService, updateOrderHouseInfoService } from './service'
-import { handleContactUser } from './utils'
 import type { HouseInfoForm, PageData } from './type'
 
 const route = useRoute()
@@ -132,11 +131,6 @@ const filteredParentWorkPriceGroups = computed(() => {
     return price.assigned_craftsman?.phone === user.value?.phone
   })
 })
-
-// 底部操作：联系用户进入聊天房间。
-const onContactUser = async () => {
-  await handleContactUser(order.value?.wechat_user, router)
-}
 
 // 快捷入口：辅材清单和施工进度都属于当前订单详情的子页面。
 const goToMaterialList = () => {
