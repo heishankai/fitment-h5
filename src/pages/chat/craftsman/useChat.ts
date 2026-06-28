@@ -118,7 +118,8 @@ export function useChat(roomId: number, wechatUserId: number) {
         token: t,
         wechatUserId: wechatUserId // 传递微信用户ID
       },
-      transports: ['websocket', 'polling'],
+      transports: ['polling'],
+      upgrade: false,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

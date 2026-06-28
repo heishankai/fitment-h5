@@ -1,5 +1,6 @@
 import { ref, nextTick } from 'vue'
 import { showToast } from 'vant'
+import { io } from 'socket.io-client'
 import { getWechatUserRoom, getRoomMessages, uploadImage } from './service'
 import { getToken } from '@/utils/index'
 import dayjs from 'dayjs'
@@ -81,12 +82,6 @@ export function useChat() {
     const t = getToken()
     if (!t) return showToast('缺少token')
 
-    const ioFunc = (window as any).io
-    if (!ioFunc) {
-      await new Promise((r) => setTimeout(r, 500))
-      if (!(window as any).io) return showToast('WebSocket库未加载')
-    }
-
     const wsUrl = getWsUrl()
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -94,7 +89,8 @@ export function useChat() {
     const socketOptions: any = {
       auth: { token: t },
       query: { token: t },
-      transports: ['websocket', 'polling'],
+      transports: ['polling'],
+      upgrade: false,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -116,11 +112,11 @@ export function useChat() {
       const baseUrl = wsUrl.replace(/\/api$/, '')
       wsFullUrl = `${baseUrl}/chat`
       socketOptions.path = '/api/socket.io/'
-      socket.value = (window as any).io(wsFullUrl, socketOptions)
+      socket.value = io(wsFullUrl, socketOptions)
     } else {
       // 开发环境或没有 /api 的情况
       wsFullUrl = `${wsUrl}/chat`
-      socket.value = (window as any).io(wsFullUrl, socketOptions)
+      socket.value = io(wsFullUrl, socketOptions)
     }
 
     console.log('🔗 WebSocket 连接信息:', {

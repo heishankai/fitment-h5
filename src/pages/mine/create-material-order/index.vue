@@ -344,6 +344,8 @@ footer {
   :deep(.van-card__content) {
     flex: 1;
     min-width: 0;
+    min-height: auto;
+    justify-content: flex-start;
   }
 
   :deep(.van-card__title) {
@@ -352,11 +354,10 @@ footer {
     color: var(--color-text);
     line-height: 1.4;
     margin-bottom: 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
+    display: block;
+    white-space: normal;
     word-break: break-word;
   }
 

@@ -24,6 +24,8 @@ export const MIN_WORK_PRICE_QUANTITY = 0.1
 
 /** 数量统一保留一位小数 */
 export const normalizeQuantity = (value: number | string | undefined | null): number => {
+  if (value === '') return 1
+
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return 1
 

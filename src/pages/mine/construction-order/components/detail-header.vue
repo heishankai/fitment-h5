@@ -2,9 +2,13 @@
   <van-cell-group :border="false" class="detail-header">
     <van-cell class="header-cell" center :border="false">
       <template #title>
-        <span class="order-title">{{ orderTitle }}</span>
-        <van-tag :type="statusType" round>{{ statusText }}</van-tag>
-        <van-tag v-if="isAssigned" type="warning" plain round>被分配</van-tag>
+        <div class="header-title-block">
+          <span class="order-title">{{ orderTitle }}</span>
+          <div class="header-tags-row">
+            <van-tag :type="statusType" class="status-tag">{{ statusText }}</van-tag>
+            <van-tag v-if="isAssigned" type="warning" plain class="status-tag">被分配</van-tag>
+          </div>
+        </div>
       </template>
 
       <template #label>
@@ -132,10 +136,8 @@ const detailRows = computed(() => {
   padding: 12px;
 
   :deep(.van-cell__title) {
-    display: flex;
+    flex: 1;
     min-width: 0;
-    gap: 6px;
-    align-items: center;
   }
 
   :deep(.van-cell__label) {
@@ -180,15 +182,34 @@ const detailRows = computed(() => {
   }
 }
 
-.order-title {
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
-  overflow: hidden;
+}
+
+.order-title {
   color: var(--color-text);
   font-size: 16px;
   font-weight: 700;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.header-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+
+  .status-tag {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    font-size: 11px;
+    line-height: 18px;
+    white-space: nowrap;
+  }
 }
 
 .empty-phone {

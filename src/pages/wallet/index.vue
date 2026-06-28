@@ -6,6 +6,14 @@
 
       <!-- 功能菜单 -->
       <main class="fade-in-up" :style="{ animationDelay: '0.1s' }">
+        <van-cell class="menu-item" is-link @click="handleWithdraw" center title="提现">
+          <template #icon>
+            <div class="icon-box" style="background: rgba(var(--color-primary-rgb), 0.13)">
+              <van-icon name="cash-back-record" color="var(--color-primary)" size="18px" />
+            </div>
+          </template>
+        </van-cell>
+
         <van-cell class="menu-item" is-link @click="goToWithdrawRecord" center title="提现记录">
           <template #icon>
             <div class="icon-box" style="background: var(--color-warning) 22">

@@ -94,7 +94,8 @@ export function useChat() {
     const socketOptions: any = {
       auth: { token: t },
       query: { token: t },
-      transports: ['websocket', 'polling'],
+      transports: ['polling'],
+      upgrade: false,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

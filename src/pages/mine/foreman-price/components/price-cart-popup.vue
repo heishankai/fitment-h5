@@ -2,7 +2,7 @@
   <van-popup
     v-model:show="visible"
     position="bottom"
-    :style="{ height: '90%' }"
+    :style="popupStyle"
     round
     closeable
     close-icon-position="top-right"
@@ -60,7 +60,10 @@
                   :min="MIN_WORK_PRICE_QUANTITY"
                   :step="0.1"
                   :decimal-length="1"
-                  @change="handleUpdateItem(item)"
+                  allow-empty
+                  @focus="handleQuantityFocus(item)"
+                  @blur="handleQuantityBlur(item)"
+                  @change="handleQuantityChange(item)"
                 />
               </template>
             </van-cell>
@@ -107,9 +110,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import type { PriceCartItem } from '../composables/usePriceCart'
-import { MIN_WORK_PRICE_QUANTITY } from '../utils/calculate-work-price-quantity'
+import { MIN_WORK_PRICE_QUANTITY, normalizeQuantity } from '../utils/calculate-work-price-quantity'
 
 // Props
 interface Props {
@@ -143,6 +146,20 @@ const visible = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+const keyboardHeight = ref(0)
+
+const popupStyle = computed(() => {
+  if (!keyboardHeight.value) {
+    return { height: '90%' }
+  }
+
+  return {
+    bottom: `${keyboardHeight.value}px`,
+    height: `calc(100vh - ${keyboardHeight.value}px - 12px)`,
+    maxHeight: '90%'
+  }
+})
+
 const manualEnabled = computed({
   get: () => props.manualGangmasterCostEnabled,
   set: (value) => emit('update:manualGangmasterCostEnabled', value)
@@ -165,7 +182,53 @@ const cartTotalCount = computed(() => {
 // van-submit-bar 的 price 单位为分
 const submitBarPrice = computed(() => Math.round(props.totalPrice * 100))
 
-// 更新工价数量
+const editingQuantityItems = new WeakSet<PriceCartItem>()
+
+const isEmptyQuantity = (value: PriceCartItem['quantity']) => value === '' || value == null
+
+const updateKeyboardHeight = () => {
+  const visualViewport = window.visualViewport
+  if (!visualViewport) {
+    keyboardHeight.value = 0
+    return
+  }
+
+  const height = window.innerHeight - visualViewport.height - visualViewport.offsetTop
+  keyboardHeight.value = height > 120 ? Math.round(height) : 0
+}
+
+const scrollFocusedInputIntoView = () => {
+  window.setTimeout(() => {
+    const activeElement = document.activeElement
+    if (!(activeElement instanceof HTMLElement)) return
+
+    activeElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'nearest'
+    })
+  }, 250)
+}
+
+// 输入过程中允许清空，等失焦后再归一化数量。
+const handleQuantityFocus = (item: PriceCartItem) => {
+  editingQuantityItems.add(item)
+  updateKeyboardHeight()
+  scrollFocusedInputIntoView()
+}
+
+const handleQuantityBlur = (item: PriceCartItem) => {
+  editingQuantityItems.delete(item)
+  item.quantity = normalizeQuantity(item.quantity)
+  handleUpdateItem(item)
+  window.setTimeout(updateKeyboardHeight, 80)
+}
+
+const handleQuantityChange = (item: PriceCartItem) => {
+  if (editingQuantityItems.has(item) || isEmptyQuantity(item.quantity)) return
+  handleUpdateItem(item)
+}
+
 const handleUpdateItem = (item: PriceCartItem) => {
   emit('update-item', item)
 }
@@ -177,8 +240,32 @@ const handleRemoveItem = (item: PriceCartItem) => {
 
 // 提交清单
 const handleSubmit = () => {
+  props.cartList.forEach((item) => handleUpdateItem(item))
   emit('submit')
 }
+
+onMounted(() => {
+  updateKeyboardHeight()
+  window.visualViewport?.addEventListener('resize', updateKeyboardHeight)
+  window.visualViewport?.addEventListener('scroll', updateKeyboardHeight)
+  window.addEventListener('resize', updateKeyboardHeight)
+})
+
+onUnmounted(() => {
+  window.visualViewport?.removeEventListener('resize', updateKeyboardHeight)
+  window.visualViewport?.removeEventListener('scroll', updateKeyboardHeight)
+  window.removeEventListener('resize', updateKeyboardHeight)
+})
+
+watch(visible, async (show) => {
+  if (!show) {
+    keyboardHeight.value = 0
+    return
+  }
+
+  await nextTick()
+  updateKeyboardHeight()
+})
 </script>
 
 <style lang="less" scoped>

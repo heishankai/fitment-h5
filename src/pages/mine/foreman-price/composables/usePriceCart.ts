@@ -41,7 +41,7 @@ export interface PriceCartItem {
   work_kind?: any
   is_set_minimum_price?: string
   minimum_price?: string
-  quantity?: number
+  quantity?: number | string
 }
 
 export function usePriceCart(
@@ -188,7 +188,8 @@ export function usePriceCart(
 
     const result = cartList.value.reduce((total, item) => {
       const price = parseFloat(String(item.work_price)) || 0
-      const quantity = item.quantity ?? 1
+      const quantity =
+        item.quantity === '' || item.quantity == null ? 0 : Number(item.quantity) || 0
       const itemTotal = price * quantity
 
       // 检查是否设置了最低价格（兼容字符串 '1' 和数字 1）

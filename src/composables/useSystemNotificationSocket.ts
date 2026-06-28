@@ -57,7 +57,8 @@ export const useSystemNotificationSocket = () => {
       const socketOptions: any = {
         auth: { token },
         query: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling'],
+        upgrade: false,
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,

@@ -57,6 +57,7 @@
       <MenuItem icon="medal-o" color="#c89a57" title="技能认证" @click="goSkillAuth" />
       <MenuItem icon="contact-o" color="#4f7a67" title="个人主页" @click="goPersonalHomepage" />
       <MenuItem icon="location-o" color="#c46b6b" title="我的工地订单" @click="goMyConstruction" />
+      <MenuItem icon="balance-o" color="#2f7d72" title="我的钱包" @click="goWallet" />
     </div>
   </div>
 </template>
@@ -95,6 +96,8 @@ const goSkillAuth = async () => {
 const goPersonalHomepage = () => router.push('/mine/personal-homepage')
 
 const goMyConstruction = () => router.push('/mine/my-construction')
+
+const goWallet = () => router.push('/wallet')
 </script>
 
 <style lang="less" scoped>

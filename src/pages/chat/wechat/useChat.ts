@@ -1,5 +1,6 @@
 import { ref, nextTick } from 'vue'
 import { showToast } from 'vant'
+import { io } from 'socket.io-client'
 import { getCraftsmanWechatRoomMessages, uploadImage, markRoomAsRead } from '../service'
 import { getToken } from '@/utils/index'
 import Request from '@/utils/request'
@@ -102,12 +103,6 @@ export function useChat(roomId: number, craftsmanUserId: number) {
     const t = getToken()
     if (!t) return showToast('缺少token')
 
-    const ioFunc = (window as any).io
-    if (!ioFunc) {
-      await new Promise((r) => setTimeout(r, 500))
-      if (!(window as any).io) return showToast('WebSocket库未加载')
-    }
-
     const wsUrl = getWsUrl()
     const baseURL = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -118,7 +113,8 @@ export function useChat(roomId: number, craftsmanUserId: number) {
         token: t,
         craftsmanUserId: craftsmanUserId // 传递工匠用户ID
       },
-      transports: ['websocket', 'polling'],
+      transports: ['polling'],
+      upgrade: false,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -137,10 +133,10 @@ export function useChat(roomId: number, craftsmanUserId: number) {
       const baseUrl = wsUrl.replace(/\/api$/, '')
       wsFullUrl = `${baseUrl}/craftsman-wechat-chat`
       socketOptions.path = '/api/socket.io/'
-      socket.value = (window as any).io(wsFullUrl, socketOptions)
+      socket.value = io(wsFullUrl, socketOptions)
     } else {
       wsFullUrl = `${wsUrl}/craftsman-wechat-chat`
-      socket.value = (window as any).io(wsFullUrl, socketOptions)
+      socket.value = io(wsFullUrl, socketOptions)
     }
 
     console.log('🔗 WebSocket 连接信息:', {
