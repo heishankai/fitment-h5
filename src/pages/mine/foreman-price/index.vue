@@ -151,8 +151,8 @@ const submitting = ref(false)
 const canCustomGangmasterCost = computed(() => currentUserWorkKindCode.value === 'GONGZHANG')
 const manualGangmasterCostAmount = computed(() => Number(manualGangmasterCost.value))
 const cartSubmitText = computed(() => {
-  if (orderWorkPriceSaved.value) return '提交清单'
-  return previewData.value ? '确认保存' : '预览清单'
+  if (orderWorkPriceSaved.value) return '提交'
+  return previewData.value ? '提交' : '保存'
 })
 
 type SubmitWorkPricePayload = {
@@ -336,7 +336,7 @@ const previewWorkPrices = async () => {
     if (!success || !data) return
 
     previewData.value = data
-    showToast('预览已更新')
+    showToast('保存成功')
   } finally {
     submitting.value = false
   }
@@ -345,7 +345,7 @@ const previewWorkPrices = async () => {
 const saveWorkPrices = async (confirmMessage: string) => {
   try {
     await showConfirmDialog({
-      title: '确认保存',
+      title: '确认提交',
       message: confirmMessage
     })
 
@@ -353,7 +353,7 @@ const saveWorkPrices = async (confirmMessage: string) => {
     const { success } = await submitWorkPriceService(buildSubmitPayload())
 
     if (success) {
-      showToast('保存成功')
+      showToast('提交成功')
       orderWorkPriceSaved.value = true
       previewData.value = null
       clearCart()
@@ -382,7 +382,7 @@ const handleSubmit = async () => {
   await saveWorkPrices(
     orderWorkPriceSaved.value
       ? `共 ${cartTotalCount.value} 项工价，确认提交吗？`
-      : '确认保存预览清单并生成真实订单工价吗？'
+      : '确认提交并生成真实订单工价吗？'
   )
 }
 
