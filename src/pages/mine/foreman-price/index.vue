@@ -100,11 +100,14 @@
       v-model="showCartList"
       :cart-list="cartList"
       :total-price="totalPrice"
+      :preview-data="previewData"
+      :submit-text="cartSubmitText"
+      :submitting="submitting"
       :show-gangmaster-cost="canCustomGangmasterCost"
       v-model:manual-gangmaster-cost-enabled="manualGangmasterCostEnabled"
       v-model:manual-gangmaster-cost="manualGangmasterCost"
-      @update-item="updateCartItem"
-      @remove-item="removeCartItem"
+      @update-item="handleUpdateCartItem"
+      @remove-item="handleRemoveCartItem"
       @submit="handleSubmit"
     />
   </div>
@@ -119,7 +122,9 @@ import {
   getWorkKindListService,
   getWorkKindPriceService,
   submitWorkPriceService,
-  getUserInfoService
+  previewWorkPriceService,
+  getUserInfoService,
+  getOrderDetailService
 } from './service'
 import { showToast, showConfirmDialog } from 'vant'
 import { usePriceCart, type WorkPriceSource } from './composables/usePriceCart'
@@ -139,9 +144,16 @@ const currentUserWorkKindName = ref<string | undefined>(undefined)
 const currentUserWorkKindCode = ref<string | undefined>(undefined)
 const manualGangmasterCostEnabled = ref(false)
 const manualGangmasterCost = ref('')
+const orderWorkPriceSaved = ref(false)
+const previewData = ref<WorkPricePreviewData | null>(null)
+const submitting = ref(false)
 
 const canCustomGangmasterCost = computed(() => currentUserWorkKindCode.value === 'GONGZHANG')
 const manualGangmasterCostAmount = computed(() => Number(manualGangmasterCost.value))
+const cartSubmitText = computed(() => {
+  if (orderWorkPriceSaved.value) return '提交清单'
+  return previewData.value ? '确认保存' : '预览清单'
+})
 
 type SubmitWorkPricePayload = {
   order_id: number
@@ -150,6 +162,16 @@ type SubmitWorkPricePayload = {
   work_price_list: Array<Record<string, unknown>>
   gangmaster_cost_mode?: 'auto' | 'manual'
   manual_gangmaster_cost?: number
+}
+
+type WorkPricePreviewData = {
+  items?: Array<{ settlement_amount?: number | string }>
+  current_total_price?: number | string
+  total_price?: number | string
+  current_service_fee?: number | string
+  current_gangmaster_cost?: number | string
+  visiting_service_num?: number | string
+  all_total_price?: number | string
 }
 
 // 使用工价清单功能（传入订单ID）
@@ -208,6 +230,11 @@ const {
   clearCart
 } = usePriceCart(orderId, area, findWorkPriceByCode)
 
+const clearPreview = () => {
+  if (orderWorkPriceSaved.value) return
+  previewData.value = null
+}
+
 // 打开清单弹窗
 const openCartPopup = () => {
   showCartList.value = true
@@ -216,6 +243,17 @@ const openCartPopup = () => {
 // 加入清单
 const handleAddToCart = (price: WorkPriceSource) => {
   addToCart(price, priceList.value)
+  clearPreview()
+}
+
+const handleUpdateCartItem = (item: any) => {
+  updateCartItem(item)
+  clearPreview()
+}
+
+const handleRemoveCartItem = (item: any) => {
+  removeCartItem(item)
+  clearPreview()
 }
 
 // 跳转工价详情
@@ -291,21 +329,33 @@ const validateManualGangmasterCost = () => {
   return true
 }
 
-// 提交工价清单
-const handleSubmit = async () => {
-  if (!cartList.value?.length) return showToast('清单为空，请先添加工价')
-  if (!validateManualGangmasterCost()) return
+const previewWorkPrices = async () => {
+  try {
+    submitting.value = true
+    const { success, data } = await previewWorkPriceService(buildSubmitPayload())
+    if (!success || !data) return
 
+    previewData.value = data
+    showToast('预览已更新')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const saveWorkPrices = async (confirmMessage: string) => {
   try {
     await showConfirmDialog({
-      title: '确认提交',
-      message: `共 ${cartTotalCount.value} 项工价，确认提交吗？`
+      title: '确认保存',
+      message: confirmMessage
     })
 
+    submitting.value = true
     const { success } = await submitWorkPriceService(buildSubmitPayload())
 
     if (success) {
-      showToast('提交成功')
+      showToast('保存成功')
+      orderWorkPriceSaved.value = true
+      previewData.value = null
       clearCart()
       manualGangmasterCostEnabled.value = false
       manualGangmasterCost.value = ''
@@ -314,7 +364,26 @@ const handleSubmit = async () => {
     }
   } catch {
     console.log('用户取消')
+  } finally {
+    submitting.value = false
   }
+}
+
+// 提交工价清单：首次保存前先预览，确认后才生成真实工价；已保存订单沿用真实创建。
+const handleSubmit = async () => {
+  if (!cartList.value?.length) return showToast('清单为空，请先添加工价')
+  if (!validateManualGangmasterCost()) return
+
+  if (!orderWorkPriceSaved.value && !previewData.value) {
+    await previewWorkPrices()
+    return
+  }
+
+  await saveWorkPrices(
+    orderWorkPriceSaved.value
+      ? `共 ${cartTotalCount.value} 项工价，确认提交吗？`
+      : '确认保存预览清单并生成真实订单工价吗？'
+  )
 }
 
 // 点击导航
@@ -383,6 +452,21 @@ const getWorkKindPrice = async (workKindId: number) => {
   }
 }
 
+const loadOrderWorkPriceState = async () => {
+  const id = Number(route.params.id)
+  if (!id) return
+
+  const { success, data } = await getOrderDetailService(id)
+  if (!success || !data) return
+
+  const hasSavedWorkPrice =
+    data?.work_price_saved === true ||
+    (Array.isArray(data?.parent_work_price_groups) && data.parent_work_price_groups.length > 0) ||
+    (Array.isArray(data?.all_work_price_items) && data.all_work_price_items.length > 0)
+
+  orderWorkPriceSaved.value = hasSavedWorkPrice
+}
+
 const { save, restore } = useTreeSelectScrollRestore(
   'foreman-price-scroll',
   treeSelectWrapperRef,
@@ -392,7 +476,12 @@ const { save, restore } = useTreeSelectScrollRestore(
   (id: any) => getWorkKindPrice(id)
 )
 
-onMounted(() => getWorkKindList().then(restore))
+watch([manualGangmasterCostEnabled, manualGangmasterCost], clearPreview)
+
+onMounted(async () => {
+  await Promise.all([loadOrderWorkPriceState(), getWorkKindList()])
+  restore()
+})
 onActivated(() => workKinds.value.length && restore())
 onBeforeRouteLeave((_to, _from, next) => {
   save()

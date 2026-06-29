@@ -34,6 +34,23 @@ export const submitWorkPriceService = (params: any): Promise<BasicResp<any>> => 
   })
 }
 
+// 预览工价清单，不生成真实工价项
+export const previewWorkPriceService = (params: any): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/work-price-item/preview`,
+    method: 'POST',
+    data: params
+  })
+}
+
+// 获取订单详情，用于判断是否已经首次保存真实工价
+export const getOrderDetailService = (orderId: number): Promise<BasicResp<any>> => {
+  return Request({
+    url: `/api/order/${orderId}`,
+    method: 'GET'
+  })
+}
+
 // 获取用户信息
 export const getUserInfoService = (): Promise<BasicResp<any>> => {
   return Request({
